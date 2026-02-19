@@ -1,0 +1,17 @@
+{
+  "name": "skyline-barcode-decoder",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@sec-ant/zxing-wasm": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "sharp": "^0.33.4"
+  }
+}
+

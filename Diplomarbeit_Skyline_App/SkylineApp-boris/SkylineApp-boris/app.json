@@ -1,0 +1,83 @@
+{
+  "expo": {
+    "name": "Skyline",
+    "slug": "skyline",
+    "version": "1.0.0",
+    "description": "Track your flights, explore destinations, and relive your travel memories",
+    "sdkVersion": "54.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "skyline",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "primaryColor": "#FF1900",
+    "ios": {
+      "bundleIdentifier": "com.borisplesnicar.skyline",
+      "buildNumber": "2",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Skyline needs your location to display flight routes on the map.",
+        "NSCameraUsageDescription": "Skyline needs camera access to scan boarding passes.",
+        "NSPhotoLibraryUsageDescription": "Skyline needs access to your photos to import flight documents.",
+        "NSPhotoLibraryAddUsageDescription": "Skyline needs access to save flight photos.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyBivYog0f70otH-IF0giEd3WSEN_3Onxxw"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBivYog0f70otH-IF0giEd3WSEN_3Onxxw"
+        }
+      },
+      "package": "com.borisplesnicar.skyline"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-web-browser",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a83f213b-41e2-430f-b636-c79a34caa7a1"
+      }
+    },
+    "owner": "borisplesnicar"
+  }
+}

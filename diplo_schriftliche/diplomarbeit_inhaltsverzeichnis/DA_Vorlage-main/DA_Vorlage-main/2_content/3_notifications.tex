@@ -1,0 +1,170 @@
+%!TEX root = ../DA_MainDocument.tex
+\chapter{Benachrichtigungs- und Erinnerungsmodul}\label{chapter:notifications}
+
+\section{Grundlagen proaktiver Benachrichtigungssysteme}
+Proaktive Benachrichtigungssysteme zeichnen sich dadurch aus, dass sie Nutzerinnen
+und Nutzer nicht erst nach einer aktiven Abfrage informieren, sondern relevante
+Ereignisse oder bevorstehende Aufgaben automatisch anzeigen. Im Kontext der
+Reiseorganisation ist dies besonders wichtig, weil viele Handlungen zeitkritisch
+sind und ein Versäumnis (z. B. fehlende Unterlagen oder verpasste Check-ins)
+direkt zu Problemen führen kann. Durch proaktive Hinweise können solche
+Fehlzustände reduziert und die organisatorische Belastung des Nutzers verringert
+werden.
+
+\subsection{Begriff „proaktiv“ und Abgrenzung zu reaktiven Systemen}
+Proaktiv bedeutet, dass das System eigenständig handelt, ohne eine explizite
+Anfrage des Nutzers. Es analysiert Kontextinformationen (z. B. Abflugzeit,
+fehlende Dokumente) und löst rechtzeitig passende Hinweise aus. Reaktive
+Systeme hingegen geben Informationen nur auf Nachfrage aus, wodurch der Nutzer
+selbst ständig an notwendige Schritte denken und die Informationen aktiv
+abrufen muss. In der Reiseorganisation ist der proaktive Ansatz vorteilhaft,
+weil viele Aufgaben in engem zeitlichem Zusammenhang stehen und eine reine
+„Abruf-Logik“ zu einer erhöhten Fehlerwahrscheinlichkeit führt.
+
+\subsection{Erinnerungslasten in der Reiseorganisation}
+Reiseabläufe bestehen aus mehreren zeitkritischen Einzelschritten, z. B.
+Check-in, Boarding, Dokumentenbereitstellung oder das Nachreichen von Belegen.
+Diese Schritte liegen oft zwischen anderen Verpflichtungen des Nutzers und
+müssen zu festgelegten Zeitpunkten erfolgen. Ohne technische Unterstützung
+entsteht eine hohe Erinnerungslast: Der Nutzer muss sich eigenständig erinnern,
+Termine überwachen und relevante Informationen im Blick behalten. Proaktive
+Erinnerungen reduzieren diese Belastung, indem sie Handlungen zur richtigen Zeit
+auslösen und damit das Risiko von Fehlhandlungen oder Versäumnissen senken.
+
+\subsection{Notification Fatigue (Überlastung)}
+Ein zentrales Risiko proaktiver Benachrichtigungssysteme ist die sogenannte
+„Notification Fatigue“: Werden zu viele Hinweise gesendet, steigt die
+Wahrscheinlichkeit, dass Nutzer Benachrichtigungen ignorieren oder die Funktion
+komplett deaktivieren. Studien zeigen, dass eine hohe Benachrichtigungsdichte die
+Wahrnehmung von Relevanz reduziert und dadurch die Wirksamkeit der Hinweise
+senkt \cite{pielot2014notifications}. Daraus folgt die Notwendigkeit klarer
+Regeln: Hinweise müssen priorisiert, kontextabhängig gefiltert und so formuliert
+werden, dass sie als hilfreich und nicht als störend wahrgenommen werden.
+
+\subsection{Timing-Strategien in mobilen Apps}
+Das Timing ist entscheidend für die Wirksamkeit von Benachrichtigungen. Hinweise
+müssen früh genug erfolgen, damit der Nutzer handeln kann, aber spät genug,
+damit sie im richtigen Kontext ankommen. Im Reisebereich haben sich praxistaugliche
+Offsets etabliert, z. B. T-24h für den Check-in oder T-60m/T-30m für das Boarding.
+Diese Zeitfenster geben ausreichend Reaktionszeit und orientieren sich an typischen
+Reiseabläufen. In Skyline werden solche Offsets als projektspezifische Heuristiken
+verwendet und mit weiteren Bedingungen kombiniert (z. B. „nur wenn Dokument fehlt“),
+um die Relevanz jedes Hinweises sicherzustellen.
+
+\section{Anforderungen im Reise Kontext}
+Im Reise-Kontext sind Benachrichtigungen besonders zeitkritisch und müssen
+an die zuvor angegebenen Ankunfts- und Abflugszeiten der Kunden gekoppelt
+werden. Ohne diese Kopplung entstehen unzuverlässige Erinnerungen, weil
+Hinweise entweder zu spät oder ohne relevanten Bezug zum tatsächlichen
+Reiseverlauf erscheinen. In Skyline basiert die Planung der Reminder daher
+auf manuellen Eingaben sowie auf Daten aus Flugtickets, QR-Codes und PDFs.
+Eine automatische Aktualisierung der Zeiten ist nicht umgesetzt, da dafür
+kostenpflichtige Echtzeit-APIs erforderlich wären.
+
+\subsection{Checkin Reminder (T24h)}
+Check-in Reminders informieren typischerweise 24 Stunden vor Abflug und geben
+dem Nutzer ausreichend Zeit, den Online-Check-in durchzuführen, Sitzplätze
+zu wählen und eventuell notwendige Dokumente zu prüfen. Dadurch wird das
+Risiko reduziert, dass der Check-in verpasst wird oder am Reisetag Stress
+entsteht.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Check-in Benachrichtigung (T-24h).}}
+  \caption{Beispiel: Check-in Reminder}
+  \label{fig:reminder_checkin}
+\end{figure}
+
+\subsection{Boarding Reminder (T60m / T30m)}
+Boarding Hinweise werden kurz vor dem Boarding ausgeliefert, typischerweise
+60 bzw. 30 Minuten vor Abflug. Diese Erinnerungen sind besonders relevant bei
+engen Umsteigezeiten oder bei größeren Airports, da sie den Nutzer rechtzeitig
+an Gate-Wechsel, Boarding-Zeiten und das Finden des richtigen Abflugbereichs
+erinnern.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Boarding Benachrichtigung (T-60m / T-30m).}}
+  \caption{Beispiel: Boarding Reminder}
+  \label{fig:reminder_boarding}
+\end{figure}
+
+\subsection{Missing Docs Reminder (T12h)}
+Fehlende Unterlagen sollen möglichst früh erkannt werden, damit Nutzer noch
+handeln können. Der Reminder wird deshalb ca. 12 Stunden vor Abflug gesendet,
+sofern wichtige Dokumente (z. B. Boardingpass, Buchungsbestätigung oder
+Rechnung) fehlen. Dadurch bleibt genug Zeit, die Unterlagen nachzureichen.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Dokumente-Fehlen Benachrichtigung (T-12h).}}
+  \caption{Beispiel: Missing Docs Reminder}
+  \label{fig:reminder_missing_docs}
+\end{figure}
+
+\subsection{Receipt Reminder (T+2h)}
+Nach der Ankunft wird ein Reminder für Belege gesetzt, um die Abrechnung
+zu unterstützen. Der zeitliche Abstand von etwa zwei Stunden ist bewusst
+gewählt, damit der Nutzer zuerst den Reiseabschluss erledigen kann und danach
+ruhig die Belege hochlädt oder fotografiert.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Beleg-Erinnerung (T+2h).}}
+  \caption{Beispiel: Receipt Reminder}
+  \label{fig:reminder_receipt}
+\end{figure}
+
+\subsection{Kontextabhängige Hinweise (z. B. fehlende Dokumente)}
+Hinweise werden nur gesendet, wenn die Kontextbedingungen stimmen. Ein Beispiel
+ist der Fall, dass wichtige Dokumente fehlen und der Abflug innerhalb der
+nächsten 48 Stunden liegt. Dadurch werden Benachrichtigungen auf relevante
+Situationen beschränkt und die Nutzer nicht mit irrelevanten Meldungen
+überlastet.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot eines kontextabhängigen Hinweises.}}
+  \caption{Beispiel: Kontextabhängige Benachrichtigung}
+  \label{fig:reminder_context}
+\end{figure}
+
+\subsection{Triggerberechnung aus departureAt/arrivalAt}
+Triggerzeiten werden aus Abflug- und Ankunftszeiten abgeleitet und als Offsets
+berechnet.
+\subsection{Speicherung \& Persistenz (local + server)}
+Lokale IDs werden gespeichert; zusaetzlich werden geplante Reminders serverseitig
+persistiert, um Rescheduling zu ermoeglichen.
+\subsection{Rescheduling nach AppStart}
+Beim App-Start werden ausstehende Reminders geladen und neu geplant.
+\subsection{DeepLinks zu Trip Details}
+Benachrichtigungen enthalten Deeplinks, die direkt in die Flugdetails fuehren.
+\subsection{Fehlerhandling (fehlende Zeiten, invalid data)}
+Fehlende oder ungueltige Zeiten verhindern Scheduling und werden abgefangen.
+\subsection{DebugAnsicht (Pending Notifications)}
+Eine Debug-Ansicht zeigt geplante und serverseitige Notifications fuer Tests.
+\section{Implementierung in Skyline}
+Die Implementierung nutzt Expo Notifications und eine eigene Registry fuer
+Persistenz \cite{expoNotifications}.
+\subsection{ReminderOffsets \& SchedulingFlow}
+Beim Speichern eines Flugs werden die Offsets geprueft und geplant.
+\subsection{Integration beim FlightSave}
+Die Scheduling-Logik wird automatisch beim Flug-Speichern angestossen.
+\subsection{Cancel/Reschedule bei Updates}
+Bei Aenderungen werden alte Reminders gecancelt und neu gesetzt.
+\subsection{PushIntegration (EAS / Expo Tokens)}
+Push-Benachrichtigungen sind konzeptionell vorbereitet; fuer Produktion
+braucht es FCM/APNs via EAS.
+\section{Bewertung der Wirkung}
+Die Wirkung wird ueber Zuverlaessigkeit, Effizienz und Nutzerakzeptanz bewertet.
+\subsection{Zuverlaessigkeit als KPI}
+KPI: Anteil der Fluege ohne kritische Fehlzustaende (z. B. fehlende Unterlagen).
+\subsection{Effizienz als KPI}
+KPI: Reduktion der Suchzeit nach Dokumenten und Anzahl manueller Schritte.
+\subsection{Nutzerakzeptanz}
+Akzeptanz wird ueber qualitative Rueckmeldungen und Settings-Nutzung beurteilt.
+\section{Ergebnis}
+Das Modul erhoeht die Verlaesslichkeit der Reiseorganisation, wenn Timing und
+Relevanz stimmen.
+\subsection{Reduktion kritischer Fehlzustaende}
+Hinweise auf Check-in und fehlende Dokumente reduzieren Fehler.
+\subsection{Effizienzsteigerung}
+Weniger Suchaufwand und klarere Ablaufe steigern die Effizienz.
+\subsection{Gesamtbewertung}
+Die Kombination aus Reminder-Offsets, Quiet Hours und Deeplinks liefert einen
+messbaren Mehrwert.

@@ -1,0 +1,28 @@
+%
+% Literatur-, Abbildungs-, Tabellen- und Abkuerzungsverzeichnis
+%
+
+
+% Literaturverzeichnis ===>>>> siehe DA_Literatur.bib
+\nocite{*} %alle Einträge aus DA_Literatur.bib werden übernommen, auch diese, die nicht im Text vorkommen
+\bibliographystyle{babunsrt} %sortiere Verzeichnis nach Reihenfolge im Text
+\bibliography{DA_Literatur} %erstelle Verzeichnis
+
+
+% erstellt ein File mit der Liste aller Bilder (Endung: *.lof)
+\listoffigures
+
+% erstellt ein File mit der Liste aller Tabellen (Endung: *.lot)
+\listoftables
+
+\renewcommand\lstlistlistingname{Quellcodeverzeichnis} 
+\lstlistoflistings{}
+
+% Händisches Abkürzungsverzeichnis, falls erwünscht
+%\chapter{Abkürzungsverzeichnis}
+%\ldots
+
+% Automatisches Akronymverzeichnis und Glossar
+\printnoidxglossary[type=\acronymtype]
+
+\printnoidxglossary{}
