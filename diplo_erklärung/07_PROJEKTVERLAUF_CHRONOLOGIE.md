@@ -2,14 +2,14 @@
 
 ## 7.1 Entwicklungsmodell
 
-Die Entwicklung verlief iterativ in mehreren Branches mit regelmaessigen Merge-Phasen.  
+Die Entwicklung verlief iterativ in mehreren Branches mit regelmäßigen Merge-Phasen.  
 Der Projektverlauf zeigt typische Full-Stack Evolution:
 
 - zuerst Grundgeruest und UI-Struktur
 - danach Feature-Ausbau
 - anschliessend Stabilisierung und Qualitaet
 
-## 7.2 Teambeitraege (Git shortlog)
+## 7.2 Teambeiträge (Git shortlog)
 
 Commit-Historie nach Autor:
 
@@ -18,13 +18,13 @@ Commit-Historie nach Autor:
 
 Das zeigt eine kontinuierliche gemeinsame Weiterentwicklung.
 
-## 7.3 Phasenueberblick
+## 7.3 Phasenüberblick
 
 ### Phase A - Fundament (08/2025)
 
 - Initiale Commits und Projektsetup
 - erste UI/UX Strukturen
-- Basis fuer Navigation und Kernscreens
+- Basis für Navigation und Kernscreens
 
 ### Phase B - Feature-Aufbau (09-11/2025)
 
@@ -45,7 +45,7 @@ Das zeigt eine kontinuierliche gemeinsame Weiterentwicklung.
 - UX- und Flow-Stabilisierung (Trip/Checklist)
 - Notification Delivery Fixes
 - Passwort-Recovery
-- Merge/Conflict-Aufloesungen auf Arbeitsbranch
+- Merge/Conflict-Auflösungen auf Arbeitsbranch
 
 ## 7.4 Beispielhafte Meilenstein-Commits
 
@@ -58,18 +58,18 @@ Das zeigt eine kontinuierliche gemeinsame Weiterentwicklung.
 ## 7.5 Lessons Learned aus dem Verlauf
 
 1. **Migrationen frueh strukturieren**  
-   SQL-first mit idempotenten Skripten vereinfacht spaetere Anpassungen.
+   SQL-first mit idempotenten Skripten vereinfacht spätere Anpassungen.
 
 2. **Service-Layer strikt halten**  
    Entkoppelt UI von Backenddetails und beschleunigt Feature-Erweiterung.
 
 3. **UI-Stabilisierung ist eine eigene Phase**  
-   Nach Feature-Building braucht es gezielte Iterationen fuer Reaktionszeit und Konsistenz.
+   Nach Feature-Building braucht es gezielte Iterationen für Reaktionszeit und Konsistenz.
 
-4. **Team-Features erhoehen Komplexitaet stark**  
-   Rollenmodell und Sichtbarkeitsregeln muessen frueh sauber definiert werden.
+4. **Team-Features erhöhen Komplexitaet stark**  
+   Rollenmodell und Sichtbarkeitsregeln müssen frueh sauber definiert werden.
 
 ## 7.6 Fazit
 
 Die Git-Chronologie zeigt ein realistisches Diplomarbeitsprojekt:  
-von der prototypischen Basis ueber feature-getriebene Erweiterung bis zur produktnahen Stabilisierung mit klaren technischen Reifeschritten.
+von der prototypischen Basis über feature-getriebene Erweiterung bis zur produktnahen Stabilisierung mit klaren technischen Reifeschritten.

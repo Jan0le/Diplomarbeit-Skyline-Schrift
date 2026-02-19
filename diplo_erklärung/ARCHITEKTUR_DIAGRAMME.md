@@ -1,6 +1,6 @@
 # Skyline - Architekturdiagramme
 
-Dieses Dokument enthaelt Diagramme fuer die schriftliche Diplomarbeit.  
+Dieses Dokument enthält Diagramme für die schriftliche Diplomarbeit.  
 Empfehlung: Jedes Diagramm in der Arbeit mit einer Abbildungsnummer und Kurzbeschreibung versehen.
 
 ---
@@ -49,13 +49,13 @@ sequenceDiagram
   participant Store as Zustand Store
   participant Supa as Supabase
 
-  User->>Screen: Scan QR / waehle Bild/Dokument
+  User->>Screen: Scan QR / wähle Bild/Dokument
   Screen->>Parser: parseBCBP / runOcrSpace
   Parser-->>Screen: extrahierte Flugdaten
   Screen->>AirportSvc: ensureAirportByCode / ensureAirportForSelection
   AirportSvc->>Supa: upsert/select airports
   AirportSvc-->>Screen: persistierte Airport-Datensaetze
-  User->>Screen: bestaetigt/ergaenzt Daten
+  User->>Screen: bestätigt/ergänzt Daten
   Screen->>Store: addFlight(...)
   Store->>Supa: createFlight(...)
   Supa-->>Store: gespeicherter Flug
@@ -86,11 +86,11 @@ flowchart TB
   O[Owner] -->|kann| C1[Company erstellen]
   O -->|kann| C2[Invite-Code erzeugen]
   O -->|kann| C3[Mitglieder verwalten]
-  O -->|kann| C4[Company-Flights ueberblicken]
+  O -->|kann| C4[Company-Flights überblicken]
 
   W[Worker] -->|kann| W1[Per Invite beitreten]
   W -->|kann| W2[Company-Flights sehen]
-  W -->|kann| W3[Eigene Fluege im Company-Kontext anlegen]
+  W -->|kann| W3[Eigene Flüge im Company-Kontext anlegen]
 
   O --> RLS[RLS Policies]
   W --> RLS

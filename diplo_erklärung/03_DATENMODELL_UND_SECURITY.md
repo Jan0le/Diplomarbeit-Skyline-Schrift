@@ -1,6 +1,6 @@
 # 03 - Datenmodell und Security
 
-## 3.1 Datenmodell - Uebersicht
+## 3.1 Datenmodell - Übersicht
 
 Das Datenmodell ist in funktionale Bereiche gegliedert:
 
@@ -26,7 +26,7 @@ Das Datenmodell ist in funktionale Bereiche gegliedert:
 - **Dokumente**
   - `flight_documents` + Storage Bucket
 
-## 3.2 Relationale Schluesselbeziehungen
+## 3.2 Relationale Schlüsselbeziehungen
 
 Wichtige Beziehungen:
 
@@ -39,16 +39,16 @@ Wichtige Beziehungen:
 
 Zusatzlogik:
 
-- `company_id` in `user_flights` markiert Team-/Firmenfluege
-- Notes/Checklists haengen direkt am konkreten Flug
+- `company_id` in `user_flights` markiert Team-/Firmenflüge
+- Notes/Checklists hängen direkt am konkreten Flug
 
 ## 3.3 Performance-Aspekte im DB-Design
 
-Es wurden wiederholt Optimierungen ueber SQL-Skripte eingebracht:
+Es wurden wiederholt Optimierungen über SQL-Skripte eingebracht:
 
-- Indizes fuer haeufige Filter (`profile_id`, `date`, `status`, `company_id`)
+- Indizes für haeufige Filter (`profile_id`, `date`, `status`, `company_id`)
 - Airport-Suchoptimierungen (inkl. trigram-basierter Suche)
-- dedizierte RPCs fuer performante Suchen und Aggregationen
+- dedizierte RPCs für performante Suchen und Aggregationen
 
 Beispiele:
 
@@ -58,7 +58,7 @@ Beispiele:
 
 ## 3.4 Row Level Security (RLS)
 
-RLS ist zentral fuer das Sicherheitsmodell:
+RLS ist zentral für das Sicherheitsmodell:
 
 - Benutzer sehen nur eigene Daten.
 - Teamdaten werden rollenbasiert freigegeben.
@@ -72,25 +72,25 @@ Beispielmuster:
 ## 3.5 Storage-Security
 
 Dokumente und Profilbilder liegen in Supabase Storage.  
-Die Zugriffskontrolle erfolgt ueber:
+Die Zugriffskontrolle erfolgt über:
 
 - Bucket-Policies
 - Dateipfadkonventionen (user-/flight-bezogene Pfade)
-- Signierte URLs fuer kontrollierten Zugriff
+- Signierte URLs für kontrollierten Zugriff
 
-## 3.6 Integritaet und Datenpflege
+## 3.6 Integrität und Datenpflege
 
 Um Datenqualitaet sicherzustellen, werden eingesetzt:
 
 - Constraints (z. B. Rollen, Statuswerte)
-- Trigger fuer `updated_at`
+- Trigger für `updated_at`
 - idempotente Migrationen
-- Backfills fuer neue Spalten/Funktionen
+- Backfills für neue Spalten/Funktionen
 
 ## 3.7 Sicherheitsrisiken und Harterungsbedarf
 
-Technisch relevante Punkte fuer die Abschlussphase:
+Technisch relevante Punkte für die Abschlussphase:
 
-- Sensitive Konfigurationswerte strikt ueber sichere Secrets verwalten.
+- Sensitive Konfigurationswerte strikt über sichere Secrets verwalten.
 - Debug-/Testinstrumentierung vor Release bereinigen.
-- RLS-Policies regelmaessig gegen neue Features pruefen.
+- RLS-Policies regelmäßig gegen neue Features prüfen.

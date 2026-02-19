@@ -2,11 +2,11 @@
 \chapter{Technische Umsetzung}\label{chapter:technik}
 \section{Systemarchitektur}
 Die Architektur folgt einem Client-Server-Modell mit mobiler App und Supabase
-als Backend. Die App kommuniziert ueber Services mit der Datenbank und dem
+als Backend. Die App kommuniziert über Services mit der Datenbank und dem
 Storage \cite{supabasePlatform}.
 \begin{figure}[h]
   \centering
-  \fbox{\parbox{0.8\textwidth}{TODO: Architekturdiagramm (Client, Services, Supabase) einfuegen.}}
+  \fbox{\parbox{0.8\textwidth}{TODO: Architekturdiagramm (Client, Services, Supabase) einfügen.}}
   \caption{TODO: Systemarchitektur von Skyline}
   \label{fig:todo_architektur}
 \end{figure}
@@ -17,34 +17,34 @@ modulare Komponentenstruktur \cite{reactNative,expoDocs}.
 Supabase liefert Authentifizierung, Postgres-Datenbank, Realtime und RLS
 \cite{supabasePlatform,supabaseAuth,supabaseRLS}.
 \subsection{Storage (Dokumente, Bilder)}
-Dokumente und Bilder werden in Storage-Buckets abgelegt und ueber signierte
+Dokumente und Bilder werden in Storage-Buckets abgelegt und über signierte
 URLs bereitgestellt \cite{supabaseStorage}.
 \section{Technologien}
 Die Technologieauswahl orientiert sich am Pflichtenheft und an mobiler
 Cross-Platform-Entwicklung.
 \subsection{Frontend-Stack}
-React Native, Expo, TypeScript, Zustand fuer State-Management und
-React Native Maps fuer die Karte \cite{reactNative,expoDocs,reactNativeMaps}.
+React Native, Expo, TypeScript, Zustand für State-Management und
+React Native Maps für die Karte \cite{reactNative,expoDocs,reactNativeMaps}.
 \subsection{Backend-Stack}
-Supabase, Postgres, RLS-Policies und Storage fuer Dateiverwaltung
+Supabase, Postgres, RLS-Policies und Storage für Dateiverwaltung
 \cite{supabasePlatform,supabaseRLS,supabaseStorage}.
 \subsection{APIs (Aviationstack, OCR, Maps, Email-Import)}
 Aviationstack liefert Airport-Daten, OCR extrahiert Text aus Dokumenten und
 Maps-APIs stellen Kartendaten bereit \cite{aviationstack}.
 \section{Funktionalitaet}
-Die App deckt Fluege, Dokumente, Stats, Notifications und Company-Funktionen ab.
+Die App deckt Flüge, Dokumente, Stats, Notifications und Company-Funktionen ab.
 \subsection{Flugverwaltung (CRUD)}
-Fluege koennen erstellt, bearbeitet und geloescht werden; Zeiten und Distanzen
+Flüge können erstellt, bearbeitet und gelöscht werden; Zeiten und Distanzen
 werden automatisch berechnet.
 \subsection{Import (QR/OCR/E-Mail)}
-Importfunktionen erlauben die schnelle Uebernahme von Flugdaten.
+Importfunktionen erlauben die schnelle Übernahme von Flugdaten.
 \subsection{Map \& Animation}
-Flugrouten werden geodaetisch visualisiert und mit Animationen ergaenzt.
+Flugrouten werden geodätisch visualisiert und mit Animationen ergänzt.
 \subsection{Notifications}
 Lokale Benachrichtigungen mit Offsets und Quiet Hours unterstuetzen die
 Reiseorganisation.
 \subsection{Dokumente / Notizen / Checklisten}
-Reisende koennen Dokumente hochladen und Notizen/Checklisten pflegen.
+Reisende können Dokumente hochladen und Notizen/Checklisten pflegen.
 \subsection{Statistiken \& Export}
 Statistiken zeigen Distanz, Laender und Flugzeiten; CSV-Export ist moeglich.
 \subsection{Company-Features (Invite, Join, Dashboard)}

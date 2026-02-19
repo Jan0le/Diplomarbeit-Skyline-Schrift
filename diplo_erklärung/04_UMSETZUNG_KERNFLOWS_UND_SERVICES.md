@@ -7,7 +7,7 @@ Der Auth-Flow kombiniert Supabase Auth mit lokalem Session-Persistenzverhalten:
 - Sign-up/Sign-in via Supabase
 - Profilaufladung aus `profiles`
 - Session-Synchronisation beim App-Start
-- Passwort-Reset inklusive Deep-Link Rueckfuehrung in den App-Flow
+- Passwort-Reset inklusive Deep-Link Rückführung in den App-Flow
 
 Relevante Module:
 
@@ -20,14 +20,14 @@ Relevante Module:
 Der manuelle Flow in `add-flight-manual` deckt Validierung, Distanzberechnung und Persistierung ab:
 
 1. Eingabe und Validierung von Flug-/Zeit-/Airportdaten
-2. Airport-Auswahl ueber Autocomplete
+2. Airport-Auswahl über Autocomplete
 3. optionale Distanz-/Dauerberechnung
-4. Save ueber Store-Aktion und Service-Layer
+4. Save über Store-Aktion und Service-Layer
 5. Folgeaktionen (Stats, Reminder)
 
 Nutzen:
 
-- Hohe Kontrolle fuer den Nutzer
+- Hohe Kontrolle für den Nutzer
 - robust gegen unvollstaendige Quelldaten
 
 ## 4.3 Flight-Import (QR/BCBP/OCR)
@@ -38,11 +38,11 @@ Importpfad in `add-flight-import`:
 - BCBP Parsing (`Skyline ticket ausleser/bcbp.ts`)
 - OCR-Fallback mit OCR.space
 - Vorbelegung von Formularfeldern
-- Nutzer korrigiert/bestaetigt und speichert final
+- Nutzer korrigiert/bestätigt und speichert final
 
 Besonderheit:
 
-- Airports werden bei Auswahl/API-Treffer in die DB uebernommen, damit Flights stabile Fremdschluessel besitzen.
+- Airports werden bei Auswahl/API-Treffer in die DB übernommen, damit Flights stabile Fremdschlüssel besitzen.
 
 ## 4.4 Kartenlogik und Live-Progress
 
@@ -51,12 +51,12 @@ In `app/(tabs)/map.tsx`:
 - Great-circle Route zwischen Airports
 - Segmentierung in bereits geflogenen und kommenden Teil
 - Live-Progress aus `departureAt`/`arrivalAt`
-- Bearing-Berechnung fuer realistische Flugzeugausrichtung
-- Fokus-/Follow-Mechanik fuer bessere Lesbarkeit
+- Bearing-Berechnung für realistische Flugzeugausrichtung
+- Fokus-/Follow-Mechanik für bessere Lesbarkeit
 
 ## 4.5 Trip Details als Integrations-Hub
 
-`trip-details` ist die zentrale Arbeitsoberflaeche pro Flug:
+`trip-details` ist die zentrale Arbeitsoberfläche pro Flug:
 
 - Overview
 - Notes
@@ -65,16 +65,16 @@ In `app/(tabs)/map.tsx`:
 - Photos
 - Company-Kontext
 
-Damit entstehen kurze Wege fuer alle Folgeaktionen nach dem Anlegen eines Fluges.
+Damit entstehen kurze Wege für alle Folgeaktionen nach dem Anlegen eines Fluges.
 
 ## 4.6 Notes, Checklists und Templates
 
 Fachlich umgesetzt mit:
 
-- CRUD fuer Notes/Checklists inkl. Item-Ebene
+- CRUD für Notes/Checklists inkl. Item-Ebene
 - Reminder pro Note/Checklist
-- Templates fuer wiederkehrende Eintraege
-- Optimistische UI-Updates fuer schnelle Wahrnehmung
+- Templates für wiederkehrende Einträge
+- Optimistische UI-Updates für schnelle Wahrnehmung
 
 Relevante Module:
 
@@ -91,7 +91,7 @@ Implementationsumfang:
 - Ablage im Bucket `flight-documents`
 - Metadaten in `flight_documents`
 - Signed URL Verwaltung
-- lokale Caching-Pfade fuer schnelleren erneuten Zugriff
+- lokale Caching-Pfade für schnelleren erneuten Zugriff
 - Rename/Delete im UI
 
 Relevante Module:
@@ -129,7 +129,7 @@ Reminder-Logik ist mehrstufig:
 3. Fachlogik pro Flug (`flightAutoReminderService.ts`)
 4. Re-Scheduling offener Events (`notificationRescheduler.ts`)
 
-Unterstuetzt werden u. a.:
+Unterstützt werden u. a.:
 
 - Check-in Reminder
 - Boarding Reminder

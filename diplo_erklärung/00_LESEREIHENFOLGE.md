@@ -1,6 +1,6 @@
-# Skyline - Lesereihenfolge fuer die schriftliche Arbeit
+# Skyline - Lesereihenfolge für die schriftliche Arbeit
 
-Dieses Dokument hilft bei der Struktur fuer Abgabe, Korrektur und Praesentation.
+Dieses Dokument hilft bei der Struktur für Abgabe, Korrektur und Praesentation.
 
 ## Empfohlene Reihenfolge
 
@@ -30,13 +30,13 @@ Dieses Dokument hilft bei der Struktur fuer Abgabe, Korrektur und Praesentation.
 
 ## Zusatzdokumente
 
-- `ARCHITEKTUR_DIAGRAMME.md` fuer Diagramme
-- `ANHANG_SCREENSHOTS/CHECKLISTE_SCREENSHOTS.md` fuer Abbildungen in der Endfassung
+- `ARCHITEKTUR_DIAGRAMME.md` für Diagramme
+- `ANHANG_SCREENSHOTS/CHECKLISTE_SCREENSHOTS.md` für Abbildungen in der Endfassung
 - `PROJEKT_PROTOKOLL_SKYLINE.md` als Vollversion in einem Dokument
 
-## Hinweise fuer die finale Abgabe
+## Hinweise für die finale Abgabe
 
 - Pro Kapitel ein kurzer Einleitungssatz und ein Mini-Fazit.
 - Diagramme nummerieren (z. B. "Abbildung 3.2").
 - Screenshots mit Bildunterschrift + Dateinamen konsistent halten.
-- Quellen/Referenzen fuer APIs und Libraries als eigenes Literaturkapitel fuehren.
+- Quellen/Referenzen für APIs und Libraries als eigenes Literaturkapitel führen.

@@ -5,7 +5,7 @@
 ### Entscheidung 1: Supabase als Full-Stack Backend
 
 **Warum:**  
-Schnelle Umsetzung von Auth, Datenbank, Storage und Security (RLS) in einem konsistenten Oekosystem.
+Schnelle Umsetzung von Auth, Datenbank, Storage und Security (RLS) in einem konsistenten Ökosystem.
 
 **Auswirkung:**  
 Hohe Entwicklungsgeschwindigkeit und klare Security-Basis.
@@ -21,7 +21,7 @@ Bessere Wartbarkeit, klarere Verantwortung, sauberere Erweiterbarkeit.
 ### Entscheidung 3: API-first Airport Suche + DB-Persistierung
 
 **Warum:**  
-Schnelle Suche und aktuelle Daten, aber trotzdem stabile DB-Referenzen fuer Flights.
+Schnelle Suche und aktuelle Daten, aber trotzdem stabile DB-Referenzen für Flights.
 
 **Auswirkung:**  
 Gute Balance aus Performance und Datenkonsistenz.
@@ -29,7 +29,7 @@ Gute Balance aus Performance und Datenkonsistenz.
 ### Entscheidung 4: Reminder als mehrstufiges System
 
 **Warum:**  
-Lokales Scheduling fuer zuverlaessige mobile Notifications, serverseitige Registry fuer Nachvollziehbarkeit.
+Lokales Scheduling für zuverlässige mobile Notifications, serverseitige Registry für Nachvollziehbarkeit.
 
 **Auswirkung:**  
 Robuste Reminder-Logik trotz mobiler Laufzeitbedingungen.
@@ -37,10 +37,10 @@ Robuste Reminder-Logik trotz mobiler Laufzeitbedingungen.
 ## 8.2 Technische Risiken (aktueller Stand)
 
 1. **Config/Security-Risiko**  
-   Sensible Konfigurationswerte muessen vor produktiver Nutzung konsequent gehaertet werden.
+   Sensible Konfigurationswerte müssen vor produktiver Nutzung konsequent gehärtet werden.
 
 2. **Partielle Feature-Reife**  
-   Einige Module (z. B. Teile der Kalender-Synchronisation) sind vorbereitet, aber nicht final.
+   Kalender-Synchronisation ist implementiert; andere Module ggf. noch ausbaufähig.
 
 3. **Testabdeckung**  
    Unit-Test-Basis vorhanden, Integration/E2E aktuell noch ausbaubar.
@@ -48,29 +48,29 @@ Robuste Reminder-Logik trotz mobiler Laufzeitbedingungen.
 4. **Release-Hygiene**  
    Debug- und Entwicklungsinstrumentierung sollte vor finalem Release bereinigt werden.
 
-## 8.3 Roadmap (naechste technische Schritte)
+## 8.3 Roadmap (nächste technische Schritte)
 
 ### Kurzfristig
 
 - Security Hardening (Secrets, Policies, Konfiguration)
-- Testausbau fuer Kernflows
+- Testausbau für Kernflows
 - Cleanup von Debug/Legacy-Resten
 
 ### Mittelfristig
 
-- Kalender-Integrationen finalisieren
+- Kalender-Integrationen ggf. erweitern/verfeinern
 - Realtime-Features vervollstaendigen
 - Monitoring/Telemetry strukturierter aufsetzen
 
 ### Langfristig
 
-- Skalierung fuer groessere Teamnutzung
+- Skalierung für größere Teamnutzung
 - Erweiterte Reporting-/Analysefunktionen
 - Tieferes Offline/Sync-Konzept
 
 ## 8.4 Fazit der Diplomarbeit
 
 Skyline demonstriert eine vollwertige mobile Full-Stack Umsetzung mit klarer fachlicher Zielerreichung und technisch nachvollziehbarer Architektur.  
-Die Kombination aus moderner Mobile-UI, sauberem Service-Layer, SQL/RLS-gestuetztem Backend und iterativer Weiterentwicklung liefert eine belastbare Grundlage fuer die schriftliche Diplomarbeit.
+Die Kombination aus moderner Mobile-UI, sauberem Service-Layer, SQL/RLS-gestütztem Backend und iterativer Weiterentwicklung liefert eine belastbare Grundlage für die schriftliche Diplomarbeit.
 
 Die offene Restarbeit ist klar identifizierbar und operationalisierbar, was den Projektstand realistisch und professionell macht.

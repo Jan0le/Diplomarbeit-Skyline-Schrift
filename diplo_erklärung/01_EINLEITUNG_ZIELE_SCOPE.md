@@ -3,19 +3,19 @@
 ## 1.1 Ausgangssituation
 
 Im Projekt Skyline wurde eine mobile Full-Stack Anwendung entwickelt, die Flugreisen strukturiert verwaltet und den kompletten Reisekontext abdeckt.  
-Der Fokus liegt nicht nur auf dem Speichern von Flugdaten, sondern auf einer produktiven End-to-End Loesung mit:
+Der Fokus liegt nicht nur auf dem Speichern von Flugdaten, sondern auf einer produktiven End-to-End Lösung mit:
 
-- Import und Erfassung von Fluegen
+- Import und Erfassung von Flügen
 - Visualisierung und Fortschrittsdarstellung auf der Karte
 - Reiseorganisation (Notizen, Checklisten, Dokumente)
 - Team-/Firmenfunktionen
-- Reminder und Nutzerfuehrung
+- Reminder und Nutzerführung
 
 ## 1.2 Problemstellung
 
 Viele Nutzer verwalten Flugreisen verteilt auf verschiedene Tools (Kalender, Notizen, Foto-App, Mail, Dokumentenordner). Dadurch entstehen:
 
-- Medienbrueche
+- Medienbrüche
 - Dateninkonsistenzen
 - hoher manueller Aufwand
 - fehlende Teamtransparenz im Business-Kontext
@@ -28,13 +28,13 @@ Skyline adressiert diese Punkte durch eine integrierte mobile Plattform.
 
 - Schnelle und alltagstaugliche Flugverwaltung
 - Mehrwertfunktionen statt reinem CRUD
-- Unterstuetzung von privaten und beruflichen Reisen
+- Unterstützung von privaten und beruflichen Reisen
 
 ### Technische Ziele
 
 - Saubere Trennung von UI, State und Service-Layer
 - Sichere Datenhaltung mit RLS
-- Skalierbare Architektur fuer weitere Features
+- Skalierbare Architektur für weitere Features
 - Mobile Performance und stabile UX
 
 ## 1.4 Abgrenzung (Scope)
@@ -52,7 +52,7 @@ Skyline adressiert diese Punkte durch eine integrierte mobile Plattform.
 
 ### Teilweise/noch offen
 
-- Teile der Kalender-Synchronisation sind vorbereitet, aber nicht vollstaendig umgesetzt.
+- Kalender-Synchronisation wurde implementiert; Details ggf. im Protokoll/Code nachführen.
 - Einige Methoden in der Datenzugriffsschicht sind als TODO markiert.
 - Analytics ist aktuell als leichter Platzhalter implementiert.
 

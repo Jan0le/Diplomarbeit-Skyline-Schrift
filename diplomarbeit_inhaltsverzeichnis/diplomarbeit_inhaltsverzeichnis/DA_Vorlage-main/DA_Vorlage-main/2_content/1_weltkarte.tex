@@ -2,19 +2,19 @@
 \chapter{Interaktive Weltkarte \& Routenvisualisierung (Boris)}\label{chapter:weltkarte}
 \section{Grundlagen visueller Flugrouten-Darstellung}
 Die visuelle Darstellung von Flugrouten dient der Orientierung und der schnellen
-Uebersicht ueber Reisehistorie und geplante Fluege. In Skyline werden Routen
+Übersicht über Reisehistorie und geplante Flüge. In Skyline werden Routen
 geografisch korrekt auf einer Weltkarte dargestellt und mit Interaktion
-verbunden, um Details pro Flug abrufen zu koennen.
+verbunden, um Details pro Flug abrufen zu können.
 \section{Anforderungen an eine mobile Flugrouten-Karte}
 Die Karte muss auf mobilen Geraeten performant laufen, interaktiv bedienbar sein
-und darf die Nutzerfuehrung nicht ueberladen. Gleichzeitig sollen Routen,
+und darf die Nutzerfuehrung nicht überladen. Gleichzeitig sollen Routen,
 Marker und Detailinformationen klar erkennbar sein.
 \subsection{Performance \& Ladezeiten}
-Routenberechnung, Marker-Rendering und Animationen muessen schnell geladen werden,
+Routenberechnung, Marker-Rendering und Animationen müssen schnell geladen werden,
 um Hakeleffekte zu vermeiden. Daher werden Daten reduziert geladen und
 Berechnungen moeglichst client-seitig effizient ausgefuehrt.
-\subsection{Skalierbarkeit bei vielen Fluegen}
-Bei vielen Fluegen steigt die Datenmenge auf der Karte. Es braucht eine
+\subsection{Skalierbarkeit bei vielen Flügen}
+Bei vielen Flügen steigt die Datenmenge auf der Karte. Es braucht eine
 geordnete Darstellung (z. B. Filter/History) und robuste Logik, um Ueberladung
 zu vermeiden.
 \subsection{Mobile Optimierung (iOS Karten)}
@@ -31,7 +31,7 @@ fokussierte Zoomen auf Route oder Marker. Die Interaktion soll intuitiv sein
 und keine separate Navigation erfordern.
 \section{Technische Grundlagen der Routenberechnung}
 Die Routen werden anhand geographischer Koordinaten der Airports berechnet.
-Zusaetzlich wird ein Live-Fortschritt ueber Zeitstempel abgeleitet.
+Zusätzlich wird ein Live-Fortschritt über Zeitstempel abgeleitet.
 \subsection{Haversine-Formel (Distanzberechnung)}
 Fuer die Distanz zwischen zwei Airports wird die Haversine-Formel verwendet,
 die die Erdkruemmung beruecksichtigt und realistische Kilometerwerte liefert
@@ -48,7 +48,7 @@ Die Verwendung realer Zeitstempel ermoeglicht eine zeitbasierte Darstellung
 von Flugfortschritt und eine realistische Live-Position.
 \section{Implementierung der Karten-Visualisierung}
 Die Implementierung kombiniert Map-Komponenten, Routenberechnung und UI-Interaktion.
-Ausgewaehlte Fluege werden hervorgehoben, die Route wird gezeichnet und optional
+Ausgewaehlte Flüge werden hervorgehoben, die Route wird gezeichnet und optional
 animiert.
 \begin{figure}[h]
   \centering
@@ -63,22 +63,22 @@ geodaetischer Interpolation zwischen Start und Ziel.
 Die Kurvenform entsteht durch das Sampling einer Great-Circle-Route in viele
 Zwischenpunkte, die als Polyline gerendert werden.
 \subsection{Live-Marker \& Flugbewegung}
-Ein Flugzeug-Marker wird entlang der Route positioniert. Bei aktiven Fluegen
+Ein Flugzeug-Marker wird entlang der Route positioniert. Bei aktiven Flügen
 wird er regelmaessig aktualisiert, um den Fortschritt abzubilden.
 \subsection{Fortschritts-Overlay (zurueckgelegte Flugdistanz)}
 Optional wird die bereits zurueckgelegte Strecke visuell markiert, indem ein
-Teil der Route anders eingefaerbt oder ueberlagert wird.
+Teil der Route anders eingefaerbt oder überlagert wird.
 \subsection{Interaktive Flugauswahl (Map -> Details)}
 Die Auswahl eines Flugs fuehrt in die Detailansicht, um Informationen wie
 Zeiten, Dokumente und Notizen einzusehen.
-\subsection{History vs. Upcoming-Fluege}
-Vergangene Fluege werden von bevorstehenden getrennt, um die Karte nicht zu
-ueberladen und eine klare Nutzerfuehrung zu ermoeglichen.
+\subsection{History vs. Upcoming-Flüge}
+Vergangene Flüge werden von bevorstehenden getrennt, um die Karte nicht zu
+überladen und eine klare Nutzerfuehrung zu ermoeglichen.
 \section{Bewertung der Kartenloesung}
 Die Bewertung beruecksichtigt Bedienbarkeit, Genauigkeit und Performance.
-Zusaetzlich wird Nutzerfeedback in die Analyse einbezogen.
-\subsection{Kriterienkatalog (Uebersicht, Transparenz, Verstaendlichkeit)}
-Die Karte soll eine klare Uebersicht ueber Routen liefern, ohne Informationsflut.
+Zusätzlich wird Nutzerfeedback in die Analyse einbezogen.
+\subsection{Kriterienkatalog (Übersicht, Transparenz, Verstaendlichkeit)}
+Die Karte soll eine klare Übersicht über Routen liefern, ohne Informationsflut.
 Transparenz entsteht durch eindeutige Marker und stabile Interaktionen.
 \subsection{Performance-Messungen}
 Messungen betreffen Ladezeiten, Renderzeiten der Polylines und die Reaktionszeit
@@ -87,8 +87,8 @@ bei Interaktionen. Ziel ist eine fluessige Bedienung.
 Rueckmeldungen aus Tests zeigen, ob die Karte als hilfreich und intuitiv
 wahrgenommen wird.
 \subsection{Staerken-Schwaechen-Analyse}
-Staerken liegen in der visuellen Uebersicht und der Interaktion, Schwaechen
-entstehen bei sehr vielen Fluegen oder geringer Datenqualitaet.
+Staerken liegen in der visuellen Übersicht und der Interaktion, Schwaechen
+entstehen bei sehr vielen Flügen oder geringer Datenqualitaet.
 \subsection{Ergebnis}
 Die Kartenvisualisierung erfuellt die Kernanforderungen des Pflichtenhefts und
 stellt einen zentralen Mehrwert des Projekts dar.

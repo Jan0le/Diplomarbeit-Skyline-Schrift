@@ -5,30 +5,30 @@
 % Indexgenerierung (Prozessoranweisung)
 \makeindex
 
-% setzt den Pfad fuer Graphiken
+% setzt den Pfad für Graphiken
 \graphicspath{{figures/}}
 % zeigt Nummerierungen bei subsubsections an
 \setcounter{secnumdepth}{4}
-% Zaehler der die maximale Nummer von "Floatobjekten" am Beginn einer Seite angibt
+% Zähler der die maximale Nummer von "Floatobjekten" am Beginn einer Seite angibt
 \setcounter{topnumber}{2}
 % Redefinition: gibt an, wieviel Platz Floatobjekte (Tabellen, Bilder)
-% am Beginn einer Seite einnehmen duerfen. (80 Prozent)
+% am Beginn einer Seite einnehmen dürfen. (80 Prozent)
 \def\topfraction{.8}
-% Zaehler der die maximale Nummer von "Floatobjekten" am Ende einer Seite angibt
+% Zähler der die maximale Nummer von "Floatobjekten" am Ende einer Seite angibt
 \setcounter{bottomnumber}{2}
 % Redefinition: gibt an, wieviel Platz Floatobjekte (Tabellen, Bilder)
-% am Beginn einer Seite einnehmen duerfen. (80 Prozent)
+% am Beginn einer Seite einnehmen dürfen. (80 Prozent)
 \def\bottomfraction{.5}
 % maximale Anzahl der Floatobjekte auf einer Seite
 \setcounter{totalnumber}{8}
 % Redefinition: minimaler Prozentsatz einer Seite der Text auf dem Text stehen muss
 \def\textfraction{.2}
 % Redefinition: mimimaler Prozentsatz von Floatobjekten die auf einer Floatseite(Seite,
-% die nur Tabellen, Bilder enthaelt) sein muessen
+% die nur Tabellen, Bilder enthält) sein müssen
 \def\floatpagefraction{.6}
 % Einzug des Absatzes auf 0 pt stellen
 \setlength{\parindent}{0pt}
-% vertikaler Zwischenraum zwischen zwei Absaetzen
+% vertikaler Zwischenraum zwischen zwei Absätzen
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 % Teil des "caption" Packages: extra 20pkt links und rechts von einer Beschriftung
 \setlength{\captionmargin}{20pt}
@@ -44,7 +44,7 @@
 % transformiert "\dollar" zum Dollarzeichen
 \newcommand{\dollar}{\char36}	
 
-% Skript fur die Abkuerzungen
+% Skript fur die Abkürzungen
 % neue Umgebung mit einem Argument
 \newenvironment{bfscript}[1] {
  % Liste
@@ -54,13 +54,13 @@
  {\settowidth{\labelwidth}{\bf #1}
   % Abstand vom Eintrag zum linken Rand auf die Breite des Labels setzen (0, da kein Label)
   \setlength{\leftmargin}{\labelwidth}
-  % das Ganze um die Abstand des Label zum Text (auch 0) danach erhoehen
+  % das Ganze um die Abstand des Label zum Text (auch 0) danach erhöhen
   \addtolength{\leftmargin}{\labelsep}
-  % Abstand der Absaetze innerhalb eines Eintrages
+  % Abstand der Absätze innerhalb eines Eintrages
   \parsep{} 0.5ex plus 0.2ex minus 0.2ex
   % Abstand der einzelnen Einträge
   \itemsep{} 0.3ex
-  % festlegen des Labels (fett, wenn noetig bis zum Text auffuellen)
+  % festlegen des Labels (fett, wenn nötig bis zum Text auffüllen)
   \renewcommand{\makelabel}[1]{\bf ##1\hfill}}}
  {\end{list}
 }

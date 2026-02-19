@@ -23,25 +23,25 @@ Um Ladezeiten zu reduzieren und UI-Reibung zu vermeiden, werden eingesetzt:
 
 - Initiales Warmup nach Login
 - selektives Nachladen nur bei Bedarf
-- Datenvorbereitung fuer haeufig genutzte Screens
+- Datenvorbereitung für häufig genutzte Screens
 - defensive Fallbacks bei Teilfehlern
 
-## 5.3 UI-Responsivitaet
+## 5.3 UI-Responsivität
 
 Sichtbare Patterns:
 
 - Optimistische UI Updates (save/delete zuerst lokal sichtbar)
 - Debouncing bei Airport-Suche
-- Animationen mit Reanimated fuer visuelle Rueckmeldung
-- Floating/FAB-Muster fuer direkte Aktionen
+- Animationen mit Reanimated für visuelle Rückmeldung
+- Floating/FAB-Muster für direkte Aktionen
 
 ## 5.4 Performance-Utilities
 
-In `utils/performance.ts` befinden sich Hilfen fuer:
+In `utils/performance.ts` befinden sich Hilfen für:
 
 - stable callbacks/memoization
 - Debounce Hook
-- Chunk-Verarbeitung fuer grosse Datenmengen
+- Chunk-Verarbeitung für grosse Datenmengen
 - platform-spezifische Optimierungen
 
 ## 5.5 Distanz- und Metrikberechnungen
@@ -53,7 +53,7 @@ In `utils/performance.ts` befinden sich Hilfen fuer:
 - Parsing von Legacy-Textwerten
 - konsistente Dauerberechnung aus Zeitstempeln
 
-Diese Funktionen sind zentral fuer:
+Diese Funktionen sind zentral für:
 
 - Statistiken
 - Kartenlogik
@@ -64,7 +64,7 @@ Diese Funktionen sind zentral fuer:
 Stats werden kombiniert aus:
 
 - serverseitiger RPC-Aggregation (`get_user_stats`)
-- clientseitiger Ergaenzung/Fallback
+- clientseitiger Ergänzung/Fallback
 
 Wichtige Kennzahlen:
 
@@ -78,7 +78,7 @@ Wichtige Kennzahlen:
 Achievements motivieren kontinuierliche Nutzung:
 
 - Freischaltung basierend auf messbaren Metriken
-- Speicherung ueber `user_achievements`
+- Speicherung über `user_achievements`
 - visuelle Darstellung mit Fortschritt in `app/achievements.tsx`
 
 Beispiele:
@@ -90,5 +90,5 @@ Beispiele:
 
 ## 5.8 Fazit des technischen Ansatzes
 
-Die Kombination aus zentralem Zustand, optimistischem UI-Verhalten und gezielten Performance-Massnahmen erhoeht die wahrgenommene Geschwindigkeit deutlich.  
-Gerade auf mobilen Geraeten ist diese Architekturentscheidung entscheidend fuer Akzeptanz und Alltagstauglichkeit.
+Die Kombination aus zentralem Zustand, optimistischem UI-Verhalten und gezielten Performance-Maßnahmen erhöht die wahrgenommene Geschwindigkeit deutlich.  
+Gerade auf mobilen Geräten ist diese Architekturentscheidung entscheidend für Akzeptanz und Alltagstauglichkeit.

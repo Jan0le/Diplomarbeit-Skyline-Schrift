@@ -1,12 +1,12 @@
 # Schriftliche Diplomarbeit - Skyline
 
-Dieser Ordner enthaelt die technische Projektdokumentation fuer die schriftliche Arbeit.
+Dieser Ordner enthält die technische Projektdokumentation für die schriftliche Arbeit.
 
 ## Schnellstart
 
-1. Lies zuerst `00_LESEREIHENFOLGE.md` fuer den empfohlenen Ablauf.
+1. Lies zuerst `00_LESEREIHENFOLGE.md` für den empfohlenen Ablauf.
 2. Arbeite danach die Kapiteldateien `01` bis `08` durch.
-3. Nutze `ARCHITEKTUR_DIAGRAMME.md` und `ANHANG_SCREENSHOTS/CHECKLISTE_SCREENSHOTS.md` fuer Abbildungen.
+3. Nutze `ARCHITEKTUR_DIAGRAMME.md` und `ANHANG_SCREENSHOTS/CHECKLISTE_SCREENSHOTS.md` für Abbildungen.
 
 ## Hauptdokumente
 
@@ -14,7 +14,7 @@ Dieser Ordner enthaelt die technische Projektdokumentation fuer die schriftliche
   Komplettes Master-Protokoll in einer Datei (ungeteilt, Vollversion).
 
 - `00_LESEREIHENFOLGE.md`  
-  Uebersicht und empfohlene Kapitelreihenfolge fuer die Abgabe.
+  Übersicht und empfohlene Kapitelreihenfolge für die Abgabe.
 
 - `01_EINLEITUNG_ZIELE_SCOPE.md`
 - `02_SYSTEMARCHITEKTUR_UND_STRUKTUR.md`
@@ -28,8 +28,8 @@ Dieser Ordner enthaelt die technische Projektdokumentation fuer die schriftliche
 ## Zusatzmaterial
 
 - `ARCHITEKTUR_DIAGRAMME.md`  
-  Mermaid-Diagramme fuer Architektur, Datenfluss und Rollenmodell.
+  Mermaid-Diagramme für Architektur, Datenfluss und Rollenmodell.
 
 - `ANHANG_SCREENSHOTS/CHECKLISTE_SCREENSHOTS.md`  
-  Konkrete Screenshot-Liste fuer die schriftliche Arbeit.
+  Konkrete Screenshot-Liste für die schriftliche Arbeit.
 

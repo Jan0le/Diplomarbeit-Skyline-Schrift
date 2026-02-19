@@ -12,39 +12,39 @@ Inhaltsverzeichnis
 1.1 Grundlagen visueller Flugrouten-Darstellung
 1.2 Anforderungen an eine mobile Flugrouten-Karte
 1.2.1 Performance & Ladezeiten
-1.2.2 Skalierbarkeit bei vielen Fluegen
+1.2.2 Skalierbarkeit bei vielen Flügen
 1.2.3 Mobile Optimierung (iOS Karten)
 1.2.4 Genauigkeit der Darstellung
 1.2.5 Usability: Fokus, Zoom, Auswahl
 1.3 Technische Grundlagen der Routenberechnung
 1.3.1 Haversine-Formel (Distanzberechnung)
-1.3.2 Geodaetische Routen (Great Circle)
+1.3.2 Geodätische Routen (Great Circle)
 1.3.3 Flugfortschritt in Echtzeit
 1.3.4 Zeitliche Zuordnung (departureAt/arrivalAt)
 1.4 Implementierung der Karten-Visualisierung
 1.4.1 Polyline-Darstellung
-1.4.2 Geodaetische Kurven
+1.4.2 Geodätische Kurven
 1.4.3 Live-Marker & Flugbewegung
-1.4.4 Fortschritts-Overlay (zurueckgelegte Flugdistanz)
+1.4.4 Fortschritts-Overlay (zurückgelegte Flugdistanz)
 1.4.5 Interaktive Flugauswahl (Map -> Details)
-1.4.6 History vs. Upcoming-Fluege
+1.4.6 History vs. Upcoming-Flüge
 1.5 Bewertung der Kartenloesung
-1.5.1 Kriterienkatalog (Uebersicht, Transparenz, Verstaendlichkeit)
+1.5.1 Kriterienkatalog (Übersicht, Transparenz, Verständlichkeit)
 1.5.2 Performance-Messungen
 1.5.3 Nutzerfeedback
-1.5.4 Staerken-Schwaechen-Analyse
+1.5.4 Stärken-Schwächen-Analyse
 1.5.5 Ergebnis
 
 2. Automatischer Import von Boardkarten & Buchungsdaten (Boris)
-2.1 Grundlagen automatisierter Datenuebernahme
+2.1 Grundlagen automatisierter Datenübernahme
 2.1.1 Zielsetzung und Nutzen des Imports
 2.1.2 Abgrenzung zu manueller Erfassung
 2.1.3 Typische Fehlerquellen bei Importen
-2.2 Datenquellen fuer Flugdaten
+2.2 Datenquellen für Flugdaten
 2.2.1 QR-Code / Boarding Pass (BCBP)
 2.2.1.1 Aufbau des BCBP-Standards
 2.2.1.2 Relevante Felder (From/To, Flight No, Date)
-2.2.1.3 Limitierungen und Sonderfaelle
+2.2.1.3 Limitierungen und Sonderfälle
 2.2.2 OCR aus Bildern/Dokumenten
 2.2.2.1 Bildqualitaet und Einflussfaktoren
 2.2.2.2 Extraktion relevanter Felder
@@ -91,7 +91,7 @@ Inhaltsverzeichnis
 3.2.4 Receipt Reminder (T+2h)
 3.2.5 Kontextabhaengige Hinweise (z. B. fehlende Dokumente)
 3.2.6 Quiet Hours / Stoerungsminimierung
-3.2.7 Mehrsprachigkeit & Verstaendlichkeit der Reminder
+3.2.7 Mehrsprachigkeit & Verständlichkeit der Reminder
 3.3 Technisches Konzept
 3.3.1 Triggerberechnung aus departureAt/arrivalAt
 3.3.2 Speicherung & Persistenz (local + server)
@@ -117,7 +117,7 @@ Inhaltsverzeichnis
 4.1 Grundlagen zentraler Datenhaltung
 4.1.1 Single Source of Truth
 4.1.2 Problem verteilter Datenquellen
-4.1.3 Relevanz fuer Geschaeftsreisen
+4.1.3 Relevanz für Geschäftsreisen
 4.2 Anforderungen an Datenverwaltung
 4.2.1 Strukturierte Entitaeten (Flights, Notes, Docs, Checklists)
 4.2.2 Transparenz & Statusuebersicht
@@ -202,7 +202,7 @@ Inhaltsverzeichnis
 7.6.3 Import-Tests
 7.6.4 Statistiken-Validierung
 
-Notizen fuer Orientierung
+Notizen für Orientierung
 - Vorlage kommt hier hinein (Einleitungstext, Vorgaben, Stil).
 - Offene Punkte oder Anweisungen hier ergaenzen.
 - Verweis: Die Detailtexte werden spaeter je Kapitel ausgearbeitet.

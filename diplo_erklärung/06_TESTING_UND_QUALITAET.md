@@ -12,8 +12,8 @@ Qualitaetssicherung in Skyline verfolgt drei Ziele:
 
 Vorhandene Bausteine:
 
-- Linting ueber `expo lint`
-- Unit Tests ueber Jest (`npm test`)
+- Linting über `expo lint`
+- Unit Tests über Jest (`npm test`)
 - Beispielhafte Utility-Tests in `__tests__/flightMetrics.test.ts`
 
 Abgedeckte Testfaelle (Auszug):
@@ -28,8 +28,8 @@ Fuer mobile Features sind manuelle End-to-End Tests besonders relevant:
 
 - Authentifizierung inkl. Reset-Flow
 - Flugimport mit QR/OCR
-- manuelles Anlegen/Bearbeiten/Loeschen von Fluegen
-- Reminder-Ausloesung (inkl. Quiet Hours)
+- manuelles Anlegen/Bearbeiten/Löschen von Flügen
+- Reminder-Auslösung (inkl. Quiet Hours)
 - Dokumentenupload und Dokumentanzeige
 - Company Join/Invite/Role Verhalten
 
@@ -42,13 +42,13 @@ Im Projekt sichtbar:
 - optimistische UI mit Rollback-Strategie bei Fehlern
 - Kapselung externer APIs in Service-Modulen
 
-## 6.5 Testluecken (Ist-Stand)
+## 6.5 Testlücken (Ist-Stand)
 
 Noch ausbaubar:
 
-- Integrationstests fuer Service-Layer (mocked Supabase/API)
-- E2E-Szenarien fuer kritische Nutzerpfade
-- Regressionstests fuer Company-Rollen und RLS-kritische Flows
+- Integrationstests für Service-Layer (mocked Supabase/API)
+- E2E-Szenarien für kritische Nutzerpfade
+- Regressionstests für Company-Rollen und RLS-kritische Flows
 
 ## 6.6 Konkreter Ausbauplan
 

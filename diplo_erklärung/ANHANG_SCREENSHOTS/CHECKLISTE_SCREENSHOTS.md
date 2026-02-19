@@ -1,4 +1,4 @@
-# Screenshot-Checkliste fuer die schriftliche Diplomarbeit
+# Screenshot-Checkliste für die schriftliche Diplomarbeit
 
 Hinweis: Dateinamen einheitlich halten, z. B. `abb_01_login.png`, `abb_02_home.png`.
 
@@ -37,7 +37,7 @@ Hinweis: Dateinamen einheitlich halten, z. B. `abb_01_login.png`, `abb_02_home.p
 | 14 | Note Editor | Titel, Inhalt, Reminder | `abb_14_note_editor.png` | offen |
 | 15 | Checklists Tab | Fortschrittsanzeige | `abb_15_checklist_list.png` | offen |
 | 16 | Checklist Editor | Items + Template Nutzung | `abb_16_checklist_editor.png` | offen |
-| 17 | Documents List | Kategorien/Eintraege | `abb_17_documents_list.png` | offen |
+| 17 | Documents List | Kategorien/Einträge | `abb_17_documents_list.png` | offen |
 | 18 | Document Viewer | Bild/PDF-Ansicht | `abb_18_document_viewer.png` | offen |
 
 ## E) Company/Team Features
@@ -48,7 +48,7 @@ Hinweis: Dateinamen einheitlich halten, z. B. `abb_01_login.png`, `abb_02_home.p
 | 20 | Company Invite | Invite-Code Anzeige | `abb_20_company_invite.png` | offen |
 | 21 | Company Join | Eingabe Invite-Code | `abb_21_company_join.png` | offen |
 
-## F) Optional (fuer mehr Tiefe)
+## F) Optional (für mehr Tiefe)
 
 | Nr. | Screenshot | Was muss sichtbar sein | Empf. Dateiname | Status |
 |---|---|---|---|---|
@@ -56,7 +56,20 @@ Hinweis: Dateinamen einheitlich halten, z. B. `abb_01_login.png`, `abb_02_home.p
 | 23 | Pending Notifications | Local + Server Liste | `abb_23_pending_notifications.png` | offen |
 | 24 | Password Recovery | Forgot/Reset Flow | `abb_24_password_recovery.png` | offen |
 
-## Empfehlung fuer Einbindung in die Arbeit
+## Zuordnung zu LaTeX-TODOs (2_content)
+
+| LaTeX-Datei | Abb.-Label | Empfohlene Checkliste |
+|---|---|---|
+| 1_weltkarte.tex | fig:todo_weltkarte | Nr. 10, 11 oder 12 (Map) |
+| 2_import.tex | fig:todo_import_flow | Nr. 7 (+ optional Schrittfolge) |
+| 4_datenverwaltung.tex | fig:todo_datenmodell | Schema/Diagramm (aus ARCHITEKTUR_DIAGRAMME oder Supabase) |
+| 6_technik.tex | fig:todo_architektur | Diagramm aus ARCHITEKTUR_DIAGRAMME.md |
+| 7_projektumsetzung.tex | fig:todo_tests | Nr. 23 oder UI-Flow-Screens |
+| 3_notifications.tex | Reminder-Platzhalter | Nr. 5 (Settings) + ggf. Gerät mit Benachrichtigung |
+
+Screens werden voraussichtlich später eingebaut; dann hier Status auf `erledigt` setzen und in den .tex-Dateien die `\fbox{TODO:...}` durch `\includegraphics{...}` ersetzen.
+
+## Empfehlung für Einbindung in die Arbeit
 
 - Jede Abbildung mit einer kurzen Bildunterschrift versehen:
   - "Abbildung X: ... (Quelle: eigene Darstellung)"

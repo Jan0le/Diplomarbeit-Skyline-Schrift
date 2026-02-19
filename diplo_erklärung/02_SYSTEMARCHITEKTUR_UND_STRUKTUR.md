@@ -1,6 +1,6 @@
 # 02 - Systemarchitektur und Projektstruktur
 
-## 2.1 Architekturueberblick
+## 2.1 Architekturüberblick
 
 Skyline folgt einem schichtenorientierten Ansatz:
 
@@ -17,7 +17,7 @@ Diese Trennung reduziert Kopplung und erleichtert Wartung, Testing und Erweiteru
 
 - Expo Router mit file-based routing in `app/`
 - Auth-Bereich und Haupt-App klar getrennt
-- Tab-Navigation fuer Home/Map/Profile/Settings
+- Tab-Navigation für Home/Map/Profile/Settings
 
 ### UI-Komponenten
 
@@ -46,14 +46,14 @@ Diese Trennung reduziert Kopplung und erleichtert Wartung, Testing und Erweiteru
 
 - Basisschema in `complete_working_schema.sql`
 - inkrementelle Migrationsskripte in `scripts/`
-- RPC-Funktionen fuer performancekritische oder komplexe Operationen
+- RPC-Funktionen für performancekritische oder komplexe Operationen
 
 ## 2.4 Service-Layer als Integrationspunkt
 
-Die Services kapseln externe Abhaengigkeiten und Datenzugriff:
+Die Services kapseln externe Abhängigkeiten und Datenzugriff:
 
 - `services/supabase.ts` als zentrale Data-Access-Klasse
-- spezialisierte Services fuer Airports, Dokumente, Notifications, Company, OCR
+- spezialisierte Services für Airports, Dokumente, Notifications, Company, OCR
 
 Dadurch bleiben Screens schlanker und fachlich fokussiert.
 
@@ -75,7 +75,7 @@ Wesentliche Verzeichnisse:
 Im Projekt wurden folgende Prinzipien sichtbar umgesetzt:
 
 - **Single Responsibility** pro Modul
-- **Layered Architecture** fuer klare Verantwortlichkeiten
+- **Layered Architecture** für klare Verantwortlichkeiten
 - **Defensive Fehlerbehandlung** mit Fallbacks
-- **Evolvierbarkeit** ueber Migrationen und modulare Services
+- **Evolvierbarkeit** über Migrationen und modulare Services
 - **Mobile-first UX** mit Fokus auf responsive Bedienung

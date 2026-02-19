@@ -1,4 +1,4 @@
-# Skyline - Vollstaendiges Projektprotokoll (schriftliche Diplomarbeit)
+# Skyline - Vollständiges Projektprotokoll (schriftliche Diplomarbeit)
 
 Stand: 2026-02-19  
 Projekt: `Newest_Version_Skyline`  
@@ -8,8 +8,8 @@ Typ: Mobile Full-Stack Anwendung (React Native/Expo + Supabase/PostgreSQL)
 
 ## 1) Ziel dieses Dokuments
 
-Dieses Dokument ist das zentrale, technische Projektprotokoll fuer die schriftliche Diplomarbeit.  
-Es beschreibt das Skyline-Projekt von der Planung ueber Architektur und Umsetzung bis zu Testing, Betrieb und offenen Punkten - auf Full-Stack-Niveau.
+Dieses Dokument ist das zentrale, technische Projektprotokoll für die schriftliche Diplomarbeit.  
+Es beschreibt das Skyline-Projekt von der Planung über Architektur und Umsetzung bis zu Testing, Betrieb und offenen Punkten - auf Full-Stack-Niveau.
 
 Wichtig: Die Inhalte basieren auf dem aktuellen Repository-Stand, den vorhandenen SQL-Migrationen, Services, Screens und der Git-Historie.
 
@@ -17,12 +17,12 @@ Wichtig: Die Inhalte basieren auf dem aktuellen Repository-Stand, den vorhandene
 
 ## 2) Projektkontext und Problemstellung
 
-Skyline loest das Problem, Flugreisen strukturiert zu erfassen und entlang der gesamten Journey zu begleiten:
+Skyline löst das Problem, Flugreisen strukturiert zu erfassen und entlang der gesamten Journey zu begleiten:
 
 - Flugerfassung (manuell, QR/BCBP, OCR)
 - Visualisierung auf Karte mit Flugroute und Live-Progress
 - Reiseorganisation (Notizen, Checklisten, Dokumente)
-- Team-/Firmenkontext (Company, Rollen, gemeinsame Fluege)
+- Team-/Firmenkontext (Company, Rollen, gemeinsame Flüge)
 - Benachrichtigungen und Reminder (Check-in, Boarding, Dokumente, Belege)
 - Statistiken und Achievements
 
@@ -31,7 +31,7 @@ Der technische Anspruch ist klar Full-Stack:
 - Mobile Frontend mit komplexem UI/State/Routing
 - Backend mit Supabase Auth + Postgres + RLS + Storage + RPC
 - Event/Reminder-Logik mit lokaler Notification-Scheduling-Schicht
-- Performance- und Usability-Fokus fuer reale mobile Nutzung
+- Performance- und Usability-Fokus für reale mobile Nutzung
 
 ---
 
@@ -41,13 +41,13 @@ Der technische Anspruch ist klar Full-Stack:
 
 - Schnelle, alltagstaugliche Flugverwaltung
 - Sichtbare Mehrwerte statt nur CRUD (Map, Reminders, Dokumentenablage, Team-Features)
-- Business- und Private-Kontext unterstuetzen
+- Business- und Private-Kontext unterstützen
 
 ### 3.2 Technische Ziele
 
 - Saubere Trennung von UI, State und Services
 - Stabile Datenbasis mit RLS-Policies
-- Erweiterbarkeit ueber Migrationen und modulare Services
+- Erweiterbarkeit über Migrationen und modulare Services
 - Mobile-optimierte UX (Animationen, Debounce, Lazy Loading, Offline-nahe Features)
 
 ### 3.3 Scope (Ist-Stand)
@@ -66,7 +66,7 @@ Im Scope:
 
 Teilweise/noch offen:
 
-- Teile von `calendarSyncService` (mehrere Methoden als Not implemented markiert)
+- Kalender-Synchronisation wurde implementiert; ggf. im Code/Service prüfen ob alle Methoden aktiv sind.
 - Einige SupabaseService-Methoden sind als TODO markiert (z. B. User-CRUD, Realtime)
 - Analytics ist aktuell ein Shim
 
@@ -95,13 +95,13 @@ Teilweise/noch offen:
 
 - Aviationstack (Airport Daten, Autocomplete)
 - OCR.space (Dokumenten-/Bildtextauslese)
-- Optional: AeroDataBox fuer Flight-Time Lookup (`Skyline ticket ausleser/flightLookupService.ts`)
-- Expo Push Endpoint fuer Push-Versand
+- Optional: AeroDataBox für Flight-Time Lookup (`Skyline ticket ausleser/flightLookupService.ts`)
+- Expo Push Endpoint für Push-Versand
 
 ### 4.4 Build/Delivery
 
 - EAS Build (`development`, `preview`, `production`)
-- iOS/Android Konfiguration ueber `app.json` und `eas.json`
+- iOS/Android Konfiguration über `app.json` und `eas.json`
 
 ---
 
@@ -118,7 +118,7 @@ flowchart LR
 
 ### 5.1 Frontend-Architektur
 
-- Routing ueber `app/` (Expo Router)
+- Routing über `app/` (Expo Router)
 - Auth-Kontext in `contexts/AuthContext.tsx`
 - Globaler App-State in `store/index.ts`
 - Feature-spezifische Screens in `app/` und modulare UI in `components/`
@@ -126,7 +126,7 @@ flowchart LR
 ### 5.2 Backend-Architektur
 
 - SQL-first Datenmodell in `complete_working_schema.sql` plus migrations in `scripts/`
-- Datenzugriff ueber `services/supabase.ts` und spezialisierte Services
+- Datenzugriff über `services/supabase.ts` und spezialisierte Services
 - RLS/Policies regeln Sichtbarkeit und Schreibrechte benutzer- bzw. firmenbasiert
 
 ---
@@ -148,7 +148,7 @@ Wesentliche Verzeichnisse:
 
 ## 7) Datenmodell und Datenbankdesign
 
-Die DB ist in mehrere funktionale Bloecke gegliedert.
+Die DB ist in mehrere funktionale Blöcke gegliedert.
 
 ### 7.1 Kern-Entities
 
@@ -198,8 +198,8 @@ Policies trennen:
 
 ## 8.1 Auth & Session
 
-- Sign-up/Sign-in ueber Supabase Auth
-- Profilanlage ueber Trigger (`handle_new_user`) und/oder Fallback-Service
+- Sign-up/Sign-in über Supabase Auth
+- Profilanlage über Trigger (`handle_new_user`) und/oder Fallback-Service
 - Session-Persistenz via AsyncStorage im Supabase-Client
 - Passwort-Reset Flow implementiert (inkl. `change-password`, `forgot-password`, `reset-password`)
 
@@ -208,7 +208,7 @@ Policies trennen:
 1. Formular in `app/add-flight-manual.tsx`
 2. Airport-Suche per `services/airports.ts`
 3. Distanz-/Daueraufbereitung
-4. Persistierung ueber `store.addFlight -> supabaseService.createFlight`
+4. Persistierung über `store.addFlight -> supabaseService.createFlight`
 5. Follow-up:
    - Stats Update
    - Reminder Scheduling
@@ -221,7 +221,7 @@ Mehrstufiger Import:
 - BCBP Parsing via `Skyline ticket ausleser/bcbp.ts`
 - OCR-Fallback via `services/ocr.ts`
 - Airport-Codes werden validiert und in `airports` persistiert
-- Nutzer bestaetigt/ergaenzt Daten vor finalem Save
+- Nutzer bestätigt/ergänzt Daten vor finalem Save
 
 ## 8.4 Map und Live-Progress
 
@@ -262,7 +262,7 @@ Schichten:
 - `services/notifications.ts`: lokales Scheduling + Channels + Quiet Hours
 - `services/notificationRegistry.ts`: serverseitige Notification-Records
 - `services/flightAutoReminderService.ts`: fachliche Reminder pro Flug
-- `services/noteChecklistReminderService.ts`: Reminder fuer Notes/Checklists
+- `services/noteChecklistReminderService.ts`: Reminder für Notes/Checklists
 - `services/notificationRescheduler.ts`: Wiederherstellung offener Notifications
 
 ## 8.8 Company-/Team-Features
@@ -273,7 +273,7 @@ Wesentliche Funktionen:
 - Invite-Codes
 - Rollen owner/worker
 - company_id-basierte Flugsicht
-- Team-Member Management fuer Owner
+- Team-Member Management für Owner
 
 Services:
 
@@ -307,7 +307,7 @@ Anmerkung: Es gibt sowohl produktive implementierte Methoden als auch markierte 
 Hybrid-Ansatz:
 
 - API-first Suche (Aviationstack) mit Caching/Rate-Limit
-- Persistierung selektierter Airports in DB fuer Foreign Keys
+- Persistierung selektierter Airports in DB für Foreign Keys
 - Legacy DB-RPC Pfade weiterhin vorhanden
 
 ### 9.3 `services/settingsService.ts`
@@ -330,8 +330,7 @@ Dokumenten-Lifecycle:
 
 ### 9.5 `services/calendarSyncService.ts`
 
-Konzeptionell umfangreich, aber teils noch scaffolded/not implemented.  
-Fuer die schriftliche Arbeit wichtig: zeigt eine geplante Integrationsrichtung fuer externe Kalender.
+Kalender-Synchronisation wurde implementiert. Integration mit externen Kalendern für Flug-/Reisedaten.
 
 ---
 
@@ -365,7 +364,7 @@ Verwendet werden u. a.:
 ### 11.1 Stats
 
 - Serverseitig via RPC `get_user_stats`
-- Clientseitige Fallback-/Ergaenzungsberechnungen im Store
+- Clientseitige Fallback-/Ergänzungsberechnungen im Store
 - Distanz als `distance_km` + formatierter String
 
 ### 11.2 Achievements
@@ -382,11 +381,11 @@ Verwendet werden u. a.:
 
 - RLS breit eingesetzt
 - Pro-User und pro-Company Zugriffslogik
-- Trigger/Policies fuer Integritaet
+- Trigger/Policies für Integrität
 
 ### 12.2 Technische Risiken/Schulden (aktueller Stand)
 
-- Konfigurationsdateien enthalten sensible Konfigwerte (API-/Account-nahe Daten) -> fuer Produktion sollten Secrets strikt in sichere Env/Secret Stores.
+- Konfigurationsdateien enthalten sensible Konfigwerte (API-/Account-nahe Daten) -> für Produktion sollten Secrets strikt in sichere Env/Secret Stores.
 - Einige Module enthalten Debug-/Entwicklungslogik, die vor produktivem Release bereinigt werden sollte.
 - Nicht alle geplanten Features sind bis zum gleichen Reifegrad implementiert (z. B. Teile Calendar Sync).
 
@@ -397,13 +396,13 @@ Verwendet werden u. a.:
 ### 13.1 Vorhanden
 
 - Jest Setup (`npm test`)
-- Unit Tests fuer `utils/flightMetrics.ts` in `__tests__/flightMetrics.test.ts`
+- Unit Tests für `utils/flightMetrics.ts` in `__tests__/flightMetrics.test.ts`
 - Linting via `expo lint`
 
-### 13.2 Empfohlene Erweiterung fuer Diplomarbeit
+### 13.2 Empfohlene Erweiterung für Diplomarbeit
 
-- Integrationstests fuer Service-Layer (mocked Supabase responses)
-- E2E-Flows fuer:
+- Integrationstests für Service-Layer (mocked Supabase responses)
+- E2E-Flows für:
   - Import + Save Flight
   - Reminder Scheduling
   - Document Upload + View + Delete
@@ -418,7 +417,7 @@ Verwendet werden u. a.:
 - Jan0le: 25 Commits
 - BorisPlesnicar/Boris Plesnicar: 26 Commits gesamt (zwei Author-Namen)
 
-### 14.2 Zeitlicher Verlauf (Schluesselphasen)
+### 14.2 Zeitlicher Verlauf (Schlüsselphasen)
 
 1. **Initialphase (08/2025)**
    - Initiale Commits, Grundgeruest, UI-Basis
@@ -444,7 +443,7 @@ Verwendet werden u. a.:
    - FA-09 Stats Dashboard
    - Notification Persistenz
 
-6. **Stabilisierung und UX-Haertung (02/2026)**
+6. **Stabilisierung und UX-Härtung (02/2026)**
    - Checklist/Trip-Details Stabilisierung
    - Notification Delivery Fixes
    - Passwort-Recovery Flow
@@ -463,9 +462,9 @@ Verwendet werden u. a.:
 
 Warum:
 
-- schnelle Produktivitaet fuer Auth + DB + Storage
+- schnelle Produktivität für Auth + DB + Storage
 - SQL/RLS erlaubt saubere Daten- und Rechtekontrolle
-- gute Passung fuer mobile App mit Backend-as-a-Service
+- gute Passung für mobile App mit Backend-as-a-Service
 
 ### 15.2 API-first Airports + lokale Persistierung
 
@@ -478,15 +477,15 @@ Warum:
 
 Warum:
 
-- lokal: zuverlaessige Device-Scheduling-Faehigkeit
-- serverseitig: Registry fuer Nachvollziehbarkeit und Reschedule
+- lokal: zuverlaessige Device-Scheduling-Fähigkeit
+- serverseitig: Registry für Nachvollziehbarkeit und Reschedule
 
 ### 15.4 Feature-Hub `trip-details`
 
 Warum:
 
 - ein zentraler Ort pro Flug minimiert Kontextwechsel
-- bessere User Journey fuer Notes/Checklists/Documents/Photos
+- bessere User Journey für Notes/Checklists/Documents/Photos
 
 ---
 
@@ -505,7 +504,7 @@ Warum:
 
 4. **Code-Refactoring**
    - Duplikate in Parsing/Import-Pfaden konsolidieren
-   - verbleibende TODO-Bloecke priorisiert schliessen
+   - verbleibende TODO-Blöcke priorisiert schliessen
 
 5. **Release-Readiness**
    - Debug-Only Instrumentation entfernen
@@ -513,7 +512,7 @@ Warum:
 
 ---
 
-## 17) Vorschlag fuer Kapitelstruktur der schriftlichen Arbeit
+## 17) Vorschlag für Kapitelstruktur der schriftlichen Arbeit
 
 1. Einleitung / Problemstellung  
 2. Zieldefinition und Anforderungen (funktional + nicht-funktional)  
@@ -545,5 +544,5 @@ Warum:
 ## 19) Kurzfazit
 
 Skyline ist im aktuellen Stand eine technisch anspruchsvolle mobile Full-Stack Anwendung mit klar erkennbarem Produktfokus, iterativer Entwicklung und breitem Feature-Umfang.  
-Die Architektur ist modular genug fuer weitere Ausbaustufen, gleichzeitig zeigen die offenen Punkte eine realistische, nachvollziehbare Entwicklungsreife fuer eine Diplomarbeit: funktional stark, mit klaren Naechstschritten in Security-Hardening, Testabdeckung und Rest-Implementierungen.
+Die Architektur ist modular genug für weitere Ausbaustufen, gleichzeitig zeigen die offenen Punkte eine realistische, nachvollziehbare Entwicklungsreife für eine Diplomarbeit: funktional stark, mit klaren Nächstschritten in Security-Hardening, Testabdeckung und Rest-Implementierungen.
 

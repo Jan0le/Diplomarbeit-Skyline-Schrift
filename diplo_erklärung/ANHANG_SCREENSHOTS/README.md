@@ -1,12 +1,12 @@
 # Anhang Screenshots
 
-Dieser Ordner dient als Platz fuer die finalen Screenshots der schriftlichen Arbeit.
+Dieser Ordner dient als Platz für die finalen Screenshots der schriftlichen Arbeit.
 
 ## Vorgehen
 
 1. Nutze `CHECKLISTE_SCREENSHOTS.md` als To-do-Liste.
 2. Speichere Bilder mit den vorgeschlagenen Dateinamen.
-3. Halte einheitliche Aufloesung und ggf. gleiches Theme fuer Vergleichbarkeit.
+3. Halte einheitliche Auflösung und ggf. gleiches Theme für Vergleichbarkeit.
 
 ## Dateibenennung
 
@@ -16,4 +16,4 @@ Empfohlen:
 - `abb_02_signup.png`
 - ...
 
-So koennen Abbildungen in der Arbeit eindeutig referenziert werden.
+So können Abbildungen in der Arbeit eindeutig referenziert werden.
