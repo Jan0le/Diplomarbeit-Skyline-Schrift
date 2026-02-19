@@ -1,0 +1,87 @@
+%!TEX root = ../DA_MainDocument.tex
+\chapter{Zentrale \& sichere Datenverwaltung (JanOle)}\label{chapter:datenverwaltung}
+\section{Grundlagen zentraler Datenhaltung}
+Zentrale Datenhaltung bedeutet eine gemeinsame Quelle fuer alle Reiseinformationen.
+Dadurch wird Informationsfragmentierung reduziert und die Nachvollziehbarkeit erhoeht.
+\subsection{Single Source of Truth}
+Alle relevanten Reisedaten werden an einem Ort gepflegt, sodass kein
+Versionskonflikt zwischen E-Mail, Dateien und Notizen entsteht.
+\subsection{Problem verteilter Datenquellen}
+Verteilte Daten fuehren zu doppelten Eintraegen, Suchaufwand und fehlender
+Uebersicht.
+\subsection{Relevanz fuer Geschaeftsreisen}
+Geschaeftsreisen erfordern klare Nachweise, Belege und schnelle Auskunft
+gegenueber Buchhaltung oder Management.
+\section{Anforderungen an Datenverwaltung}
+Die Datenverwaltung muss strukturiert, nachvollziehbar und sicher sein.
+\subsection{Strukturierte Entitaeten (Flights, Notes, Docs, Checklists)}
+Flights sind die zentrale Entitaet, an die Notizen, Checklisten und Dokumente
+angehaengt werden.
+\subsection{Transparenz \& Statusuebersicht}
+Eine klare Statusanzeige zeigt, ob Informationen vorhanden oder fehlend sind.
+\subsection{Nachvollziehbarkeit \& Historie}
+Zeitstempel und Metadaten machen Aenderungen nachvollziehbar.
+\subsection{Synchronisierung (MultiDevice)}
+Daten sollen auf mehreren Geraeten konsistent verfuegbar sein.
+\subsection{Rollen \& Zugriffsrechte}
+Im Unternehmenskontext sind Rollen notwendig (Owner/Worker), um Zugriff zu
+begrenzen.
+\subsection{Datenintegritaet \& Validierung}
+Validierungen sichern, dass Pflichtdaten vorhanden sind (z. B. \texttt{flight\_id}).
+\section{Sicherheitskonzept}
+Sicherheit basiert auf Authentifizierung und Row Level Security in Supabase
+\cite{supabaseAuth,supabaseRLS}.
+\subsection{Authentifizierung (Supabase Auth)}
+Nutzeridentitaet wird ueber Supabase Auth verwaltet \cite{supabaseAuth}.
+\subsection{RowLevel Security (RLS)}
+RLS-Policies verhindern, dass Nutzer fremde Daten lesen oder aendern
+\cite{supabaseRLS}.
+\subsection{Policies pro Tabelle}
+Jede Tabelle hat eigene Policies fuer SELECT/INSERT/UPDATE/DELETE.
+\subsection{StorageSicherheit (Dokumente, Bilder)}
+Dokumente werden in privaten Buckets gespeichert und ueber Policies abgesichert
+\cite{supabaseStorage}.
+\subsection{Datenschutzrechtliche Anforderungen}
+Die DSGVO fordert Datenminimierung, Zugriffskontrolle und Loeschmoeglichkeiten
+\cite{gdpr}.
+\section{Implementierung in Skyline}
+Die Implementierung nutzt Supabase Postgres fuer Daten und Supabase Storage
+fuer Dateien \cite{supabaseStorage}.
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.8\textwidth}{TODO: Datenmodell/Supabase-Tabellen oder Schema-Visualisierung einfuegen.}}
+  \caption{TODO: Zentrales Datenmodell in Skyline}
+  \label{fig:todo_datenmodell}
+\end{figure}
+\subsection{Datenmodell \& Tabellenstruktur}
+Das Schema umfasst \texttt{user\_flights}, notes, checklists, documents und profiles.
+\subsection{Beziehung Flight <-> Notes/Docs/Checklists}
+Alle sekundaren Entitaeten verweisen ueber \texttt{flight\_id} auf den Trip.
+\subsection{StorageBucket \& Signed URLs}
+Dokumente werden im Storage abgelegt; Signed URLs erlauben sicheren Zugriff
+\cite{supabaseStorage}.
+\subsection{SyncStrategie \& Caching}
+Die App synchronisiert Daten bei App-Start und nutzt lokales Caching fuer
+Offline-Zugriff.
+\subsection{Fehlerfaelle \& Wiederherstellung}
+Fehler werden abgefangen; Daten bleiben zentral gesichert und koennen
+wieder geladen werden.
+\section{Bewertung der Wirkung}
+Bewertet wird, ob Transparenz und Nachvollziehbarkeit messbar steigen.
+\subsection{TransparenzKPI}
+KPI: Zeit, um den Status einer Reise zu verstehen, und Anteil vollstaendiger
+Datensaetze.
+\subsection{NachvollziehbarkeitKPI}
+KPI: Zeit bis ein Dokument wiedergefunden wird und Anteil fehlender Belege.
+\subsection{Vergleich zu dezentralen Loesungen}
+Zentralisierte Ablage reduziert Rueckfragen und manuellen Suchaufwand.
+\section{Ergebnis}
+Die zentrale Datenverwaltung verbessert Transparenz und Nachvollziehbarkeit
+insbesondere in Geschaeftsreisen.
+\subsection{Verbesserungen in Transparenz}
+Status und Dokumente sind jederzeit sichtbar.
+\subsection{Verbesserungen in Nachvollziehbarkeit}
+Historie und Metadaten ermoeglichen klare Rueckverfolgung.
+\subsection{Schlussfolgerung}
+Single Source of Truth kombiniert mit Security-by-Design liefert nachhaltigen
+Mehrwert fuer Organisation und Nutzer.
