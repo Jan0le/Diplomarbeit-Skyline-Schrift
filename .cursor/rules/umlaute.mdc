@@ -1,0 +1,18 @@
+---
+description: Umlaute als echte Zeichen (ä, ö, ü) statt ASCII-Ersatz (ae, oe, ue)
+globs: "**/*.tex"
+alwaysApply: false
+---
+
+# Umlaute in deutschsprachigen Texten
+
+**Immer echte Umlaute verwenden**, nicht die ASCII-Ersetzungen:
+- `ä` statt `ae`
+- `ö` statt `oe`  
+- `ü` statt `ue`
+
+Beispiele:
+- ❌ fuer, muessen, ueber, Geschaefts, Zustaende, Aenderung
+- ✅ für, müssen, über, Geschäfts, Zustände, Änderung
+
+Das Projekt nutzt UTF-8 (`\usepackage[utf8]{inputenc}`), daher sind ä, ö, ü direkt nutzbar.
