@@ -1,21 +1,18 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter*{Einleitung}
-\addcontentsline{toc}{chapter}{Einleitung}
+\chapter{Einleitung}
 
-\section*{Ausgangssituation und Motivation}
-\addcontentsline{toc}{section}{Ausgangssituation und Motivation}
+\section{Ausgangssituation und Motivation}
 Reisebezogene Informationen wie Buchungsdaten, Boardingkarten und Belege werden
-in der Praxis haeufig in unterschiedlichen Medien und Systemen gespeichert
+in der Praxis häufig in unterschiedlichen Medien und Systemen gespeichert
 (E-Mail, Dateien, Kalender, Papier). Diese Verteilung erschwert die strukturierte
-Organisation, verlaengert Suchvorgaenge und reduziert die Nachvollziehbarkeit
+Organisation, verlängert Suchvorgänge und reduziert die Nachvollziehbarkeit
 im Unternehmenskontext. Die Diplomarbeit adressiert diese Fragmentierung durch
-eine zentrale, mobile Anwendung, die Fluege, Reisedaten, Dokumente und
-Erinnerungen konsistent zusammenfuehrt.
+eine zentrale, mobile Anwendung, die Flüge, Reisedaten, Dokumente und
+Erinnerungen konsistent zusammenführt.
 
-\section*{Problemstellung}
-\addcontentsline{toc}{section}{Problemstellung}
+\section{Problemstellung}
 Die zentrale Problemstellung ist die fehlende Transparenz und Nachvollziehbarkeit
-von Reiseinformationen bei gleichzeitig hoher Zeitkritikalitaet (z. B. Check-in,
+von Reiseinformationen bei gleichzeitig hoher Zeitkritikalität (z.\,B. Check-in,
 Boarding, Belegverwaltung). Ohne strukturierte Ablage und proaktive Hinweise
 entstehen organisatorische Fehler und ein hoher manueller Aufwand. Daraus
 ergeben sich Anforderungen an Importprozesse, Datenhaltung, Sicherheit,
@@ -23,35 +20,48 @@ Visualisierung und Benachrichtigung.
 Die Verarbeitung personenbezogener Reisedaten muss zudem den Vorgaben der DSGVO
 entsprechen \cite{gdpr}.
 
-\section*{Zielsetzung der Arbeit}
-\addcontentsline{toc}{section}{Zielsetzung der Arbeit}
+\section{Zielsetzung der Arbeit}
 Ziel ist die Umsetzung der App \glqq Skyline\grqq{} als integrierte Lösung für
 Flugverwaltung, Dokumentenablage, automatischen Import, Kartenvisualisierung,
 Statistiken und Erinnerungen. Die Arbeit dokumentiert die Implementierung
-strukturiert und bewertet die Wirkung in Bezug auf Zuverlaessigkeit,
+strukturiert und bewertet die Wirkung in Bezug auf Zuverlässigkeit,
 Effizienz, Transparenz und Nachvollziehbarkeit.
 
-\section*{Forschungsfragen}
-\addcontentsline{toc}{section}{Forschungsfragen}
-Die Arbeit orientiert sich an folgenden Forschungsfragen:
+\section{Forschungsfragen}
+Die Arbeit orientiert sich an folgenden vier Forschungsfragen, die den Modulen
+der Implementierung zugeordnet sind:
+
 \begin{itemize}
-  \item Wie sehr erhoehen proaktive Benachrichtigungen die Zuverlaessigkeit und
-  Effizienz bei der Reiseorganisation?
-  \item In welchem Masse verbessert eine zentralisierte und sichere Datenverwaltung
-  die Transparenz und Nachvollziehbarkeit von Geschaeftsreisen?
+  \item \textbf{Weltkarte (Boris):} Wie sehr steigert eine visuelle Darstellung
+  die Übersicht und Transparenz bei Vielreisenden?
+  \item \textbf{Import (Boris):} Wie viel Zeitersparnis bringt die automatische
+  Datenübernahme im Vergleich zur manuellen Eingabe?
+  \item \textbf{Benachrichtigungen (Jan-Ole):} Wie sehr erhöhen proaktive
+  Benachrichtigungen die Zuverlässigkeit und Effizienz bei der Reiseorganisation?
+  \item \textbf{Datenverwaltung (Jan-Ole):} In welchem Maße verbessert eine
+  zentralisierte und sichere Datenverwaltung die Transparenz und
+  Nachvollziehbarkeit von Geschäftsreisen?
 \end{itemize}
 
-\section*{Vorgehensweise und Methodik}
-\addcontentsline{toc}{section}{Vorgehensweise und Methodik}
+\section{Vorgehensweise und Methodik}
 Die Umsetzung erfolgt iterativ auf Basis des Pflichtenhefts und der
 Implementierungsprotokolle. Anforderungen werden in Module zerlegt,
-technisch realisiert und anschliessend begruendet sowie bewertet.
-Fuer die Evaluierung werden KPIs und qualitative Kriterien herangezogen,
-die typische Reiseablaeufe abbilden.
+technisch realisiert und anschließend begründet sowie bewertet.
+Für die Evaluierung werden KPIs und qualitative Kriterien herangezogen,
+die typische Reiseabläufe abbilden.
+\subsection{Methodik der Modulbewertung}
+Pro Modul werden Bewertungskriterien definiert (z.\,B. Zuverlässigkeit,
+Effizienz, Transparenz). Die Ergebnisse werden in Kapitel 8 zusammengefasst.
+\subsection{Testaufbau und Datengrundlage}
+Funktionstests sichern die Hauptabläufe; Reminder- und Import-Tests
+validieren die zeitkritischen Funktionen. Die Bewertung erfolgt anhand
+typischer Reiseszenarien.
 
-\section*{Aufbau der Arbeit}
-\addcontentsline{toc}{section}{Aufbau der Arbeit}
-Kapitel 1 und 2 behandeln Kartenvisualisierung und Import. Kapitel 3 und 4
-beschreiben Benachrichtigungen und Datenverwaltung. Kapitel 5 und 6 decken
-rechtliche sowie technische Aspekte ab. Kapitel 7 dokumentiert die
-projektbezogene Umsetzung und Validierung.
+\section{Aufbau der Arbeit}
+Kapitel 1 ist die Präambel, Kapitel 2 die Einleitung und Kapitel 3 die theoretischen
+Grundlagen (Import, Karten, Benachrichtigungen, Datenverwaltung). Kapitel 4 bis 7
+beschreiben die Implementierung dieser Module in Skyline. Kapitel 8 fasst Bewertung
+und Evaluation zusammen. Kapitel 9 behandelt die technische Architektur sowie die
+projektbezogene Umsetzung (Karten, Import, Benachrichtigungen, Datenverwaltung,
+Gamification, Tests). Kapitel 10 enthält die Installation, Kapitel 11 schließt mit
+Zusammenfassung und Ausblick.

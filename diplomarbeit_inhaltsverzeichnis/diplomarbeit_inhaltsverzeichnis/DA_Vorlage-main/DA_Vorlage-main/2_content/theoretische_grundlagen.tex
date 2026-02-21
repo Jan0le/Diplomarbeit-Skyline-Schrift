@@ -1,0 +1,160 @@
+%!TEX root = ../DA_MainDocument.tex
+\chapter{Theoretische Grundlagen}
+
+\section{Mobile Reiseorganisation und digitale Workflows}
+\subsection{Charakteristika von Reisedaten und deren Verwaltung}
+Reisedaten umfassen Fluginformationen, Buchungsdaten, Dokumente, Belege und Erinnerungen. Diese Informationen werden in der Praxis häufig in unterschiedlichen Medien und Systemen gespeichert (E-Mail, Dateien, Kalender, Papier), was zu Fragmentierung führt.
+
+\subsection{Herausforderungen bei der Fragmentierung von Reiseinformationen}
+Die Verteilung erschwert die strukturierte Organisation, verlängert Suchvorgänge und reduziert die Nachvollziehbarkeit im Unternehmenskontext. Ohne strukturierte Ablage entstehen organisatorische Fehler und ein hoher manueller Aufwand.
+
+\section{Grundlagen des automatischen Imports}
+\subsection{Zielsetzung und Nutzen}
+Automatisierter Import reduziert manuellen Aufwand und senkt die Fehlerquote. Ziel ist es, Flugdaten möglichst schnell und korrekt zu erfassen, um den Nutzer von repetitiven Eingaben zu entlasten und die Datenqualität zu erhöhen.
+
+\subsection{Abgrenzung zu manueller Erfassung}
+Manueller Import bleibt als Fallback bestehen, ist aber zeitaufwändiger und fehleranfälliger. Automatisierung steigert Komfort und Konsistenz.
+
+\subsection{Typische Fehlerquellen bei Importen}
+Typische Probleme sind unvollständige Daten, fehlerhafte OCR-Erkennung oder unklare Codierung in QR/BCBP. Daher sind Validierung und Nachbearbeitung wichtig.
+
+\subsection{Datenquellen für Flugdaten}
+\subsubsection{QR-Code / Boarding Pass (BCBP)}
+Boardingpässe enthalten standardisierte BCBP-Daten, die sich strukturiert auslesen lassen \cite{iataBCBP}. BCBP basiert auf festen Positionsfeldern. Die Struktur ermöglicht die Extraktion von Airline, Flugnummer, Datum und Airports \cite{iataBCBP}. Kernfelder sind Abflug-/Zielairport, Flugnummer und Datum. Diese reichen für einen validen Flight-Import aus. Nicht alle Boardingpässe sind standardkonform; zudem fehlen häufig Zusatzdaten wie Gate oder Sitzplatz.
+
+\subsubsection{OCR aus Bildern/Dokumenten}
+OCR ermöglicht Import aus Fotos und PDFs, wenn kein QR-Code vorhanden ist. Schriftgröße, Kontrast und Bildrauschen beeinflussen die Genauigkeit der OCR. Nach OCR müssen Texte geparst und relevanten Feldern zugeordnet werden. Fehlerhafte OCR wird durch Plausibilitätschecks abgefangen, z.\,B. IATA-Codes oder Datumsformate.
+
+\subsubsection{E-Mail-Import (Buchungsdaten)}
+Buchungsbestätigungen enthalten strukturierte Informationen, die per Parser ausgelesen werden können. Typische Mails enthalten Buchungsreferenz, Routing, Zeiten und Passagierdaten. Format und Layout unterscheiden sich je Airline. Unterschiedliche Templates erfordern flexible Parser oder heuristische Regeln.
+
+\subsection{Technische Anforderungen}
+Der Import muss technisch stabil, verifizierbar und nutzerfreundlich sein. Validierung prüft Plausibilität (Datum, Airport-Codes). Feld-Mapping normalisiert externe Daten. Deduplizierung erkennt Mehrfachimporte. Fallback-Strategien und manuelle Ergänzung bei unvollständigen Daten sind erforderlich. Asynchrone Verarbeitung hält die UI responsiv. Fehler müssen nutzerfreundlich kommuniziert werden.
+
+\subsection{Vergleich: Manuell vs.\ Automatisch}
+Automatisierung reduziert Zeitaufwand und Fehlerquote, steigert Nutzerakzeptanz, Wiederholbarkeit und Skalierbarkeit.
+
+\section{Grundlagen visueller Flugrouten-Darstellung}
+\subsection{Charakteristika und Nutzen}
+Die visuelle Darstellung von Flugrouten dient der Orientierung und der schnellen Übersicht über Reisehistorie und geplante Flüge. Routen sollen geografisch korrekt auf einer Karte dargestellt und mit Interaktion verbunden sein.
+
+\subsection{Anforderungen an eine mobile Flugrouten-Karte}
+Die Karte muss auf mobilen Geräten performant laufen, interaktiv bedienbar sein und darf die Nutzerführung nicht überladen. Performance \& Ladezeiten, Skalierbarkeit bei vielen Flügen, mobile Optimierung (Touch, Displaygrößen), Genauigkeit der Darstellung (geodätisch korrekt, nicht als gerade Linie) und Usability (Fokus, Zoom, Auswahl) \cite{reactNativeMaps,movableTypeLatLong}.
+
+\subsection{Technische Grundlagen der Routenberechnung}
+Die Routen werden anhand geographischer Koordinaten der Airports berechnet. Für die Distanz zwischen zwei Airports wird die Haversine-Formel verwendet \cite{movableTypeLatLong}. Die Flugroute wird als Great-Circle-Bogen modelliert. Flugfortschritt in Echtzeit wird über departureAt/arrivalAt interpoliert.
+
+\section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement}
+
+Proaktive Benachrichtigungssysteme verfolgen das Ziel, relevante Informationen nicht erst auf explizite Nutzeranfrage bereitzustellen, sondern situations- und zeitgerecht automatisch auszuliefern. In der Literatur wird diese Logik häufig als Gegenüberstellung von \glqq Push\grqq{} (System initiiert die Informationsbereitstellung) und \glqq Pull\grqq{} (Nutzer initiiert die Informationsabfrage) diskutiert \cite{mehrotra2018intelligent}. Push-Ansätze sind insbesondere dann sinnvoll, wenn Handlungen an Zeitfenster gebunden sind oder wenn das Versäumen einer Handlung hohe Kosten verursacht (z.\,B. verpasster Check-in oder Gate-Schluss).
+
+Reiseorganisation ist ein prototypischer Anwendungsfall für proaktive Erinnerungssysteme, weil zentrale Prozessschritte (Online-Check-in, Gepäckaufgabe, Sicherheitskontrolle, Boarding) in der Praxis durch harte oder \glqq quasi-harte\grqq{} Deadlines strukturiert sind \cite{britishAirwaysCheckin,lufthansaCheckin,austrianCheckin,viennaAirportOnlineCheckin,klmBoarding}. Die praktische Relevanz zeigt sich auch daran, dass die Reiseindustrie bereits proaktive Muster etabliert hat: Beispielsweise der automatische Versand von Bordkarten an Reisende. Solche Mechanismen externalisieren Erinnerungsarbeit und sind damit eine Blaupause für digitale Reiseassistenten wie Skyline.
+
+Gleichzeitig ist Reiseorganisation kognitiv anspruchsvoll, weil sie mehrere parallele Zukunftsintentionen umfasst (Dokumente prüfen, Abfahrtszeit planen, Gate wechseln, Belege sichern) und weil sich Parameter dynamisch ändern können. In dieser Dynamik entsteht ein Spannungsfeld: Benachrichtigungen sollen rechtzeitig und hilfreich sein, dürfen aber nicht zur Überlastung beitragen (Notification Fatigue) oder in unpassenden Momenten stören \cite{pielot2014notifications,mehrotra2016myphone}.
+
+\subsection{Proaktivität und Push/Pull in Benachrichtigungssystemen}
+
+In der HCI- und Informatikforschung wird \glqq proaktiv\grqq{} nicht nur als \glqq früh\grqq{} verstanden, sondern als Eigenschaft eines Systems, \textbf{auf eigene Initiative} und \textbf{im Sinne des Nutzers} zu handeln \cite{tennenhouse2000proactive,coronado2010continuous}. Reaktive Systeme liefern Informationen primär dann, wenn eine Nutzerinteraktion dies auslöst (Suche, Klick, Öffnen einer App). Proaktive Systeme verschieben die Verantwortung für Timing und Erinnern teilweise zurück zum System: Sie erkennen günstige Zeitpunkte, liefern Hinweise und reduzieren damit typische Fehlerklassen wie \glqq zu spät bemerkt\grqq{} oder \glqq vergessen\grqq{} \cite{mehrotra2018intelligent}. Diese Entlastungslogik ist eng verwandt mit dem Konzept des kognitiven Offloadings.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.15\textwidth]{notification_icon}
+  \caption{Symbol für Benachrichtigungen (Push-Trigger). Quelle: \cite{wikimediaNotificationIcon}}
+  \label{fig:notification_icon}
+\end{figure}
+
+Die Push/Pull-Unterscheidung ist eine Frage der Nutzerintention und Disruption: Push-Systeme können hohe Nützlichkeit erzielen, erzeugen aber das Risiko, Aufmerksamkeit in unpassenden Situationen zu beanspruchen; Pull-Systeme minimieren Disruption, bergen aber das Risiko, dass kritische Informationen nicht rechtzeitig abgerufen werden \cite{mehrotra2018intelligent}. Für Skyline folgt daraus eine zentrale Designhypothese: Proaktivität ist dann gerechtfertigt, wenn das System (a) einen stabilen Anlass hat (z.\,B. Abflugzeit), (b) eine konkrete Handlung ermöglicht (z.\,B. Check-in öffnen) und (c) das Risiko von Störung durch Quiet Hours und Nutzerkontrolle begrenzt \cite{androidNotifications,applePushPrimer2020}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{push_subscribe}
+  \caption{Publish/Subscribe-Schema (Push-Prinzip): Der Server liefert Informationen proaktiv an den Client. Quelle: \cite{wikimediaPushSubscribe}}
+  \label{fig:push_subscribe}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{polling_pull}
+  \caption{Polling-System (Pull-Prinzip): Der Client fragt periodisch beim Server ab. Quelle: \cite{wikimediaPolling}}
+  \label{fig:polling_pull}
+\end{figure}
+
+\subsection{Kognitive Grundlagen der Erinnerungslast}
+
+Reisebezogene Aufgaben lassen sich als Fälle des \textbf{prospektiven Gedächtnisses} (Prospective Memory) modellieren: das Erinnern, eine beabsichtigte Handlung in der Zukunft auszuführen, häufig ausgelöst durch Zeitpunkte oder Ereignisse \cite{jones2021prospectivememory,ball2024reminders}. Prospective-Memory-Aufgaben sind in der Reiseorganisation besonders fehleranfällig, weil sie mit konkurrierenden Anforderungen interferieren. Ein zentraler Befund ist, dass Menschen externe Hilfen (Notizen, Kalender, Reminder) nutzen, um die Kosten interner Kontrolle zu senken \cite{gilbert2023intentionoffloading}.
+
+Das Konzept \textbf{Intention Offloading} beschreibt die Strategie, Absichten in externe Speicher zu verlagern. Für das Design von Skyline ist wichtig: Erinnerungen wirken zuverlässiger, wenn sie handlungsnah und handlungsfähig sind (z.\,B. \glqq jetzt einchecken\grqq{}), statt nur abstrakt zu informieren \cite{gilbert2023intentionoffloading,jones2021prospectivememory}.
+
+\subsection{Notification Fatigue und Governance}
+
+Unter \textbf{Notification Fatigue} wird verstanden, dass zu häufige oder als irrelevant erlebte Hinweise zu Abwertung, Ignorieren oder Deaktivieren führen \cite{pielot2014notifications,sahami2014largescale,mehrotra2016myphone}. Mobile-HCI-Feldstudien zeigen, dass Benachrichtigungen zwar nützlich sein können, aber oft als störend wahrgenommen werden, wenn Timing und Relevanz nicht zur aktuellen Situation passen \cite{mehrotra2016myphone}. Studien zur mobilen Receptivity belegen, dass \glqq richtig getimed\grqq{} oft wichtiger ist als \glqq mehr Informationen\grqq{} \cite{fischer2011investigating}.
+
+Aus Governance-Sicht lassen sich drei Gestaltungsprinzipien ableiten: (1) \textbf{Relevanz vor Vollständigkeit}---Systeme sollten das melden, was eine konkrete Handlung ermöglicht \cite{androidNotifications}. (2) \textbf{Nutzerkontrolle und Transparenz}---Benachrichtigungen benötigen bewusste Zustimmung; Best Practices empfehlen, diese \textbf{im Kontext der Funktionalität} einzuholen \cite{applePushPrimer2020}. (3) \textbf{Schutzzeiten}---Quiet Hours bzw. Fokus-Modi begrenzen Störungen \cite{androidNotifications}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{android_notifications}
+  \caption{Beispielhafte Notification-Interaktion in einer mobilen App (Nutzerkontrolle, Prioritäten). Quelle: \cite{wikimediaAndroidNotifications}}
+  \label{fig:android_notifications}
+\end{figure}
+
+\subsection{Anforderungen und Heuristiken im Reise-Kontext}
+
+Im Reise-Kontext variieren operative Fenster je Airline und Flughafen. Check-in-Fenster reichen von \glqq ca. 30 Stunden vor Abflug\grqq{} bis \glqq bis zu 30 Tage\grqq{}; Boarding beginnt typischerweise 60 bis 25 Minuten vor Abflug \cite{klmBoarding,britishAirwaysCheckin,lufthansaCheckin}. Flughäfen empfehlen Ankunftszeiten (z.\,B. 2--3 Stunden vor Abflug für internationale Flüge). Für Skyline werden daher \textbf{zeitbasierte Heuristiken} als Default-Regeln verwendet:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Zeitbasierte Heuristiken für Reise-Reminder (Skyline-relevant)}
+  \label{tab:reminder_heuristiken}
+  \begin{tabular}{lll}
+    \textbf{Anlass} & \textbf{Trigger} & \textbf{Begründung} \\
+    \midrule
+    Check-in & T$-$24\,h & breit kompatibel, viele Check-in-Fenster $\geq$24\,h \\
+    Dokumente & T$-$12\,h & Vorlauf für Pass/ID/Visa-Check \\
+    Zum Flughafen & T$-$3\,h / T$-$2\,h & Lang-/Kurzstrecke, Flughafenempfehlungen \\
+    Boarding & T$-$60\,min, T$-$30\,min & deckt Boardingspannen ab \\
+    Belege/Quittungen & T+2\,h nach Ankunft & handlungsnah nach Reiseende \\
+  \end{tabular}
+\end{table}
+
+Für dynamische Ereignisse (Verspätungen, Gate-Wechsel) reichen statische Heuristiken nicht aus. Abbildung~\ref{fig:departure_board} illustriert, wie Flughäfen Echtzeit-Informationen anzeigen; solche Daten werden typischerweise über kommerzielle APIs bereitgestellt \cite{flightawareAeroAPI,ciriumFlexAPIs,aviationstack}. Skyline nutzt die in der App gespeicherten \texttt{departureAt}/\texttt{arrivalAt}-Zeiten als Basis; Echtzeit-Updates würden zusätzliche API-Anbindungen erfordern.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{departure_board}
+  \caption{Abflugtafel als Beispiel für Echtzeit-Fluginformationen (Verspätungen, Gate). Quelle: \cite{wikimediaDepartureBoard}}
+  \label{fig:departure_board}
+\end{figure}
+
+\subsection{Konzeption und technische Umsetzung (Skyline-relevant)}
+
+Konzeptionell lässt sich ein proaktives Reise-Benachrichtigungssystem als Pipeline modellieren: (1) \textbf{Faktenbasis} (Flugobjekt mit departureAt/arrivalAt), (2) \textbf{Regelwerk} (Offsets/Heuristiken), (3) \textbf{Scheduler} (lokal und/oder serverseitig), (4) \textbf{Delivery} (Benachrichtigung + Deep Link), (5) \textbf{Kontrollschicht} (Quiet Hours, Opt-out). Skyline implementiert dies mit Expo Notifications \cite{expoNotifications}.
+
+Triggerzeiten werden als Offsets relativ zu departureAt/arrivalAt berechnet. Technisch kritisch ist die Zeitzonen- und Sommerzeitkorrektheit. Für Persistenz sind hybride Strategien robust: lokale Persistenz ermöglicht Offline-Fähigkeit; serverseitige Persistenz ermöglicht Rescheduling bei Datenänderungen. Deep Links transformieren Benachrichtigungen von \glqq Info\grqq{} zu \glqq Handlung\grqq{}: Der Tap führt direkt in die Flugdetails \cite{applePushPrimer2020}. Das Berechtigungs-Prompt sollte nicht sofort, sondern \textbf{im Kontext der Funktion} (z.\,B. nach Anlegen eines Flugs) erscheinen \cite{applePushPrimer2020}. Fehlende oder ungültige Zeitpunkte werden abgefangen; bei widersprüchlichen Daten ist eine degradierte Strategie sinnvoll (nur statische Reminder oder Umstellung auf Pull).
+
+\section{Zentrale Datenverwaltung und Sicherheit}
+\subsection{Single Source of Truth und Datenkonsistenz}
+Zentrale Datenhaltung bedeutet eine gemeinsame Quelle für alle Reiseinformationen. Verteilte Daten führen zu doppelten Einträgen, Suchaufwand und fehlender Übersicht. Geschäftsreisen erfordern klare Nachweise, Belege und schnelle Auskunft \cite{gdpr}.
+
+\subsection{Anforderungen an Datenverwaltung}
+Die Datenverwaltung muss strukturiert, nachvollziehbar und sicher sein. Strukturierte Entitäten (Flights, Notes, Docs, Checklists), Transparenz \& Statusübersicht, Nachvollziehbarkeit \& Historie, Synchronisierung (Multi-Device), Rollen \& Zugriffsrechte, Datenintegrität \& Validierung.
+
+\subsection{Sicherheitskonzept}
+Sicherheit basiert auf Authentifizierung und Row Level Security in Supabase \cite{supabaseAuth,supabaseRLS}. Policies pro Tabelle, Storage-Sicherheit für Dokumente und Bilder \cite{supabaseStorage}. Die DSGVO fordert Datenminimierung, Zugriffskontrolle und Löschmöglichkeiten \cite{gdpr}.
+
+\section{Anforderungen an eine mobile Reiseorganisations-App}
+\subsection{Anforderungen an den Datenfluss}
+Import, Validierung, Speicherung, Synchronisierung und Abfrage müssen effizient unterstützt werden. Besondere Anforderungen ergeben sich aus der Zeitkritikalität.
+
+\subsection{Integrationsanforderungen}
+Verschiedene Datenquellen (QR, OCR, E-Mail), geografische Visualisierung, zeitkritische Benachrichtigungen.
+
+\section{Technische Grundlagen mobiler App-Entwicklung}
+\subsection{React Native und Expo}
+React Native ermöglicht Cross-Platform-Entwicklung; Expo bietet Tooling und Services \cite{reactNative,expoDocs}.
+
+\subsection{Supabase als Backend-as-a-Service}
+PostgreSQL, Authentifizierung, Storage, RLS in einer integrierten Lösung \cite{supabasePlatform,supabaseAuth,supabaseRLS,supabaseStorage}.
+
+\subsection{Vergleich von Technologien}
+Vergleich verschiedener Ansätze für Backend, Datenbank, Authentifizierung und Storage im Kontext mobiler Reise-Apps.

@@ -1,5 +1,10 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Technische Umsetzung}\label{chapter:technik}
+\chapter{Technische Umsetzung und Architektur}\label{chapter:technik}
+Dieses Kapitel beschreibt die technische Architektur von Skyline und fasst die
+Umsetzung der in Kapitel 4 bis 7 detailliert behandelten Module aus technischer
+Sicht zusammen. Weitere projektbezogene Details finden sich in
+Abschnitt~\ref{sec:projektumsetzung}.
+
 \section{Systemarchitektur}
 Die Architektur folgt einem Client-Server-Modell mit mobiler App und Supabase
 als Backend. Die App kommuniziert über Services mit der Datenbank und dem
@@ -41,12 +46,15 @@ Importfunktionen erlauben die schnelle Übernahme von Flugdaten.
 \subsection{Map \& Animation}
 Flugrouten werden geodätisch visualisiert und mit Animationen ergänzt.
 \subsection{Notifications}
-Lokale Benachrichtigungen mit Offsets und Quiet Hours unterstuetzen die
+Lokale Benachrichtigungen mit Offsets und Quiet Hours unterstützen die
 Reiseorganisation.
 \subsection{Dokumente / Notizen / Checklisten}
 Reisende können Dokumente hochladen und Notizen/Checklisten pflegen.
 \subsection{Statistiken \& Export}
-Statistiken zeigen Distanz, Laender und Flugzeiten; CSV-Export ist moeglich.
+Statistiken zeigen Distanz, Länder und Flugzeiten; CSV-Export ist möglich.
+Die Berechnungen basieren auf den in der Flugverwaltung gespeicherten Daten;
+Distanzen werden mittels Haversine-Formel ermittelt (Kapitel 6).
 \subsection{Company-Features (Invite, Join, Dashboard)}
-Unternehmensfunktionen ermoeglichen Team-Management, Einladungen und gemeinsame
-Uebersichten.
+Unternehmensfunktionen ermöglichen Team-Management, Einladungen und gemeinsame
+Übersichten. Die Details sind in der projektbezogenen Umsetzung
+(Abschnitt~\ref{sec:projektumsetzung}) dokumentiert.

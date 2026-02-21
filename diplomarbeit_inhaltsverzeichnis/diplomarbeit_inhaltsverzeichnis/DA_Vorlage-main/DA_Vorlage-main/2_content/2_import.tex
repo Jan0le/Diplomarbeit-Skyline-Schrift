@@ -1,116 +1,46 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Automatischer Import von Boardkarten \& Buchungsdaten (Boris)}\label{chapter:import}
-\section{Grundlagen automatisierter Datenübernahme}
-Automatisierter Import reduziert manuellen Aufwand und senkt die Fehlerquote.
-In Skyline werden Flugdetails aus QR-Codes, Bildern und Dokumenten extrahiert
-und in die Flugverwaltung übernommen.
-\subsection{Zielsetzung und Nutzen des Imports}
-Ziel ist es, Flugdaten moeglichst schnell und korrekt zu erfassen, um den
-Nutzer von repetitiven Eingaben zu entlasten und die Datenqualitaet zu erhoehen.
-\subsection{Abgrenzung zu manueller Erfassung}
-Manueller Import bleibt als Fallback bestehen, ist aber zeitaufwaendiger und
-fehleranfaelliger. Automatisierung steigert Komfort und Konsistenz.
-\subsection{Typische Fehlerquellen bei Importen}
-Typische Probleme sind unvollstaendige Daten, fehlerhafte OCR-Erkennung oder
-unklare Codierung in QR/BCBP. Daher sind Validierung und Nachbearbeitung wichtig.
-\section{Datenquellen für Flugdaten}
-Skyline kombiniert mehrere Quellen, um die Abdeckung zu erhoehen und die
-Wahrscheinlichkeit eines erfolgreichen Imports zu steigern.
+\chapter{Implementierung: Automatischer Import von Boardkarten \& Buchungsdaten (Boris)}\label{chapter:import}
+
+Dieses Kapitel beschreibt die Umsetzung des automatischen Imports in Skyline. Die theoretischen Grundlagen (Datenquellen, Validierung, Fehlerbehandlung) werden in Kapitel 3 behandelt.
+
+\section{Implementierung in Skyline}
+In Skyline werden Flugdetails aus QR-Codes, Bildern und Dokumenten extrahiert und in die Flugverwaltung übernommen. Die App kombiniert mehrere Quellen, um die Abdeckung zu erhöhen und die Wahrscheinlichkeit eines erfolgreichen Imports zu steigern.
 \begin{figure}[h]
   \centering
   \fbox{\parbox{0.8\textwidth}{TODO: Screenshot des Import-Flows (QR/OCR/E-Mail) einfuegen.}}
   \caption{TODO: Import-Flow in Skyline}
   \label{fig:todo_import_flow}
 \end{figure}
-\subsection{QR-Code / Boarding Pass (BCBP)}
-Boardingpaesse enthalten standardisierte BCBP-Daten, die sich strukturiert
-auslesen lassen \cite{iataBCBP}.
-\subsubsection{Aufbau des BCBP-Standards}
-BCBP basiert auf festen Positionsfeldern. Die Struktur ermoeglicht die
-Extraktion von Airline, Flugnummer, Datum und Airports \cite{iataBCBP}.
-\subsubsection{Relevante Felder (From/To, Flight No, Date)}
-Kernfelder sind Abflug-/Zielairport, Flugnummer und Datum. Diese reichen für
-einen validen Flight-Import aus.
-\subsubsection{Limitierungen und Sonderfaelle}
-Nicht alle Boardingpaesse sind standardkonform, was Fehlfaelle erzeugt.
-Zudem fehlen haeufig Zusatzdaten wie Gate oder Sitzplatz.
-\subsection{OCR aus Bildern/Dokumenten}
-OCR ermoeglicht Import aus Fotos und PDFs, wenn kein QR-Code vorhanden ist.
-\subsubsection{Bildqualitaet und Einflussfaktoren}
-Schriftgroesse, Kontrast und Bildrauschen beeinflussen die Genauigkeit der OCR.
-Schlechte Qualitaet fuehrt zu Fehlinterpretationen.
-\subsubsection{Extraktion relevanter Felder}
-Nach OCR müssen Texte geparst und relevanten Feldern zugeordnet werden
-(z. B. Flugnummer, Datum, Airline).
-\subsubsection{Fehlertoleranz und Nachbearbeitung}
-Fehlerhafte OCR wird durch Plausibilitaetschecks abgefangen, z. B. IATA-Codes
-oder Datumsformate. Nutzer bestaetigen die Vorschlaege.
-\subsection{E-Mail-Import (Buchungsdaten)}
-Buchungsbestaetigungen enthalten strukturierte Informationen, die per Parser
-ausgelesen werden können.
-\subsubsection{Struktur typischer Buchungs-Mails}
-Typische Mails enthalten Buchungsreferenz, Routing, Zeiten und Passagierdaten.
-Format und Layout unterscheiden sich je Airline.
-\subsubsection{Parsing-Strategien}
-Parsing erfolgt über definierte Regeln und Feldmuster. Ziel ist ein robustes
-Mapping auf interne Datenfelder.
-\subsubsection{Umgang mit unterschiedlichen Airlines}
-Unterschiedliche Templates erfordern flexible Parser oder heuristische Regeln,
-um die Daten korrekt zu erkennen.
-\section{Technische Anforderungen}
-Der Import muss technisch stabil, verifizierbar und nutzerfreundlich sein.
-Er darf keine falschen Daten unbemerkt übernehmen.
-\subsection{Parsing \& Validierung}
-Validierung prueft, ob erkannte Daten plausibel sind (z. B. Datum in der Zukunft,
-gueltige Airport-Codes).
-\subsubsection{Feld-Mapping und Normalisierung}
-Externe Daten werden auf interne Formate normalisiert, etwa bei Datums- und
-Zeitformaten oder Airline-Codes.
-\subsubsection{Validierungsregeln (Datum, Zeit, Airports)}
-Regeln stellen sicher, dass ein Flug nur angelegt wird, wenn Pflichtfelder
-vorliegen und Werte konsistent sind.
-\subsubsection{Deduplizierung bei Mehrfachimport}
-Mehrfachimporte werden erkannt, z. B. durch Vergleich von Flight Number und Datum,
-um doppelte Eintraege zu vermeiden.
-\subsection{Zuverlaessigkeit bei unvollstaendigen Daten}
-Der Import muss auch bei fehlenden Feldern funktionieren und dem Nutzer
-eine manuelle Ergaenzung ermoeglichen.
-\subsubsection{Fallback-Strategien}
-Fehlende Werte werden durch Standards oder Nutzerabfragen ersetzt
-(z. B. manuelle Zeitangabe).
-\subsubsection{Teilimporte und manuelle Ergaenzung}
-Der Nutzer kann unvollstaendige Daten nachtragen, bevor der Flight gespeichert wird.
-\subsection{Performance \& Benutzerfuehrung}
-Importvorgänge müssen schnell reagieren und einen klaren Status anzeigen.
-\subsubsection{Asynchrone Verarbeitung}
-Importvorgänge werden asynchron verarbeitet, damit die UI responsiv bleibt.
-\subsubsection{Ladezustaende und Feedback}
-Klare Ladeanzeigen und Fehlermeldungen helfen bei der Nutzerfuehrung.
-\subsection{Fehlerbehandlung}
-Fehler müssen nachvollziehbar und nutzerfreundlich kommuniziert werden.
-\subsubsection{Typische Fehlerfaelle}
-Beispiele sind unleserliche QR-Codes, leere OCR-Ergebnisse oder fehlende Airports.
-\subsubsection{Nutzerhinweise und Recovery}
-Das System erklaert den Fehler und bietet eine alternative Eingabe (z. B. manuell).
-\section{Vergleich: Manuell vs. Automatisch}
-Der Vergleich zeigt die Vorteile der Automatisierung in Effizienz und
-Fehlerminimierung.
-\subsection{Zeitaufwand}
-Automatisierung reduziert die Eingabezeit erheblich.
-\subsection{Fehlerquote}
-Korrekt implementierter Import senkt Tippfehler und Formatfehler.
-\subsection{Nutzerakzeptanz}
-Nutzer akzeptieren Import, wenn die Daten korrekt und schnell geliefert werden.
-\subsection{Wiederholbarkeit}
-Standardisierte Prozesse liefern konsistente Ergebnisse.
-\subsection{Skalierbarkeit}
-Automatisierung ermoeglicht das Verarbeiten vieler Flüge ohne Zusatzaufwand.
+
+\subsection{QR-Scan und BCBP-Parsing}
+Skyline nutzt die Kamera des Geräts zum Scannen von Boarding-Pass-QR-Codes. Die BCBP-Struktur (IATA-Standard) wird geparst, sodass Airline, Flugnummer, Datum sowie Abflug- und Zielairport extrahiert werden. Nicht alle Boardingpässe sind standardkonform; Skyline fängt Abweichungen ab und ermöglicht bei Bedarf manuelle Ergänzung.
+
+\subsection{OCR-Verarbeitung aus Bildern und PDFs}
+Wenn kein QR-Code vorhanden ist, kann ein Foto des Boardingpasses oder ein PDF-Dokument importiert werden. Ein OCR-Service extrahiert den Text; Skyline parst anschließend relevante Felder (IATA-Codes, Datum, Flugnummer) über heuristische Regeln. Schriftgröße, Kontrast und Bildqualität beeinflussen die Erkennungsrate; die Validierungsschicht gleicht OCR-Fehler teilweise aus.
+
+\subsection{E-Mail-Import und Buchungsdaten}
+Buchungsbestätigungen können per E-Mail-Import in Skyline übernommen werden. Skyline unterstützt typische Formate gängiger Airlines (strukturierte Felder wie Buchungsreferenz, Routing, Zeiten). Unterschiedliche E-Mail-Templates erfordern flexible Parser; die Implementierung deckt die häufigsten Muster ab und erweitert diese iterativ.
+
+\subsection{Validierung und Plausibilitätsprüfung}
+Alle importierten Daten durchlaufen eine Validierungsstufe. IATA-Airport-Codes werden gegen eine Referenz geprüft, Datumsformate normalisiert und offensichtlich ungültige Werte abgefangen. Plausibilitätschecks verhindern fehlerhafte Einträge in der Flugverwaltung; unvollständige Daten werden gekennzeichnet und können manuell ergänzt werden.
+
+\subsection{Feld-Mapping und Datennormalisierung}
+Externe Datenquellen liefern unterschiedliche Feldnamen und Formate. Skyline mappt diese auf das einheitliche interne Schema (Abflug, Ankunft, Datum, Airline, Flugnummer usw.). Datums- und Zeitformate werden normalisiert; Mehrsprachigkeit und Zeitzonen werden berücksichtigt.
+
+\subsection{Deduplizierung}
+Mehrfachimporte desselben Flugs (z.\,B. QR + E-Mail) werden erkannt. Skyline vergleicht Flugnummer, Datum und Airports; bestehende Einträge werden aktualisiert statt Duplikate anzulegen. Der Nutzer erhält eine Rückmeldung, ob der Import neu oder als Update gewertet wurde.
+
+\subsection{Fehlerbehandlung und Nutzerfeedback}
+Fehlgeschlagene Imports (z.\,B. unleserlicher QR-Code, OCR-Fehler) werden nutzerfreundlich kommuniziert. Skyline bietet Fallback auf manuelle Erfassung und zeigt konkrete Hinweise (z.\,B. „Airport-Code unbekannt“). Asynchrone Verarbeitung hält die Oberfläche responsiv; Fortschritt und Ergebnis werden angezeigt.
+
+\subsection{Anbindung an die Flugverwaltung}
+Importierte Flüge werden direkt in die zentrale Flugverwaltung (Kapitel 5) übernommen. Nach erfolgreichem Import können Nutzer sofort Notizen, Dokumente oder Erinnerungen verknüpfen; die Weltkarte (Kapitel 6) und Benachrichtigungen (Kapitel 7) greifen auf dieselben Daten zu.
+
 \section{Ergebnis}
-Der automatische Import ist ein zentraler Mehrwert von Skyline und entlastet
-Nutzer im Reisealltag.
-\subsection{Bewertung der Importqualitaet}
-Die Qualitaet zeigt sich in hoher Trefferquote und geringer Nachbearbeitung.
+Der automatische Import ist ein zentraler Mehrwert von Skyline und entlastet Nutzer im Reisealltag.
+\subsection{Bewertung der Importqualität}
+Die Qualität zeigt sich in hoher Trefferquote bei QR- und E-Mail-Import sowie akzeptabler Erkennungsrate bei OCR. Geringe Nachbearbeitung und seltene manuelle Korrekturen bestätigen die Wirksamkeit von Validierung und Feld-Mapping.
 \subsection{Nutzen im Reise-Workflow}
-Nutzer können Flüge schneller erfassen und früher mit Planung starten.
-\subsection{Zusammenfassung und Ausblick}
-Fuer die Zukunft sind robustere Parser und weitere Datenquellen denkbar.
+Nutzer können Flüge schneller erfassen, früher mit Planung starten und Belege direkt zuordnen. Die Kombination aus mehreren Datenquellen erhöht die Abdeckung auch bei heterogenen Buchungsabläufen.
+\subsection{Grenzen und Verbesserungspotenzial}
+Nicht alle Airlines und E-Mail-Formate sind abgedeckt; OCR ist von Bildqualität abhängig. Für die Zukunft sind robustere Parser, erweiterte Airline-Templates und ggf. API-Anbindungen (z.\,B. GDS) denkbar.

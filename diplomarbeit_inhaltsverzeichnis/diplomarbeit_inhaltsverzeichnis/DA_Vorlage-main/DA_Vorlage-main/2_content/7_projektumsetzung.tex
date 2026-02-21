@@ -1,54 +1,54 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Projektbezogene Umsetzung}\label{chapter:projektumsetzung}
-\section{Umsetzung der Karten-Visualisierung}
+\section{Projektbezogene Umsetzung}\label{sec:projektumsetzung}
+\subsection{Umsetzung der Karten-Visualisierung}
 Die Kartenvisualisierung wurde mit React Native Maps umgesetzt \cite{reactNativeMaps}.
 Routen werden als Great-Circle-Polylines gezeichnet und optional animiert.
-\subsection{Anforderungen aus Pflichtenheft}
+\subsubsection{Anforderungen aus Pflichtenheft}
 Gefordert sind Marker, Routen und Performancevorgaben für viele Flüge.
-\subsection{Auswahl der Karten-Technologie}
+\subsubsection{Auswahl der Karten-Technologie}
 React Native Maps bietet native Performance und einfache Integration in Expo.
-\subsection{Implementierung der Flugrouten}
+\subsubsection{Implementierung der Flugrouten}
 Die Route wird aus Airport-Koordinaten berechnet und als Polyline angezeigt.
-\subsection{Live-Animation \& Performance-Optimierung}
+\subsubsection{Live-Animation \& Performance-Optimierung}
 Die Live-Position des Flugzeugs wird über Zeitstempel berechnet und in
 regelmäßigen Intervallen aktualisiert.
-\section{Umsetzung der Import-Funktionen}
+\subsection{Umsetzung der Import-Funktionen}
 Die Import-Module decken QR-Scan, OCR und E-Mail-Parsing ab.
-\subsection{QR-Scan}
+\subsubsection{QR-Scan}
 Boardingpässe werden per Kamera gescannt, BCBP-Daten werden geparst
 \cite{iataBCBP}.
-\subsection{OCR-Dokumente/Bilder}
+\subsubsection{OCR-Dokumente/Bilder}
 Texterkennung wird genutzt, wenn kein QR-Code vorhanden ist.
-\subsection{E-Mail-Import}
+\subsubsection{E-Mail-Import}
 Buchungsdaten werden aus E-Mails extrahiert und als Flight-Vorschläge angezeigt.
-\section{Umsetzung der Benachrichtigungen}
+\subsection{Umsetzung der Benachrichtigungen}
 Benachrichtigungen sind lokal geplant und mit Settings gekoppelt
 \cite{expoNotifications}.
-\subsection{Reminder-Offsets}
+\subsubsection{Reminder-Offsets}
 Standard-Offsets wie T-24h und T-60m werden automatisch gesetzt.
-\subsection{Quiet Hours}
+\subsubsection{Quiet Hours}
 Quiet Hours verschieben Notifications in erlaubte Zeitfenster.
-\subsection{Persistenz \& Reschedule}
+\subsubsection{Persistenz \& Reschedule}
 Persistenz erlaubt Rescheduling bei App-Neustart.
-\section{Umsetzung der Datenverwaltung}
+\subsection{Umsetzung der Datenverwaltung}
 Supabase liefert Auth, Datenbank und Storage als zentrale Datenplattform
 \cite{supabasePlatform,supabaseAuth,supabaseStorage}.
-\subsection{Datenmodell \& Synchronisierung}
+\subsubsection{Datenmodell \& Synchronisierung}
 Flights sind die Kernentität; alle Module referenzieren diese Struktur.
-\subsection{Dokumentenablage}
+\subsubsection{Dokumentenablage}
 Dokumente werden in Storage-Buckets abgelegt und über Metadaten zugeordnet.
-\subsection{Rechte \& Sicherheit}
+\subsubsection{Rechte \& Sicherheit}
 RLS-Policies garantieren Zugriffskontrolle auf Daten- und Storage-Ebene
 \cite{supabaseRLS}.
-\section{Umsetzung der Gamification-Elemente}
+\subsection{Umsetzung der Gamification-Elemente}
 Gamification dient der Motivation und Visualisierung von Fortschritt.
-\subsection{Achievements}
+\subsubsection{Achievements}
 Achievements werden bei Meilensteinen freigeschaltet.
-\subsection{Fortschrittsdarstellung}
+\subsubsection{Fortschrittsdarstellung}
 Progress-Elemente zeigen Nutzern ihre Reisehistorie und Statistiken.
-\subsection{Feedback-Mechanismen}
+\subsubsection{Feedback-Mechanismen}
 Toast-Nachrichten und haptisches Feedback verbessern die Nutzerinteraktion.
-\section{Teststrategie \& Validierung}
+\subsection{Teststrategie \& Validierung}
 Tests prüfen Funktionalität, Stabilität und Genauigkeit der Kernmodule.
 \begin{figure}[h]
   \centering
@@ -56,11 +56,11 @@ Tests prüfen Funktionalität, Stabilität und Genauigkeit der Kernmodule.
   \caption{TODO: Testfälle und UI-Flows}
   \label{fig:todo_tests}
 \end{figure}
-\subsection{Funktionstests (UI-Flows)}
+\subsubsection{Funktionstests (UI-Flows)}
 Manuelle UI-Tests sichern die Hauptabläufe (Add Flight, Import, Trip Details).
-\subsection{Reminder-Tests}
+\subsubsection{Reminder-Tests}
 Reminder werden in Testfällen auf Offsets, Quiet Hours und Reschedule geprueft.
-\subsection{Import-Tests}
+\subsubsection{Import-Tests}
 Testfälle für QR, OCR und E-Mail-Import sichern robuste Datenaufnahme.
-\subsection{Statistiken-Validierung}
+\subsubsection{Statistiken-Validierung}
 Berechnungen für Distanz und Dauer werden mit Unit-Tests abgesichert.

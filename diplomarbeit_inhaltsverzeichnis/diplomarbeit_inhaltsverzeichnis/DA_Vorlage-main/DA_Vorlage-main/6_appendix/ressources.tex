@@ -1,17 +1,49 @@
 \section{Datenträgerbeschreibung}
 
 \section{Einsatz von KI-Tools}
-Gemass den Vorgaben müssen eingesetzte KI-Tools inklusive Prompts und
-Verwendungszweck nachvollziehbar dokumentiert werden. Die folgende Tabelle
-dient als strukturierte Vorlage.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{|p{3.5cm}|p{2.5cm}|p{3.5cm}|p{5.5cm}|}
+Gemaess den Vorgaben muessen eingesetzte KI-Tools inklusive Prompts und
+Verwendungszweck nachvollziehbar dokumentiert werden. Die KI wurde im Projekt
+\textbf{unterstuetzend} eingesetzt; alle fachlichen und technischen Entscheidungen
+lagen bei den Autoren. Verwendungszwecke im Ueberblick:
+
+\begin{itemize}
+  \item \textbf{Vorschlaege \& Konzepte:} Ideenfindung, strukturierte Zieldefinition,
+  Anforderungsanalyse, Design- und UX-Vorschlaege, Architekturentwuerfe
+  \item \textbf{Code-Unterstuetzung:} Code-Entwuerfe, Refactoring-Vorschlaege,
+  Bugfix-Implementierung, Fehlersuche und Debugging
+  \item \textbf{Qualitaetssicherung:} Pruefung auf fehlerhafte Stellen im Code,
+  Testplanung, Validierung der Lauffaehigkeit, Konsistenzpruefungen
+  \item \textbf{Dokumentation:} Fachtexte, Rechtschreibkorrekturen, Gliederungsvorschlaege,
+  Strukturierung von Kapiteln und Anhaengen
+  \item \textbf{Projektorganisation:} Git-Workflows, Merge-Strategien, Roadmaps,
+  Stundenlisten-Mapping
+\end{itemize}
+
+Die folgende Tabelle dokumentiert die einzelnen Einsätze. Quelle:
+\glqq Basis/rekonstruiert\grqq{} bzw.\ \glqq Erweiterung plausibel\grqq{}
+bedeutet, dass Eintraege aus Chat-Verlaeufen oder Projektnotizen rekonstruiert
+wurden.
+
+\small
+\sloppy
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{|r|l|c|p{3.2cm}|>{\raggedright\arraybackslash}p{7.5cm}|}
+\caption{Dokumentation der eingesetzten KI-Tools (Auszug; vollständige Liste in Excel)} \\
 \hline
-\textbf{Tool} & \textbf{Version/Datum} & \textbf{Zweck} & \textbf{Prompts (Kurzfassung)} \\
+\textbf{Nr.} & \textbf{Tool} & \textbf{Datum} & \textbf{Zweck} & \textbf{Prompt (Stichworte)} \\
 \hline
-\multicolumn{4}{|l|}{\textit{Bitte ausfüllen}} \\
+\endfirsthead
+
+\multicolumn{5}{l}{\textit{Fortsetzung}} \\
 \hline
-\end{tabular}
-\end{table}
+\textbf{Nr.} & \textbf{Tool} & \textbf{Datum} & \textbf{Zweck} & \textbf{Prompt (Stichworte)} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\input{6_appendix/ki_table}
+\end{longtable}
+\normalsize

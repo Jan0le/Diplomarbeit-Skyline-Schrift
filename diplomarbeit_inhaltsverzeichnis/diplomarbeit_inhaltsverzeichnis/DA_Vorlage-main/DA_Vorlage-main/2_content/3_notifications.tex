@@ -1,309 +1,33 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Benachrichtigungs- und Erinnerungsmodul}\label{chapter:notifications}
+\chapter{Implementierung: Benachrichtigungs- und Erinnerungsmodul (JanOle)}\label{chapter:notifications}
 
-\section{Grundlagen proaktiver Benachrichtigungssysteme}
-Proaktive Benachrichtigungssysteme informieren Nutzerinnen und Nutzer nicht erst,
-wenn sie aktiv nach Informationen suchen, sondern liefern relevante Hinweise
-automatisch aus (\glqq Push\grqq{} statt \glqq Pull\grqq{}). Dadurch werden
-Informationen genau dann verfügbar, wenn sie benötigt werden, ohne dass die App
-geöffnet oder ein bestimmter Bildschirm aufgerufen werden muss. In der Forschung
-zu intelligenten Benachrichtigungssystemen wird diese Push-basierte Zustellung
-explizit dem Paradigma gegenübergestellt, bei dem Nutzerinnen und Nutzer
-Informationen selbst abrufen müssen \cite{mehrotra2018intelligent}.
+Dieses Kapitel beschreibt die Umsetzung der Benachrichtigungen in Skyline. Die theoretischen Grundlagen (proaktive Systeme, Notification Fatigue, Anforderungen im Reise-Kontext, Reminder-Typen) werden in Kapitel 3 behandelt.
 
-Im Kontext der Reiseorganisation ist diese Logik besonders passend, weil viele
-Schritte an feste Zeitfenster gebunden sind (z. B. Online-Check-in, rechtzeitige
-Anwesenheit am Gate oder \glqq Last Boarding\grqq{}). Airlines veröffentlichen
-konkrete Boarding-Zeitfenster und schliessen Boarding typischerweise einige
-Minuten vor Abflug, sodass Timing zu einem objektiven Erfolgsfaktor wird (z. B.
-Boarding-Beginn 60--25 Minuten vor Abflug und Boarding-Ende rund 15 Minuten vor
-planmäßigem Abflug \cite{klmBoarding}). Ein proaktives System kann diese
-Zeitfenster als Auslöser nutzen, um organisatorische Fehler (Vergessen,
-falsches Timing) zu reduzieren und die kognitive Belastung von Nutzerinnen und
-Nutzern zu senken \cite{mehrotra2015contentdriven,mehrotra2016myphone}.
-
-\subsection{Begriff „proaktiv“ und Abgrenzung zu reaktiven Systemen}
-In der Informatikforschung wird \glqq proaktiv\grqq{} so definiert, dass ein
-System auf eigene Initiative und im Sinne der Nutzerin bzw. des Nutzers handelt,
-anstatt ausschliesslich auf explizite Eingaben zu reagieren. Tennenhouse
-beschreibt Proactive Computing als Abkehr von klassischer, interaktiver
-Nutzung (\glqq human-in-the-loop\grqq{}) hin zu Modi, in denen Menschen
-\glqq above the loop\grqq{} sind und Systeme stärker autonom agieren
-\cite{tennenhouse2000proactive}. Coronado und Zampunieris betonen ähnlich, dass
-proaktive Systeme kontinuierlich handeln und Ereignisse antizipieren, statt nur
-auf Benutzeraktionen zu warten \cite{coronado2010continuous}.
-
-Reaktive Systeme geben Informationen dagegen primär auf Nachfrage aus: Der
-Nutzer muss selbst regelmäßig prüfen, ob es etwas zu tun gibt (z. B.
-\glqq Ist der Check-in schon offen?\grqq{}). Gerade bei zeitkritischen
-Reiseprozessen erhöht eine reine Abruf-Logik die Wahrscheinlichkeit von
-Versäumnissen, weil Fristen nur dann beachtet werden, wenn sie aktiv im Blick
-gehalten werden. Proaktive Systeme verlagern die Initiierung geeigneter Hinweise
-teilweise vom Menschen auf das System und können so typische Fehlerklassen
-(\glqq zu spät bemerkt\grqq{}, \glqq vergessen\grqq{}) verringern
-\cite{mehrotra2018intelligent}.
-
-\subsection{Erinnerungslasten in der Reiseorganisation}
-Reiseabläufe lassen sich psychologisch dem Bereich der Prospective Memory
-(prospektives Gedächtnis) zuordnen: Man muss sich daran erinnern, zu einem
-späteren Zeitpunkt oder bei einem bestimmten Ereignis eine Handlung
-auszuführen (z. B. Online-Check-in, Dokumente bereit legen, Belege sichern).
-Systematische Übersichten und Meta-Analysen zeigen, dass solche
-Alltagsleistungen durch externe Gedächtnishilfen messbar verbessert werden
-können \cite{jones2021prospectivememory,ball2024reminders}. Aktuelle Arbeiten
-fassen das bewusste Auslagern von Absichten an externe Werkzeuge als
-\glqq Intention Offloading\grqq{} zusammen, etwa in Form von Notizen, Kalendern
-oder digitalen Remindern \cite{gilbert2023intentionoffloading}.
-
-Für das Design von Skyline ist das relevant, weil viele Reiseaufgaben genau
-diesem Muster folgen: Nutzerinnen und Nutzer müssen sich später an klare
-To-dos erinnern, während sie parallel anderen Tätigkeiten nachgehen.
-Reminders können die sogenannte Monitoring-Anforderung senken, also das
-ständige \glqq im Blick behalten\grqq{} eines zukünftigen Zeitpunkts oder
-Ereignisses. Studien zeigen zudem, dass Erinnerungen effektiver sind, wenn sie
-nicht nur ein Zielereignis (\glqq Check-in-Zeit\grqq{}) nennen, sondern eine
-konkrete, unmittelbar ausführbare Handlung unterstützen (z. B. \glqq Jetzt
-Online-Check-in starten\grqq{}) \cite{jones2021prospectivememory,gilbert2023intentionoffloading}.
-
-\subsection{Notification Fatigue (Überlastung)}
-Ein zentrales Risiko proaktiver Benachrichtigungssysteme ist die sogenannte
-„Notification Fatigue“: Werden zu viele Hinweise gesendet, steigt die
-Wahrscheinlichkeit, dass Nutzer Benachrichtigungen ignorieren oder die Funktion
-komplett deaktivieren. Feldstudien zeigen einerseits eine hohe tägliche
-Benachrichtigungszahl (z. B. im Mittel rund 63{,}5 Benachrichtigungen pro Tag)
-und andererseits Zusammenhänge zwischen höherem Notification-Volumen und
-negativeren Emotionen \cite{pielot2014notifications}. Grossskalige Analysen
-stützen dieses Bild: Sahami Shirazi et al.\ untersuchen nahezu 200 Millionen
-Benachrichtigungen und zeigen, dass Nutzerinnen und Nutzer Notifications stark
-nach Quelle und Typ bewerten (z. B. hohe Relevanz für Messaging, deutlich
-geringere Interaktionsraten für viele andere Kategorien)
-\cite{sahami2014largescale}. Eine weitere Log-Studie mit rund 794\,525
-Benachrichtigungen berichtet einen Median von 56 Notifications pro Tag und eine
-sehr geringe Conversion für viele nicht-Messaging-Hinweise
-\cite{mehrotra2016myphone}.
-
-Dass Benachrichtigungen spürbare Kosten erzeugen können, wird auch
-experimentell belegt. In der \glqq Do Not Disturb Challenge\grqq{} (24 Stunden
-ohne Push-Notifications) fühlten sich Teilnehmende weniger abgelenkt und
-produktiver, berichteten aber gleichzeitig mehr Sorge, nicht wie erwartet
-reagieren zu können \cite{pielot2017productive}. Arbeitspsychologische
-Feldexperimente zeigen zusätzlich, dass eine Reduktion von
-notificationsbedingten Unterbrechungen positive Effekte auf Leistung und
-Belastung haben kann \cite{ohly2023interruptions}.
-
-Für Skyline lassen sich daraus drei Governance-Prinzipien ableiten:
-\begin{itemize}
-  \item \textbf{Relevanz vor Vollständigkeit:} Jede zusätzliche, wenig
-  relevante Notification erhöht das Risiko von Ignorieren oder Abschalten und
-  reduziert die wahrgenommene Relevanz
-  \cite{pielot2014notifications,sahami2014largescale}.
-  \item \textbf{Nutzerkontrolle ist zwingend:} Betriebssysteme wie Android
-  stellen explizite Kontrollmechanismen bereit. Notification-Channels besitzen
-  eine Importance, die kanalabhängig definiert wird; Nutzerinnen und Nutzer
-  können diese Importance in den Systemeinstellungen anpassen. Nach dem
-  Erstellen eines Channels kann die App das Verhalten nicht mehr eigenmächtig
-  ändern (\glqq the user has complete control\grqq{})
-  \cite{androidNotifications}.
-  \item \textbf{Permission-Requests brauchen Kontext:} Apple betont in
-  Entwickler-Schulungsmaterialien, dass die Zustimmung zu
-  Benachrichtigungs-Berechtigungen steigt, wenn diese nicht direkt beim
-  App-Start, sondern kontextbezogen nach einer passenden Nutzeraktion
-  angefragt werden \cite{applePushPrimer2020}.
-\end{itemize}
-
-\subsection{Timing-Strategien in mobilen Apps}
-Studien zu \glqq Interruptibility\grqq{} und \glqq Receptivity\grqq{} zeigen,
-dass Zustellzeitpunkte nicht beliebig sind. Selbst inhaltlich sinnvolle Hinweise
-können als störend empfunden werden, wenn sie in unpassenden Momenten
-eintreffen, etwa während komplexer Aufgaben oder intensiver sozialer
-Interaktionen \cite{mehrotra2016myphone,mehrotra2018intelligent}. Ein
-verbreiteter Ansatz besteht darin, \glqq opportune moments\grqq{} zu erkennen,
-also geeignete Zeitfenster, und Zustellung dorthin zu verschieben. Fischer
-et al.\ untersuchen Episoden mobiler Aktivität und argumentieren, dass
-natürliche Übergänge (\glqq Breakpoints\grqq{}) besonders geeignete
-Zeitpunkte für Unterbrechungen sind \cite{fischer2011investigating}. Mehrotra
-et al.\ greifen dieses Prinzip in einem \glqq defer-to-breakpoint\grqq{}-Ansatz
-auf, bei dem Benachrichtigungen gezielt bis zum Ende einer Episode
-aufgeschoben werden \cite{mehrotra2016myphone}.
-
-Im Flugreisebereich bietet sich eine Kombination aus solchen HCI-Prinzipien mit
-ohnehin klar strukturierten Zeitpunkten an: Online-Check-in-Fenster,
-Boarding-Beginn, Boarding-Ende und Ankunft liefern natürliche \glqq Anker\grqq{},
-an denen Benachrichtigungen einerseits relevant sind und andererseits weniger
-stark mit typischen Alltagsaufgaben kollidieren.
-
-\section{Anforderungen im Reise Kontext}
-Im Reise-Kontext sind Benachrichtigungen besonders zeitkritisch und müssen
-an reale Ankunfts- und Abflugszeiten gekoppelt werden. In der Praxis variieren
-Check-in- und Boarding-Fenster je nach Airline und Abflugort: British Airways
-erlaubt den Online-Check-in ab 24 Stunden vor Abflug \cite{britishAirwaysCheckin},
-Lufthansa spricht von einem Online-Check-in bis zu 30 Stunden vor Abflug, wobei
-bestimmte automatisierte Check-in-Einladungen weiterhin rund 23 Stunden vorher
-versendet werden \cite{lufthansaCheckin}. Austrian Airlines öffnet den
-Online-Check-in meist 47 Stunden vor Abflug von und nach Wien
-\cite{austrianCheckin}, während der Flughafen Wien allgemein darauf hinweist,
-dass Online-Check-in je nach Airline bis zu 48 Stunden vor Abflug möglich ist
-\cite{viennaAirportOnlineCheckin}. Boarding-Zeiten sind ähnlich strukturiert;
-KLM nennt einen Boarding-Beginn zwischen 60 und 25 Minuten vor Abflug und ein
-Boarding-Ende etwa 15 Minuten vor planmäßigem Abflug \cite{klmBoarding}.
-
-Für Skyline bedeutet das: Zeitregeln müssen als Heuristiken formuliert werden
-(\glqq typischerweise\grqq{}, \glqq bei vielen Airlines\grqq{}), da sie nicht
-für alle Fluggesellschaften und Routen exakt gelten. Eine vollautomatische
-Echtzeit-Aktualisierung von Verspätungen oder Gate-Änderungen wäre nur mit
-zusätzlichen Flugdaten-APIs realistisch, die häufig in kommerziellen Modellen
-angeboten werden. Beispiele sind FlightAware mit usage-basiertem AeroAPI-Pricing
-\cite{flightawareAeroAPI}, Cirium mit Flex-APIs und Evaluation-Accounts
-\cite{ciriumFlexAPIs} oder aviationstack mit einem kostenlosen Plan und
-kostenpflichtigen Abos \cite{aviationstack}. Für ein Schulprojekt ist dies
-typischerweise aufgrund von Kosten und Limits nur eingeschränkt umsetzbar.
-
-\subsection{Checkin Reminder (T24h)}
-Viele Airlines öffnen den Online-Check-in in einem Bereich von 24 bis
-48 Stunden vor Abflug. British Airways erlaubt beispielsweise den Check-in
-ab 24 Stunden vor der geplanten Abflugzeit \cite{britishAirwaysCheckin},
-Lufthansa kommuniziert automatisierte Check-in-Prozesse rund 23 Stunden vor
-Abflug bei einer technischen Öffnung bis 30 Stunden \cite{lufthansaCheckin}.
-Austrian Airlines nennt meist 47 Stunden vor Abflug von und nach Wien
-\cite{austrianCheckin}, der Flughafen Wien erwähnt allgemein Online-Check-in
-bis zu 48 Stunden je nach Airline \cite{viennaAirportOnlineCheckin}.
-
-Vor diesem Hintergrund ist ein Check-in-Reminder etwa 24 Stunden vor Abflug als
-breit kompatible Standardheuristik sinnvoll: Er liegt innerhalb oder nahe der
-typischen Öffnungsfenster vieler Airlines und gibt ausreichend Vorlauf, um den
-Check-in durchzuführen, Sitzplätze zu wählen und Reiseunterlagen zu
-prüfen. In Skyline wird dieser Zeitpunkt deshalb als Default gewählt.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Check-in Benachrichtigung (T-24h).}}
-  \caption{Beispiel: Check-in Reminder}
-  \label{fig:reminder_checkin}
-\end{figure}
-
-\subsection{Boarding Reminder (T60m / T30m)}
-Boarding-Hinweise kurz vor dem Einsteigen sind besonders wirkungsvoll, da sie
-in ein enges, realweltliches Zeitfenster fallen und direkt mit klaren
-Fehlerzuständen (z. B. Boarding verpasst) verknüpft sind. KLM gibt an, dass
-Boarding zwischen 60 und 25 Minuten vor Abflug startet und rund 15 Minuten vor
-planmäßigem Abflug schliesst \cite{klmBoarding}; ähnliche Zeiträume finden
-sich bei anderen Airlines.
-
-Ein zweistufiger Reminder bei T-60 Minuten und T-30 Minuten bildet diese Praxis
-gut ab: Der frühere Hinweis ermöglicht es, rechtzeitig in Richtung Gate
-aufzubrechen und letzte Wege einzuplanen, während der spätere Reminder als
-\glqq letzte sichere Erinnerung\grqq{} kurz vor Schliessen der Türen fungiert.
-Aus HCI-Sicht entspricht dies dem Prinzip, zeitkritische Benachrichtigungen eng
-an das relevante Ereignis zu koppeln und dennoch einen ausreichenden
-Handlungsspielraum zu lassen \cite{mehrotra2018intelligent,fischer2011investigating}.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Boarding Benachrichtigung (T-60m / T-30m).}}
-  \caption{Beispiel: Boarding Reminder}
-  \label{fig:reminder_boarding}
-\end{figure}
-
-\subsection{Missing Docs Reminder (T12h)}
-Fehlende Unterlagen sollen möglichst früh erkannt werden, damit Nutzer noch
-handeln können. Der Reminder wird deshalb in Skyline ca. 12 Stunden vor Abflug
-gesendet, sofern wichtige Dokumente (z. B. Boardingpass, Buchungsbestätigung
-oder Rechnung) fehlen. Dadurch bleibt genug Zeit, die Unterlagen nachzureichen.
-
-Der Zeitpunkt T-12h ist als praxisnahe Heuristik plausibel: Er liegt in der
-Regel vor der unmittelbaren Reisehektik, aber nah genug am Ereignis, um als
-relevant wahrgenommen zu werden. Aus der Literatur zu prospektivem Gedächtnis
-und Intention Offloading lässt sich ableiten, dass Erinnerungen besonders dann
-hilfreich sind, wenn sie auf eine konkrete, zeitnahe Handlung verweisen und
-noch echte Handlungsoptionen lassen
-\cite{jones2021prospectivememory,gilbert2023intentionoffloading}.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Dokumente-Fehlen Benachrichtigung (T-12h).}}
-  \caption{Beispiel: Missing Docs Reminder}
-  \label{fig:reminder_missing_docs}
-\end{figure}
-
-\subsection{Receipt Reminder (T+2h)}
-Nach der Ankunft wird ein Reminder für Belege gesetzt, um die Abrechnung
-zu unterstützen. Der zeitliche Abstand von etwa zwei Stunden ist bewusst
-gewählt, damit der Nutzer zuerst den unmittelbaren Reiseabschluss erledigen
-kann (Aussteigen, Gepäck, Transfer) und danach ruhig die Belege hochlädt oder
-fotografiert.
-
-Aus Sicht der Interruptibility-Forschung ist dies konsistent mit dem Prinzip,
-Notifications an natürliche Übergänge anzuknüpfen -- in diesem Fall an den
-Uebergang von der Reisephase zur Nachbereitung
-\cite{fischer2011investigating,mehrotra2018intelligent}.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot der Beleg-Erinnerung (T+2h).}}
-  \caption{Beispiel: Receipt Reminder}
-  \label{fig:reminder_receipt}
-\end{figure}
-
-\subsection{Kontextabhängige Hinweise (z. B. fehlende Dokumente)}
-Hinweise werden nur gesendet, wenn die Kontextbedingungen stimmen. Ein Beispiel
-ist der Fall, dass wichtige Dokumente fehlen und der Abflug innerhalb der
-nächsten 48 Stunden liegt. Dadurch werden Benachrichtigungen auf relevante
-Situationen beschränkt und die Nutzer nicht mit irrelevanten Meldungen
-überlastet.
-
-Formal wird Kontext im Sinne von Dey als \glqq jede Information, die genutzt
-werden kann, um die Situation einer Entität zu charakterisieren\grqq{}
-verstanden, wobei Entitäten Personen, Orte oder Objekte sind, die für die
-Interaktion relevant sind \cite{dey2001context}. Ein System gilt als
-kontextbewusst, wenn es solchen Kontext nutzt, um relevante Informationen oder
-Services bereitzustellen. Intelligente Benachrichtigungssysteme verfolgen
-genau dieses Ziel: Zustellung zur \glqq richtigen Zeit\grqq{} und im
-\glqq richtigen Kontext\grqq{} zu optimieren, indem sowohl Rezeptivität als
-auch Unterbrechungskosten berücksichtigt werden \cite{mehrotra2018intelligent}.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{Platzhalter: Screenshot eines kontextabhängigen Hinweises.}}
-  \caption{Beispiel: Kontextabhängige Benachrichtigung}
-  \label{fig:reminder_context}
-\end{figure}
-
-\subsection{Triggerberechnung aus departureAt/arrivalAt}
-Triggerzeiten werden aus Abflug- und Ankunftszeiten abgeleitet und als Offsets
-berechnet.
-\subsection{Speicherung \& Persistenz (local + server)}
-Lokale IDs werden gespeichert; zusätzlich werden geplante Reminders serverseitig
-persistiert, um Rescheduling zu ermöglichen.
-\subsection{Rescheduling nach AppStart}
-Beim App-Start werden ausstehende Reminders geladen und neu geplant.
-\subsection{DeepLinks zu Trip Details}
-Benachrichtigungen enthalten Deeplinks, die direkt in die Flugdetails führen.
-\subsection{Fehlerhandling (fehlende Zeiten, invalid data)}
-Fehlende oder ungültige Zeiten verhindern Scheduling und werden abgefangen.
-\subsection{DebugAnsicht (Pending Notifications)}
-Eine Debug-Ansicht zeigt geplante und serverseitige Notifications für Tests.
 \section{Implementierung in Skyline}
-Die Implementierung nutzt Expo Notifications und eine eigene Registry für
-Persistenz \cite{expoNotifications}.
+Die Implementierung nutzt Expo Notifications und eine eigene Registry für Persistenz \cite{expoNotifications}.
 \subsection{ReminderOffsets \& SchedulingFlow}
-Beim Speichern eines Flugs werden die Offsets geprüft und geplant.
+Beim Speichern eines Flugs werden die Offsets geprüft und geplant. Standard-Offsets wie T-24\,h (Check-in), T-60\,m/T-30\,m (Boarding), T-12\,h (Missing Docs) und T+2\,h (Receipt) werden gemäß den in Kapitel 3 beschriebenen Heuristiken gesetzt.
 \subsection{Integration beim FlightSave}
 Die Scheduling-Logik wird automatisch beim Flug-Speichern angestossen.
 \subsection{Cancel/Reschedule bei Updates}
 Bei Änderungen werden alte Reminders gecancelt und neu gesetzt.
 \subsection{PushIntegration (EAS / Expo Tokens)}
-Push-Benachrichtigungen sind konzeptionell vorbereitet; für Produktion
-braucht es FCM/APNs via EAS.
+Push-Benachrichtigungen sind konzeptionell vorbereitet; für Produktion braucht es FCM/APNs via EAS.
+
 \section{Bewertung der Wirkung}
 Die Wirkung wird über Zuverlässigkeit, Effizienz und Nutzerakzeptanz bewertet.
 \subsection{Zuverlässigkeit als KPI}
-KPI: Anteil der Flüge ohne kritische Fehlzustände (z. B. fehlende Unterlagen).
+KPI: Anteil der Flüge ohne kritische Fehlzustände (z.\,B. fehlende Unterlagen).
 \subsection{Effizienz als KPI}
 KPI: Reduktion der Suchzeit nach Dokumenten und Anzahl manueller Schritte.
 \subsection{Nutzerakzeptanz}
 Akzeptanz wird über qualitative Rückmeldungen und Settings-Nutzung beurteilt.
+
 \section{Ergebnis}
-Das Modul erhöht die Verlässlichkeit der Reiseorganisation, wenn Timing und
-Relevanz stimmen.
+Das Modul erhöht die Verlässlichkeit der Reiseorganisation, wenn Timing und Relevanz stimmen.
 \subsection{Reduktion kritischer Fehlzustände}
 Hinweise auf Check-in und fehlende Dokumente reduzieren Fehler.
 \subsection{Effizienzsteigerung}
 Weniger Suchaufwand und klarere Ablaufe steigern die Effizienz.
 \subsection{Gesamtbewertung}
-Die Kombination aus Reminder-Offsets, Quiet Hours und Deeplinks liefert einen
-messbaren Mehrwert.
+Die Kombination aus Reminder-Offsets, Quiet Hours und Deeplinks liefert einen messbaren Mehrwert.

@@ -1,25 +1,25 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Rechtliche Rahmenbedingungen (projektrelevant)}\label{chapter:recht}
-\section{Datenschutzrechtliche Vorgaben (DSGVO)}
+\section{Rechtliche Rahmenbedingungen (projektrelevant)}\label{sec:recht}
+\subsection{Datenschutzrechtliche Vorgaben (DSGVO)}
 Die Verarbeitung personenbezogener Daten unterliegt der DSGVO \cite{gdpr}.
 Besonders bei Reisedaten, Dokumenten und Profilinformationen müssen klare
 Regeln eingehalten werden.
-\subsection{Speicherung und Verarbeitung personenbezogener Daten}
+\subsubsection{Speicherung und Verarbeitung personenbezogener Daten}
 Zu den personenbezogenen Daten gehoeren Name, Reisezeiten, Dokumente und
 Kontaktdaten. Diese duerfen nur zweckgebunden verarbeitet werden.
-\subsection{Massnahmen zur sicheren Datenverarbeitung}
+\subsubsection{Massnahmen zur sicheren Datenverarbeitung}
 Erforderlich sind Zugriffskontrolle, Verschluesselung der Uebertragung und
 minimierte Datenspeicherung.
-\subsection{Relevante Gesetze}
+\subsubsection{Relevante Gesetze}
 Die DSGVO bildet die Grundlage; zusätzlich sind nationale Datenschutzgesetze
 und Kommunikationsgesetze relevant.
-\section{Datenschutz in Skyline}
+\subsection{Datenschutz in Skyline}
 Skyline beruecksichtigt Datenschutz durch rollenbasierten Zugriff und
 Supabase-Policies.
-\subsection{Authentifizierung \& Zugriffsschutz}
+\subsubsection{Authentifizierung \& Zugriffsschutz}
 Zugriff erfolgt nur für authentifizierte Nutzer über Supabase Auth.
-\subsection{RLS-Policies in Supabase}
+\subsubsection{RLS-Policies in Supabase}
 RLS stellt sicher, dass Nutzer nur eigene Daten sehen und verändern können.
-\subsection{Dokumentenspeicherung \& Rechte}
+\subsubsection{Dokumentenspeicherung \& Rechte}
 Dokumente werden in privaten Buckets gespeichert; Zugriff erfolgt über
 kontrollierte Policies oder signierte URLs.
