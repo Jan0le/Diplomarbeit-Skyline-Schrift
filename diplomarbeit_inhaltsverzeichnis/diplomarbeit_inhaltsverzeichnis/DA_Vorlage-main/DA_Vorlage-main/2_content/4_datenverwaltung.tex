@@ -754,16 +754,16 @@ void Promise.allSettled([
     x=1cm, y=1cm,
     box/.style={draw, rounded corners, thick, minimum width=3.0cm,
                 minimum height=0.8cm, align=center, font=\small\ttfamily},
-    step/.style={draw, rounded corners, thick, minimum width=3.8cm,
+    flowstep/.style={draw, rounded corners, thick, minimum width=3.8cm,
                  minimum height=0.8cm, align=center, font=\small},
     arr/.style={->, thick}
   ]
-    \node[step] (open) at (0,0)    {Nutzer öffnet Flug};
-    \node[step] (par)  at (0,-1.5) {Promise.allSettled()};
+    \node[flowstep] (open) at (0,0)    {Nutzer öffnet Flug};
+    \node[flowstep] (par)  at (0,-1.5) {Promise.allSettled()};
     \node[box]  (n)    at (-3.5,-3){user\_notes};
     \node[box]  (c)    at (0,-3)   {user\_checklists};
     \node[box]  (d)    at (3.5,-3) {flight\_documents};
-    \node[step] (ui)   at (0,-4.5) {Detailansicht bereit};
+    \node[flowstep] (ui)   at (0,-4.5) {Detailansicht bereit};
     \draw[arr] (open)--(par);
     \draw[arr] (par)--(n);  \draw[arr] (par)--(c);  \draw[arr] (par)--(d);
     \draw[arr] (n)--(ui);   \draw[arr] (c)--(ui);   \draw[arr] (d)--(ui);

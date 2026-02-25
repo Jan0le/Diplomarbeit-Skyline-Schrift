@@ -2,11 +2,334 @@
 \chapter{Theoretische Grundlagen}
 
 \section{Mobile Reiseorganisation und digitale Workflows}
-\subsection{Charakteristika von Reisedaten und deren Verwaltung}
-Reisedaten umfassen Fluginformationen, Buchungsdaten, Dokumente, Belege und Erinnerungen. Diese Informationen werden in der Praxis häufig in unterschiedlichen Medien und Systemen gespeichert (E-Mail, Dateien, Kalender, Papier), was zu Fragmentierung führt.
 
+Mobile Reiseorganisation ist ein Anwendungsfall des \textbf{Personal Information
+Management (PIM)}: Nutzerinnen und Nutzer müssen Informationen erfassen,
+organisieren, wiederfinden und in passende Handlungsschritte übersetzen, obwohl
+die zugrunde liegenden Daten über mehrere Werkzeuge und Kanäle entstehen
+(z.\,B. E-Mail-Bestätigungen, Kalendereinträge, PDF-Dokumente oder digitale
+Boarding-Pässe). In der PIM-Forschung wird diese Verteilung als
+\textit{Informationsfragmentierung} beschrieben und als Ursache für
+wiederholte Suchen, Medienbrüche und inkonsistente Datenstände diskutiert
+\cite{karger_jones2006_dataunification,bergman2006_project_fragmentation}.
+
+Digitalisierung verändert zudem, wie Reisende Informationen wahrnehmen und
+verarbeiten: Angebote und Daten werden zunehmend digital bereitgestellt, doch
+die eigentliche Konsolidierung bleibt oft beim Nutzer. Branchentools wie
+TripIt zeigen, dass Konsolidierung aus Bestätigungsmails ein etabliertes
+Produktmuster ist -- das heißt, Fragmentierung wird als echtes Problem
+erkannt und industriell adressiert \cite{tripit_official_forward_emails,
+tripit_appstore_offline_and_upload}. Die Digitalisierung des Tourismus hat
+das Informationsangebot stark erweitert, ohne dass damit automatisch eine
+bessere Übersichtlichkeit für den Einzelreisenden entstanden ist
+\cite{weberleibrecht2021_digitalisierung_tourismus}.
+
+Skyline adressiert dieses Problem, indem alle relevanten Reiseinformationen
+in einer einzigen, zentral verwalteten Anwendung zusammengeführt werden:
+Flüge, Dokumente, Notizen, Checklisten und Erinnerungen teilen dieselbe
+Datenbasis und sind über einen einzigen Zugangspunkt erreichbar.
+
+% ---- Ökosystem-Abbildung ----
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    % Stil-Definitionen
+    \tikzstyle{src}=[draw, rounded corners, align=center,
+                     minimum width=3.0cm, minimum height=1.0cm, font=\small]
+    \tikzstyle{appbox}=[draw, rounded corners, align=center,
+                        minimum width=3.2cm, minimum height=1.0cm,
+                        font=\small, thick]
+    % Quellen (linke Spalte)
+    \node[src] (email) at (0, 3.0)  {E-Mail\\(Bestätigungen)};
+    \node[src] (cal)   at (0, 1.5)  {Kalender\\(Termine)};
+    \node[src] (files) at (0, 0.0)  {Dateien/Cloud\\(PDFs, Scans)};
+    \node[src] (wall)  at (0,-1.5)  {Wallet/Passes\\(Boarding Pass)};
+
+    % Skyline App (Mitte)
+    \node[appbox] (app) at (5.5, 0.75) {Skyline\\(iOS App)};
+
+    % Backend / Registry (rechte Spalte)
+    \node[appbox] (backend) at (10.0, 1.8)  {Backend\\(Supabase/DB)};
+    \node[appbox] (reg)     at (10.0, -0.3) {Registry\\(Reminder/Logs)};
+
+    % Pfeile: Quellen → App
+    \draw[->, thick] (email.east) -- (app.west);
+    \draw[->, thick] (cal.east)   -- (app.west);
+    \draw[->, thick] (files.east) -- (app.west);
+    \draw[->, thick] (wall.east)  -- (app.west);
+
+    % Beschriftung Quellen → App
+    \node[font=\scriptsize, align=center] at (2.8, 1.8) {Import/};
+    \node[font=\scriptsize, align=center] at (2.8, 1.4) {Parsing};
+
+    % App ↔ Backend
+    \draw[->, thick] (app.east)      to[bend left=15]
+                     node[above, font=\scriptsize]{Sync} (backend.west);
+    \draw[->, thick] (backend.west)  to[bend left=15]
+                     node[below, font=\scriptsize]{Daten} (app.east);
+
+    % Backend → Registry
+    \draw[->, thick] (backend.south) -- node[right, font=\scriptsize]{Persistenz} (reg.north);
+  \end{tikzpicture}
+  \caption{Ökosystem der mobilen Reiseorganisation: Reisedaten entstehen verteilt
+    (E-Mail, Kalender, Dateien, Wallet) und werden in Skyline konsolidiert;
+    Backend und Registry ermöglichen Synchronisation und Nachvollziehbarkeit.}
+  \label{fig:ecosystem_travel_pim}
+\end{figure}
+
+% ============================================================
+\subsection{Charakteristika von Reisedaten und deren Verwaltung}
+% ============================================================
+
+Reisedaten weisen drei besondere Charakteristika auf, die ihre Verwaltung
+anspruchsvoll machen:
+
+\medskip\noindent\textbf{Heterogenität.}
+Reisedaten sind heterogen: Buchungscodes, IATA-Flugnummern und Barcode-Daten
+liegen in standardisierten, maschinenlesbaren Formaten vor, während Buchungs-PDFs,
+Visa-Dokumente und Rechnungen weitgehend unstrukturiert sind.
+Die \textit{Bar Coded Boarding Pass (BCBP)}-Spezifikation der IATA
+definiert standardisierte Datenfelder und Symbologien für Boarding-Pässe auf
+Papier oder mobilen Geräten, einschließlich Mehrsegmentkodierung
+\cite{iata2021_bcbp_implementation_guide}. Digitale Passes (Wallet-Format)
+liegen als Paketstruktur mit zentraler JSON-Beschreibung vor, die Identifikatoren,
+Darstellungstexte und kryptographische Signaturen kombiniert
+\cite{apple2018_wallet_dev_guide_creating,google2024_wallet_generic_pass_flow}.
+Diese Vielfalt erfordert flexible Importpipelines, die strukturierte und
+unstrukturierte Quellen gleichermaßen verarbeiten können. Skyline implementiert
+QR-/BCBP-Parsing, OCR und E-Mail-Import als komplementäre Eingabekanäle.
+
+\medskip\noindent\textbf{Zeitkritikalität.}
+Reisedaten sind zeitgebunden: Check-in-Fenster öffnen bei vielen Airlines
+24--30~Stunden vor Abflug
+\cite{lufthansa_online_checkin_30h,lufthansaCheckin};
+Boarding beginnt typischerweise 30--60~Minuten vor der planmäßigen Abflugzeit
+\cite{klm_boarding_times,aa_boarding_process,klmBoarding}.
+Das Verpassen dieser Fenster hat direkte Konsequenzen (kein Check-in mehr,
+kein Boarding). Zusätzlich können sich Zeiten dynamisch ändern (Verspätung,
+Gate-Wechsel, Storno), was statische Reminder-Strategien allein nicht abdecken.
+Skyline begegnet dieser Zeitkritikalität durch automatisch berechnete
+Erinnerungsoffsets relativ zu \texttt{departureAt} und \texttt{arrivalAt}
+sowie durch serverseits persistierte Reminder, die bei Datenänderungen
+neu geplant werden können.
+
+\medskip\noindent\textbf{Compliance-Relevanz.}
+Reisedaten sind häufig sicherheits- und compliance-relevant: Identitätsdokumente,
+Visa und Versicherungsnachweise müssen für den Reiseantritt vorliegen; Belege
+und Abrechnungsunterlagen unterliegen Aufbewahrungspflichten. In Österreich
+beträgt die gesetzliche Aufbewahrungsfrist für Buchhaltungsunterlagen und Belege
+\textbf{sieben Jahre}; elektronische Archivierung ist unter definierten
+Bedingungen (geordnet, inhaltsgleich, jederzeit verfügbar) zulässig
+\cite{usp_aufbewahrungspflicht,wko_aufbewahrungspflichten}.
+Reisekostenunterlagen sind elektronisch vorzulegen und unterliegen fachlichen
+Prüfprozessen \cite{bmbwf_reisegebuehren_arbeitsbehelf}.
+Daraus folgt für Skyline: Die Datenstruktur muss Belege einem konkreten Trip
+zuordenbar halten, Löschpfade müssen compliance-konform gestaltet sein, und
+die Zugangskontrolle (RLS) sichert Vertraulichkeit auf Datenbankebene.
+
+Die folgende Tabelle gibt einen Überblick über typische Reisedatenklassen,
+ihre Quellen und die sich daraus ergebenden Problemfelder:
+
+\begin{table}[htbp]
+\centering
+\caption{Typische Reisedaten-Klassen, Quellen und Probleme (relevant für Reminder-Design in Skyline)}
+\label{tab:travel_data_classes}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{p{2.8cm} p{3.0cm} X p{2.9cm}}
+\toprule
+\textbf{Datentyp} & \textbf{Typische Quelle} & \textbf{Typische Probleme} & \textbf{Relevanz für Reminder} \\
+\midrule
+Flug-Reservierung (PNR, Zeiten) &
+E-Mail; Airline-Portal; Reisebüro &
+Zeitzonenabweichungen; Updates (Gate, Verspätung) nicht synchron; Duplikate &
+Check-in-Reminder; Boarding-Reminder \\
+\midrule
+Boarding Pass (Barcode/Wallet) &
+Wallet/Pass; Airline-App; PDF &
+Mehrsegment-Reisen; Offline-Bedarf; Identitäts-/Sicherheitsbezug &
+Boarding-Reminder; \\
+\midrule
+Reisedokumente (Pass/Visum) &
+Scan/PDF; Cloud; Foto &
+Sensitivität; fehlende Trip-Zuordnung; schwer auffindbar; Ablaufdaten &
+Missing-Docs-Reminder; Ablauf-Reminder \\
+\midrule
+Belege/Quittungen (Spesen) &
+Foto; PDF; E-Mail &
+Verlust; fehlende Metadaten; Aufbewahrungspflicht (7 Jahre AT) &
+Receipt-Reminder nach Ankunft; Frist-Reminder \\
+\midrule
+Hotel-/Mietwagen- reservierungen &
+E-Mail; PDF; App &
+Uneinheitliche Bezeichnungen; mehrere Anbieter; Offline am Zielort &
+Check-in/out-Reminder; Rückgabe-Reminder \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
 \subsection{Herausforderungen bei der Fragmentierung von Reiseinformationen}
-Die Verteilung erschwert die strukturierte Organisation, verlängert Suchvorgänge und reduziert die Nachvollziehbarkeit im Unternehmenskontext. Ohne strukturierte Ablage entstehen organisatorische Fehler und ein hoher manueller Aufwand.
+% ============================================================
+
+Das zentrale Problem der Reiseorganisation ist \textbf{Informationsfragmentierung}:
+Projektinformationen -- hier: alle zu einem Trip gehörenden Daten -- werden
+formatabhängig in getrennten Sammlungen gespeichert (Posteingang, Dateisystem,
+Kalender, Foto-App, Wallet). Bergman et al.\ definieren dieses Muster als
+\textit{Project Fragmentation Problem}: Nutzerinnen und Nutzer halten
+Konsistenz über mehrere, formatspezifische Hierarchien aufrecht, was
+zeitaufwändig ist und kognitive Last erzeugt
+\cite{bergman2006_project_fragmentation}. Karger und Jones ergänzen, dass
+Informationen zu einer Entscheidung typischerweise über mehrere Anwendungen
+verteilt vorliegen und Nutzer wiederholt mehrere Tools öffnen und suchen müssen
+\cite{karger_jones2006_dataunification}.
+
+\medskip\noindent\textbf{Re-Finding als eigenständige Aufgabe.}
+Ein etablierter Befund der PIM-Forschung ist, dass das \textit{Wiederfinden}
+bereits gesehener oder gespeicherter Informationen eine eigenständige,
+häufige Aufgabe ist -- nicht ein Nebenprodukt des ursprünglichen Speicherns.
+Elsweiler und Ruthven zeigen anhand von Tagebuchstudien, dass Re-Finding-Tasks
+vielfältig sind: von konkreten Detailsuchen bis hin zum Zusammensetzen aus
+mehreren Quellen \cite{elsweiler_ruthven2007_taskbased_pim}.
+Whittaker et al.\ belegen in einer Feldstudie mit 345~Nutzenden und
+mehr als 85.000~Refinding-Aktionen, dass intensive Ordnerstrukturen keine
+automatisch bessere Erfolgsquote erzielen als Such- oder Threading-basierte
+Strategien \cite{whittaker2011_email_refinding}. Für den Reise-Kontext
+bedeutet das: Das Ablegen in einem Ordner verhindert keine Suche kurz vor
+dem Abflug -- proaktive Erinnerungen und kontextsensitive Hinweise wirken
+zuverlässiger.
+
+\medskip\noindent\textbf{Aufmerksamkeits- und Kontextwechsel.}
+Fragmentierung ist nicht nur ein Speicherortproblem, sondern auch ein
+Aufmerksamkeitsproblem: Reeves et al.\ zeigen, dass digitale Alltagsinteraktionen
+über viele Apps hinweg verwoben sind und Wechsel oft in Sekunden stattfinden
+\cite{reeves2021_screenomics}. Czerwinski et al.\ belegen in einer Tagebuchstudie,
+dass häufige Aufgabenwechsel und Unterbrechungen das prospektive Erinnern
+(geplante Handlungen ausführen) erheblich belasten
+\cite{czerwinski2004_task_switching_diary}. Für die Reiseorganisation heißt
+das: Selbst wenn alle Informationen vorhanden sind, werden sie unter
+Zeitdruck (am Flughafen, in der Bahn) oft nicht rechtzeitig abgerufen.
+
+\medskip\noindent\textbf{Organisationale Dimension.}
+McKinsey schätzt, dass Wissensarbeitende einen erheblichen Teil der
+Arbeitszeit für E-Mail und Informationssuche aufwenden
+\cite{mckinsey2012_social_media_productivity}. Im Unternehmensreisekontext
+verstärkt sich dies: Buchungsbestätigungen kommen per Mail, Belege müssen
+eingescannt und weitergeleitet werden, Abrechnungsfristen werden kommuniziert.
+Tools wie TripIt adressieren dies über das automatische Einlesen von
+Bestätigungsmails \cite{tripit_official_forward_emails} -- ein Muster, das
+zeigt, dass Fragmentierung als reales Produktproblem anerkannt ist.
+
+Die folgende Abbildung zeigt den Datenfluss von fragmentierten Eingaben
+zu einem konsolidierten Trip-Datensatz, wie er in Skyline umgesetzt wird:
+
+% ---- Fragmentierungs-Datenfluss ----
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \tikzstyle{src}=[draw, rounded corners, align=center,
+                     minimum width=3.2cm, minimum height=1.0cm, font=\small]
+    \tikzstyle{proc}=[draw, rounded corners, align=center,
+                      minimum width=3.2cm, minimum height=1.0cm, font=\small, thick]
+    \tikzstyle{warn}=[draw, rounded corners, dashed, align=center,
+                      minimum width=2.8cm, minimum height=0.9cm,
+                      font=\small\itshape]
+
+    % Quellen (linke Spalte, y = 4.5 / 3.0 / 1.5 / 0.0)
+    \node[src]  (s1) at (0, 4.5) {Airline-Mail\\(PNR, Zeiten)};
+    \node[src]  (s2) at (0, 3.0) {Hotel-Mail\\(Check-in/out)};
+    \node[src]  (s3) at (0, 1.5) {PDF/Scan\\(Tickets, Visa)};
+    \node[src]  (s4) at (0, 0.0) {Kalender\\(Events)};
+
+    % Verarbeitungsknoten (Mitte)
+    \node[proc] (ext) at (5.0, 2.25) {Extraktion \&\\Normalisierung};
+
+    % Fehlerquellen (oben/unten am Extract)
+    \node[warn] (e1) at (5.0, 4.0) {Zeitzone /\\Formatfehler};
+    \node[warn] (e2) at (5.0, 0.5) {Duplikate /\\Versionskonflikte};
+
+    % Ergebnis (rechts)
+    \node[proc] (unified) at (9.5, 2.25) {Unified Trip\\(SSOT in Skyline)};
+
+    % Ableitungen (ganz rechts)
+    \node[proc] (actions) at (9.5, 0.5) {Ableitungen:\\Reminder, Checklisten,\\Dokumentenstatus};
+
+    % Pfeile: Quellen → Extraktion
+    \draw[->, thick] (s1.east) -- (ext.west);
+    \draw[->, thick] (s2.east) -- (ext.west);
+    \draw[->, thick] (s3.east) -- (ext.west);
+    \draw[->, thick] (s4.east) -- (ext.west);
+
+    % Extraktion → Unified Trip
+    \draw[->, thick] (ext.east) -- (unified.west);
+
+    % Fehlerquellen → Extraktion (gestrichelt)
+    \draw[->, dashed] (e1.south) -- (ext.north);
+    \draw[->, dashed] (e2.north) -- (ext.south);
+
+    % Unified → Ableitungen
+    \draw[->, thick] (unified.south) -- (actions.north);
+  \end{tikzpicture}
+  \caption{Fragmentierungs-Datenfluss in Skyline: Mehrere Quellen werden normalisiert
+    und zu einem Unified Trip zusammengeführt; Fehler entstehen typischerweise
+    bei Zeitzonen, Duplikaten und inkonsistenten Versionen.}
+  \label{fig:fragmentation_flow}
+\end{figure}
+
+\medskip\noindent\textbf{Skyline als Antwort auf Fragmentierung.}
+Skyline begegnet dem Fragmentierungsproblem auf drei Ebenen:
+\begin{enumerate}
+  \item \textbf{Strukturierte Datenbasis:} Alle Trip-Entitäten
+  (\texttt{user\_flights}, \texttt{user\_notes}, \texttt{user\_checklists},
+  \texttt{flight\_documents}) sind relational verknüpft; kein Datum existiert
+  mehrfach ohne Referenz auf einen Flug.
+  \item \textbf{Proaktive Erinnerungen:} Statt Nutzer auf Re-Finding
+  angewiesen zu lassen, liefert Skyline zeitbasierte Push-Notifications
+  (Check-in T$-$24h, Boarding T$-$60\,min/T$-$30\,min, Missing Docs T$-$12h),
+  die kritische Handlungsfenster explizit adressieren.
+  \item \textbf{Offline-Verfügbarkeit:} Dokumente werden gecacht und
+  Signed URLs lokal persistiert, sodass der Zugriff am Flughafen auch ohne
+  Netzwerkverbindung funktioniert.
+\end{enumerate}
+
+Die folgende Abbildung fasst den gesamten Nutzer-Workflow -- von der Buchung
+bis zur Nachbereitung -- zusammen, wie er in Skyline unterstützt wird:
+
+% ---- Nutzer-Workflow ----
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \tikzstyle{wfbox}=[draw, rounded corners, align=center,
+                       minimum width=5.0cm, minimum height=1.0cm, font=\small]
+
+    % 7 Schritte vertikal, je 1.8cm Abstand
+    \node[wfbox] (receive) at (0,  9.0) {Buchung erhalten (E-Mail / PDF / App)};
+    \node[wfbox] (capture) at (0,  7.2) {Erfassen (Import / Upload / Scan)};
+    \node[wfbox] (assign)  at (0,  5.4) {Zuordnen zu Reise / Trip};
+    \node[wfbox] (verify)  at (0,  3.6) {Validieren (Zeiten, Dokumente)};
+    \node[wfbox] (remind)  at (0,  1.8) {Reminder: Check-in, Boarding, Missing Docs};
+    \node[wfbox] (travel)  at (0,  0.0) {Unterwegs nutzen (Offline-Zugriff)};
+    \node[wfbox] (post)    at (0, -1.8) {Nachbereitung (Belege / Spesenabrechnung)};
+
+    % Hauptfluss
+    \draw[->, thick] (receive) -- (capture);
+    \draw[->, thick] (capture) -- (assign);
+    \draw[->, thick] (assign)  -- (verify);
+    \draw[->, thick] (verify)  -- (remind);
+    \draw[->, thick] (remind)  -- (travel);
+    \draw[->, thick] (travel)  -- (post);
+
+    % Rückkopplungs-Pfeil: Validierung → Zuordnen (bei Änderungen)
+    \draw[->, dashed, thick]
+      (verify.east) -- ++(1.2,0)
+      node[right, font=\scriptsize, align=left] {Änderung\\(Zeit/Status)}
+      -- ++(0, 1.8)
+      -- (assign.east);
+  \end{tikzpicture}
+  \caption{Nutzer-Workflow in Skyline: Reisedaten werden erfasst, zugeordnet und
+    validiert; daraus werden kontextbezogene Reminder abgeleitet. Änderungen
+    an Zeiten oder Status führen zu Re-Assignment und Neuvalidierung.}
+  \label{fig:user_workflow_upload_remind}
+\end{figure}
 
 \section{Grundlagen des automatischen Imports}
 \subsection{Zielsetzung und Nutzen}
@@ -63,7 +386,7 @@ In der HCI- und Informatikforschung wird \glqq proaktiv\grqq{} nicht nur als \gl
   \label{fig:notification_icon}
 \end{figure}
 
-Die Push/Pull-Unterscheidung ist eine Frage der Nutzerintention und Disruption: Push-Systeme können hohe Nützlichkeit erzielen, erzeugen aber das Risiko, Aufmerksamkeit in unpassenden Situationen zu beanspruchen; Pull-Systeme minimieren Disruption, bergen aber das Risiko, dass kritische Informationen nicht rechtzeitig abgerufen werden \cite{mehrotra2018intelligent}. Für Skyline folgt daraus eine zentrale Designhypothese: Proaktivität ist dann gerechtfertigt, wenn das System (a) einen stabilen Anlass hat (z.\,B. Abflugzeit), (b) eine konkrete Handlung ermöglicht (z.\,B. Check-in öffnen) und (c) das Risiko von Störung durch Quiet Hours und Nutzerkontrolle begrenzt \cite{androidNotifications,applePushPrimer2020}.
+Die Push/Pull-Unterscheidung ist eine Frage der Nutzerintention und Disruption: Push-Systeme können hohe Nützlichkeit erzielen, erzeugen aber das Risiko, Aufmerksamkeit in unpassenden Situationen zu beanspruchen; Pull-Systeme minimieren Disruption, bergen aber das Risiko, dass kritische Informationen nicht rechtzeitig abgerufen werden \cite{mehrotra2018intelligent}. Für Skyline folgt daraus eine zentrale Designhypothese: Proaktivität ist dann gerechtfertigt, wenn das System (a) einen stabilen Anlass hat (z.\,B. Abflugzeit), (b) eine konkrete Handlung ermöglicht (z.\,B. Check-in öffnen) und (c) das Risiko von Störung durch Quiet Hours und Nutzerkontrolle begrenzt \cite{applePushPrimer2020,androidNotifications}. Da Skyline primär für iOS entwickelt wurde und im Apple App Store verfügbar ist, bildet APNs (Apple Push Notification Service) die primäre Zustellinfrastruktur.
 
 \begin{figure}[htbp]
   \centering
@@ -89,12 +412,12 @@ Das Konzept \textbf{Intention Offloading} beschreibt die Strategie, Absichten in
 
 Unter \textbf{Notification Fatigue} wird verstanden, dass zu häufige oder als irrelevant erlebte Hinweise zu Abwertung, Ignorieren oder Deaktivieren führen \cite{pielot2014notifications,sahami2014largescale,mehrotra2016myphone}. Mobile-HCI-Feldstudien zeigen, dass Benachrichtigungen zwar nützlich sein können, aber oft als störend wahrgenommen werden, wenn Timing und Relevanz nicht zur aktuellen Situation passen \cite{mehrotra2016myphone}. Studien zur mobilen Receptivity belegen, dass \glqq richtig getimed\grqq{} oft wichtiger ist als \glqq mehr Informationen\grqq{} \cite{fischer2011investigating}.
 
-Aus Governance-Sicht lassen sich drei Gestaltungsprinzipien ableiten: (1) \textbf{Relevanz vor Vollständigkeit}---Systeme sollten das melden, was eine konkrete Handlung ermöglicht \cite{androidNotifications}. (2) \textbf{Nutzerkontrolle und Transparenz}---Benachrichtigungen benötigen bewusste Zustimmung; Best Practices empfehlen, diese \textbf{im Kontext der Funktionalität} einzuholen \cite{applePushPrimer2020}. (3) \textbf{Schutzzeiten}---Quiet Hours bzw. Fokus-Modi begrenzen Störungen \cite{androidNotifications}.
+Aus Governance-Sicht lassen sich drei Gestaltungsprinzipien ableiten: (1) \textbf{Relevanz vor Vollständigkeit}---Systeme sollten das melden, was eine konkrete Handlung ermöglicht \cite{applePushPrimer2020}. (2) \textbf{Nutzerkontrolle und Transparenz}---Benachrichtigungen benötigen bewusste Zustimmung; iOS fordert eine explizite Genehmigung (\texttt{requestPermissionsAsync}); Best Practices empfehlen, diese \textbf{im Kontext der Funktionalität} einzuholen \cite{applePushPrimer2020}. (3) \textbf{Schutzzeiten}---Quiet Hours bzw. iOS Focus-Modi begrenzen Störungen \cite{applePushPrimer2020,androidNotifications}.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.5\textwidth]{android_notifications}
-  \caption{Beispielhafte Notification-Interaktion in einer mobilen App (Nutzerkontrolle, Prioritäten). Quelle: \cite{wikimediaAndroidNotifications}}
+  \caption{Beispielhafte Notification-Interaktion in einer mobilen App (Nutzerkontrolle, Prioritäten) – exemplarische Darstellung; Skyline läuft primär unter iOS. Quelle: \cite{wikimediaAndroidNotifications}}
   \label{fig:android_notifications}
 \end{figure}
 
@@ -128,7 +451,7 @@ Für dynamische Ereignisse (Verspätungen, Gate-Wechsel) reichen statische Heuri
 
 \subsection{Konzeption und technische Umsetzung (Skyline-relevant)}
 
-Konzeptionell lässt sich ein proaktives Reise-Benachrichtigungssystem als Pipeline modellieren: (1) \textbf{Faktenbasis} (Flugobjekt mit departureAt/arrivalAt), (2) \textbf{Regelwerk} (Offsets/Heuristiken), (3) \textbf{Scheduler} (lokal und/oder serverseitig), (4) \textbf{Delivery} (Benachrichtigung + Deep Link), (5) \textbf{Kontrollschicht} (Quiet Hours, Opt-out). Skyline implementiert dies mit Expo Notifications \cite{expoNotifications}.
+Konzeptionell lässt sich ein proaktives Reise-Benachrichtigungssystem als Pipeline modellieren: (1) \textbf{Faktenbasis} (Flugobjekt mit departureAt/arrivalAt), (2) \textbf{Regelwerk} (Offsets/Heuristiken), (3) \textbf{Scheduler} (lokal und/oder serverseitig), (4) \textbf{Delivery} (Benachrichtigung + Deep Link), (5) \textbf{Kontrollschicht} (Quiet Hours, Opt-out). Skyline implementiert dies mit Expo Notifications und setzt dabei primär auf APNs als Zustelldienst, da die App für iOS entwickelt wurde und im Apple App Store verfügbar ist \cite{expoNotifications,applePushPrimer2020}.
 
 Triggerzeiten werden als Offsets relativ zu departureAt/arrivalAt berechnet. Technisch kritisch ist die Zeitzonen- und Sommerzeitkorrektheit. Für Persistenz sind hybride Strategien robust: lokale Persistenz ermöglicht Offline-Fähigkeit; serverseitige Persistenz ermöglicht Rescheduling bei Datenänderungen. Deep Links transformieren Benachrichtigungen von \glqq Info\grqq{} zu \glqq Handlung\grqq{}: Der Tap führt direkt in die Flugdetails \cite{applePushPrimer2020}. Das Berechtigungs-Prompt sollte nicht sofort, sondern \textbf{im Kontext der Funktion} (z.\,B. nach Anlegen eines Flugs) erscheinen \cite{applePushPrimer2020}. Fehlende oder ungültige Zeitpunkte werden abgefangen; bei widersprüchlichen Daten ist eine degradierte Strategie sinnvoll (nur statische Reminder oder Umstellung auf Pull).
 
@@ -426,13 +749,18 @@ realistisch parallele Änderungen auftreten.
 Integrationen steigern den Nutzen, vergrößern aber die Angriffsoberfläche:
 Geovisualisierung benötigt saubere Datenmodellierung; Benachrichtigungen
 benötigen konsistente Zeitdaten und Privacy Controls am Sperrbildschirm
-\cite{androidNotifications}.
+\cite{applePushPrimer2020,androidNotifications}. Auf iOS steuert das
+Betriebssystem Anzeige und Zustellung über APNs; Nutzer erteilen per
+System-Dialog explizit die Erlaubnis.
 
 \section{Technische Grundlagen der mobilen App-Entwicklung}
 \subsection{Cross-Platform-Frontend mit React Native und Expo}
 React Native ermöglicht plattformübergreifende UI- und Logikentwicklung für
-iOS und Android \cite{reactNative}. Expo vereinfacht Build-, Deployment- und
-Update-Prozesse durch ein integriertes Tooling-Oekosystem
+iOS und Android \cite{reactNative}. Skyline wurde dabei primär für \textbf{iOS} entwickelt
+und ist im \textbf{Apple App Store} verfügbar; Android wird als sekundäre Zielplattform
+unterstützt, wurde jedoch im Projektzeitraum weniger ausführlich getestet.
+Expo vereinfacht Build-, Deployment- und Update-Prozesse durch ein integriertes
+Tooling-Ökosystem und ermöglicht via EAS den App-Store-Rollout für iOS
 \cite{expoDocs,easBuild,easUpdate}.
 
 \subsection{Backend-as-a-Service mit Datenbank- und Security-Nähe}

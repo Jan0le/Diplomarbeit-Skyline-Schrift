@@ -1,7 +1,7 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Implementierung: Interaktive Weltkarte \& Routenvisualisierung (Boris)}\label{chapter:weltkarte}
 
-Dieses Kapitel beschreibt die Umsetzung der Kartenvisualisierung in Skyline. Die theoretischen Grundlagen (Haversine, Great Circle, Anforderungen an mobile Karten) werden in Kapitel 3 behandelt.
+Dieses Kapitel beschreibt die Umsetzung der Kartenvisualisierung in Skyline. Die theoretischen Grundlagen (Haversine, Great Circle, Anforderungen an mobile Karten) werden in Kapitel 3 behandelt. Die Karte wurde primär für \textbf{iOS} entwickelt und getestet; React Native Maps nutzt auf iOS das native \texttt{MapKit}-Framework.
 
 \section{Implementierung der Karten-Visualisierung}
 Die Implementierung kombiniert Map-Komponenten, Routenberechnung und UI-Interaktion. Ausgewaehlte Flüge werden hervorgehoben, die Route wird gezeichnet und optional animiert.

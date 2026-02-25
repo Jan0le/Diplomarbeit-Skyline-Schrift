@@ -1,7 +1,7 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Implementierung: Automatischer Import von Boardkarten \& Buchungsdaten (Boris)}\label{chapter:import}
 
-Dieses Kapitel beschreibt die Umsetzung des automatischen Imports in Skyline. Die theoretischen Grundlagen (Datenquellen, Validierung, Fehlerbehandlung) werden in Kapitel 3 behandelt.
+Dieses Kapitel beschreibt die Umsetzung des automatischen Imports in Skyline. Die theoretischen Grundlagen (Datenquellen, Validierung, Fehlerbehandlung) werden in Kapitel 3 behandelt. Da Skyline primär als iOS-App entwickelt wurde, nutzen alle Import-Funktionen die nativen iOS-APIs (Kamera, Fotoauswahl, Datei-Picker) über die jeweiligen Expo-Module.
 
 \section{Implementierung in Skyline}
 In Skyline werden Flugdetails aus QR-Codes, Bildern und Dokumenten extrahiert und in die Flugverwaltung übernommen. Die App kombiniert mehrere Quellen, um die Abdeckung zu erhöhen und die Wahrscheinlichkeit eines erfolgreichen Imports zu steigern.
@@ -13,7 +13,7 @@ In Skyline werden Flugdetails aus QR-Codes, Bildern und Dokumenten extrahiert un
 \end{figure}
 
 \subsection{QR-Scan und BCBP-Parsing}
-Skyline nutzt die Kamera des Geräts zum Scannen von Boarding-Pass-QR-Codes. Die BCBP-Struktur (IATA-Standard) wird geparst, sodass Airline, Flugnummer, Datum sowie Abflug- und Zielairport extrahiert werden. Nicht alle Boardingpässe sind standardkonform; Skyline fängt Abweichungen ab und ermöglicht bei Bedarf manuelle Ergänzung.
+Skyline nutzt die native iOS-Kamera zum Scannen von Boarding-Pass-QR-Codes. Die BCBP-Struktur (IATA-Standard) wird geparst, sodass Airline, Flugnummer, Datum sowie Abflug- und Zielairport extrahiert werden. Nicht alle Boardingpässe sind standardkonform; Skyline fängt Abweichungen ab und ermöglicht bei Bedarf manuelle Ergänzung.
 
 \subsection{OCR-Verarbeitung aus Bildern und PDFs}
 Wenn kein QR-Code vorhanden ist, kann ein Foto des Boardingpasses oder ein PDF-Dokument importiert werden. Ein OCR-Service extrahiert den Text; Skyline parst anschließend relevante Felder (IATA-Codes, Datum, Flugnummer) über heuristische Regeln. Schriftgröße, Kontrast und Bildqualität beeinflussen die Erkennungsrate; die Validierungsschicht gleicht OCR-Fehler teilweise aus.
