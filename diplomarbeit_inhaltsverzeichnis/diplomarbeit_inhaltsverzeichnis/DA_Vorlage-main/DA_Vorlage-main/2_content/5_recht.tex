@@ -1,25 +1,336 @@
 %!TEX root = ../DA_MainDocument.tex
+
+% ============================================================
 \section{Rechtliche Rahmenbedingungen (projektrelevant)}\label{sec:recht}
+% ============================================================
+
+Die Skyline-App verarbeitet personenbezogene Daten in mehreren funktionalen
+Bereichen: Benutzerprofile, Flug- und Reisedaten, Notizen, Checklisten sowie
+hochgeladene Reisedokumente.
+Rechtsdogmatisch handelt es sich um eine automatisierte Verarbeitung
+personenbezogener Daten im Sinne des Art.~4 Z~1 und Z~2 DSGVO
+\cite{gdpr}, da Informationen verarbeitet werden, die sich auf identifizierte
+oder identifizierbare natürliche Personen beziehen.
+Der Anwendungsbereich der Datenschutz-Grundverordnung ist damit gemäß
+Art.~2 Abs.~1 DSGVO vollständig eröffnet.
+
+Da Skyline auf Supabase als Backend-Plattform aufsetzt, werden Authentifizierung,
+Datenbankzugriff und Dateispeicherung technisch zentral über eine
+cloudbasierte Infrastruktur verwaltet \cite{supabasePlatform}.
+Diese Architektur ermöglicht die Umsetzung datenschutzrechtlicher Anforderungen
+auf mehreren Ebenen gleichzeitig: sichere Authentifizierung, datenbankbasierte
+Zugriffskontrolle über Row-Level Security sowie kontrollierter Dateizugriff
+über zeitlich begrenzte Signed URLs.
+
+% ============================================================
 \subsection{Datenschutzrechtliche Vorgaben (DSGVO)}
-Die Verarbeitung personenbezogener Daten unterliegt der DSGVO \cite{gdpr}.
-Besonders bei Reisedaten, Dokumenten und Profilinformationen müssen klare
-Regeln eingehalten werden.
+% ============================================================
+
+Die DSGVO \cite{gdpr} bildet den primären Rechtsrahmen für die Verarbeitung
+personenbezogener Daten innerhalb von Skyline.
+Ergänzend gilt das österreichische Datenschutzgesetz (DSG) \cite{dsg},
+das nationale Präzisierungen und Öffnungsklauseln zur DSGVO enthält.
+Maßgeblich sind insbesondere die Grundsätze aus Art.~5 DSGVO:
+Rechtmäßigkeit, Zweckbindung, Datenminimierung, Richtigkeit,
+Speicherbegrenzung sowie Integrität und Vertraulichkeit.
+
+Für Skyline sind vor allem die Grundsätze der Zweckbindung,
+der Datenminimierung sowie der Integrität und Vertraulichkeit
+technisch umzusetzen.
+Reiseprofile können, auch ohne besondere Kategorien im Sinne des Art.~9 DSGVO
+zu berühren, durch die Kombination von Bewegungsdaten, Aufenthaltsorten
+und beruflichen Kontexten ein erhöhtes Schutzbedürfnis begründen.
+Die Systemarchitektur muss daher sicherstellen, dass unbefugte Zugriffe
+strukturell -- und nicht nur durch App-seitige Filter -- ausgeschlossen sind.
+
+% ------------------------------------------------------------
 \subsubsection{Speicherung und Verarbeitung personenbezogener Daten}
-Zu den personenbezogenen Daten gehoeren Name, Reisezeiten, Dokumente und
-Kontaktdaten. Diese duerfen nur zweckgebunden verarbeitet werden.
-\subsubsection{Massnahmen zur sicheren Datenverarbeitung}
-Erforderlich sind Zugriffskontrolle, Verschluesselung der Uebertragung und
-minimierte Datenspeicherung.
-\subsubsection{Relevante Gesetze}
-Die DSGVO bildet die Grundlage; zusätzlich sind nationale Datenschutzgesetze
-und Kommunikationsgesetze relevant.
+% ------------------------------------------------------------
+
+In Skyline werden die folgenden Kategorien personenbezogener Daten verarbeitet:
+
+\begin{itemize}
+  \item \textbf{Stammdaten:} Name, E-Mail-Adresse (via Supabase Auth),
+        optional Profilbild (\texttt{avatar\_url}), Kontotyp
+        (\texttt{account\_type}: \texttt{worker}/\texttt{company}),
+        nutzerspezifische Einstellungen (\texttt{preferences}, JSONB).
+
+  \item \textbf{Reise- und Flugdaten:} Flugnummer, Airline, Datum,
+        Abflug- und Ankunftszeiten (\texttt{departure\_at},
+        \texttt{arrival\_at}), Gate, Terminal, Sitzplatznummer,
+        Buchungsbestätigungscode, Buchungsreferenz (PNR),
+        Flugstatus sowie die berechnete Flugdistanz.
+        Diese Felder werden in der Tabelle \texttt{user\_flights}
+        flugbezogen gespeichert.
+
+  \item \textbf{Inhalts- und Kommunikationsdaten:} Freitextnotizen
+        (\texttt{user\_notes}), Checklisten mit Einzelpunkten
+        (\texttt{user\_checklists}, \texttt{user\_checklist\_items})
+        sowie ein optionales Erinnerungsfeld (\texttt{reminder\_at}).
+
+  \item \textbf{Dokumentendaten:} Dateiname, MIME-Type, Dateigröße,
+        Storage-Pfad sowie der Dateiinhalt selbst (im privaten
+        Storage-Bucket \texttt{flight-documents}).
+        Metadaten werden in der Tabelle \texttt{flight\_documents}
+        verwaltet; der Kategorie-Typ (\texttt{document\_type}) erlaubt
+        eine strukturierte Unterscheidung zwischen Boardingpässen,
+        Buchungsbestätigungen, Quittungen und sonstigen Dokumenten.
+\end{itemize}
+
+Die Verarbeitung erfolgt zweckgebunden im Sinne des Art.~5 Abs.~1
+lit.~b DSGVO zur Organisation und Verwaltung von Flugreisen.
+Die Datenbankstruktur unterstützt diese Zweckbindung unmittelbar:
+Alle Zusatzinformationen (Notizen, Dokumente, Checklisten) sind über
+einen Foreign Key mit \texttt{ON DELETE CASCADE} an genau einen
+Flugkontext gebunden -- eine Verwahrung losgelöster Datensätze ist
+strukturell ausgeschlossen.
+
+Im Teamkontext basiert der Datenzugriff auf einer kontrollierten
+Zuordnung über \texttt{company\_id} und \texttt{company\_members}.
+Ohne Mitgliedschaft in einer Firma ist kein Zugriff auf Firmendaten
+möglich; das Prinzip der Zugriffsbeschränkung ist damit technisch
+erzwungen, nicht nur konzeptionell formuliert.
+
+% ------------------------------------------------------------
+\subsubsection{Maßnahmen zur sicheren Datenverarbeitung}
+% ------------------------------------------------------------
+
+Gemäß Art.~32 DSGVO sind geeignete technische und organisatorische
+Maßnahmen (TOM) umzusetzen, um ein dem Risiko angemessenes Schutzniveau
+zu gewährleisten \cite{edpbArt32}.
+In Skyline werden die folgenden technischen Maßnahmen implementiert:
+
+\begin{description}
+  \item[Authentifizierung über Supabase Auth \cite{supabaseAuth}:]
+    Zugriff auf personenbezogene Daten ist ausschließlich nach
+    erfolgreicher Authentifizierung möglich.
+    Die Benutzer-ID (\texttt{auth.uid()}) bildet die Grundlage aller
+    datenbankinternen Zugriffskontrollen.
+    Login-, Signup- und Passwort-Reset-Prozesse sind vollständig
+    über Supabase Auth abgewickelt; Passwörter werden nicht im
+    Klartext gespeichert.
+
+  \item[Row-Level Security (RLS) \cite{supabaseRLS}:]
+    Alle operativen Tabellen (\texttt{user\_flights},
+    \texttt{user\_notes}, \texttt{user\_checklists},
+    \texttt{user\_checklist\_items}, \texttt{flight\_documents} u.\,a.)
+    sind durch RLS-Policies geschützt.
+    Abfragen werden datenbanksseitig auf die eigenen Datensätze
+    des authentifizierten Nutzers eingeschränkt.
+    Selbst fehlerhafte oder böswillige Anfragen ohne clientseitigen
+    Filter können nicht auf fremde Daten zugreifen.
+    Die Policies folgen dem Muster
+    \texttt{USING (profile\_id = auth.uid())} für Lese-,
+    Änderungs- und Löschoperationen sowie
+    \texttt{WITH CHECK (profile\_id = auth.uid())} für Schreiboperationen.
+
+  \item[Private Storage-Buckets \cite{supabaseStorage}:]
+    Dokumente werden im privaten Supabase-Storage-Bucket
+    \texttt{flight-documents} abgelegt.
+    Kein dauerhafter öffentlicher Direktzugriff ist möglich;
+    der Bucket erfordert eine aktive Zugriffskontrolle für
+    jeden Dateiaufruf.
+
+  \item[Signed URLs mit begrenzter Gültigkeit:]
+    Dateizugriffe erfolgen über zeitlich limitierte,
+    signierte URLs (Gültigkeitsdauer: 3.600 Sekunden).
+    Abgelaufene URLs werden vom \texttt{DocumentService}
+    automatisch erneuert und in der Datenbank aktualisiert.
+    Dauerhaft gültige Direktlinks auf Dokumente sind
+    architektonisch ausgeschlossen.
+
+  \item[Transportverschlüsselung:]
+    Die gesamte Kommunikation zwischen App und Supabase-Backend
+    erfolgt über HTTPS/TLS.
+    Vertraulichkeit und Integrität der Daten sind während
+    des Transports gewährleistet.
+
+  \item[Strukturierte Speicherpfade:]
+    Dokumente im Storage-Bucket werden nach dem Schema
+    \texttt{\{userId\}/\{flightId\}/\{timestamp\}\_\{fileName\}}
+    abgelegt.
+    Dadurch ist die Eigentümerzuordnung auch auf Dateisystemebene
+    eindeutig; zufällige Namenskollisionen werden durch den
+    Zeitstempel verhindert.
+
+  \item[Referenzielle Integrität und Datenlebenszyklus:]
+    Foreign Keys mit \texttt{ON DELETE CASCADE} stellen sicher,
+    dass beim Löschen eines Nutzerprofils oder eines Fluges
+    alle verknüpften Daten (Notizen, Checklisten, Dokumente)
+    automatisch mitgelöscht werden.
+    Verwaiste Datensätze ohne zugehörigen Kontext entstehen
+    strukturell nicht.
+    Dies unterstützt die Speicherbegrenzung im Sinne des
+    Art.~5 Abs.~1 lit.~e DSGVO.
+
+  \item[Transaktionaler Rollback bei Upload-Fehlern:]
+    Schlägt nach einem erfolgreichen Storage-Upload das
+    Schreiben der Metadaten in die Datenbank fehl,
+    löscht der \texttt{DocumentService} die hochgeladene
+    Datei automatisch wieder.
+    Es entstehen keine unbeschrifteten Dateien im Bucket,
+    denen kein Datenbankdatensatz gegenübersteht.
+\end{description}
+
+% ------------------------------------------------------------
+\subsubsection{Rechte der betroffenen Personen}
+% ------------------------------------------------------------
+
+Die DSGVO gewährt betroffenen Personen umfangreiche Rechte,
+die technisch umzusetzen sind \cite{dsb}:
+
+\begin{itemize}
+  \item \textbf{Auskunftsrecht (Art.~15 DSGVO):}
+        Skyline speichert alle nutzerbezogenen Daten strukturiert
+        in verknüpften Tabellen; eine vollständige Datenauskunft
+        kann über die \texttt{profile\_id} als Einstiegspunkt
+        automatisiert erstellt werden.
+
+  \item \textbf{Recht auf Berichtigung (Art.~16 DSGVO):}
+        Profildaten (\texttt{full\_name}, \texttt{avatar\_url},
+        \texttt{preferences}), Flugdaten und Notizen sind
+        über die App editierbar.
+        RLS stellt sicher, dass ein Nutzer nur eigene Daten
+        ändern kann.
+
+  \item \textbf{Recht auf Löschung (Art.~17 DSGVO):}
+        Durch \texttt{ON DELETE CASCADE} bewirkt das Löschen
+        des Nutzerprofils die vollständige Kaskadenlöschung
+        aller verknüpften Datensätze.
+        Storage-Objekte werden zusätzlich explizit gelöscht,
+        da Storage und Datenbank getrennte Systeme sind.
+
+  \item \textbf{Recht auf Einschränkung der Verarbeitung
+        (Art.~18 DSGVO) und Datenübertragbarkeit (Art.~20 DSGVO):}
+        Die strukturierte, relationale Datenhaltung bildet die
+        technische Grundlage für einen Export im maschinenlesbaren
+        Format.
+\end{itemize}
+
+% ============================================================
 \subsection{Datenschutz in Skyline}
-Skyline beruecksichtigt Datenschutz durch rollenbasierten Zugriff und
-Supabase-Policies.
-\subsubsection{Authentifizierung \& Zugriffsschutz}
-Zugriff erfolgt nur für authentifizierte Nutzer über Supabase Auth.
+% ============================================================
+
+Datenschutz wird in Skyline als architektonisches Prinzip umgesetzt
+(\emph{Privacy by Design} gemäß Art.~25 DSGVO \cite{edpbArt25}).
+Zugriffskontrollen werden nicht ausschließlich auf Ebene der
+Benutzeroberfläche implementiert, sondern primär über
+serverseitige Datenbankrichtlinien erzwungen.
+Damit entspricht die Implementierung dem Grundsatz
+\emph{Privacy by Default}: Standardmäßig sind alle Daten
+auf den eigenen Nutzerkontext beschränkt -- eine explizite
+Freigabe ist erforderlich, um Daten für andere sichtbar zu machen.
+
+% ------------------------------------------------------------
+\subsubsection{Authentifizierung und Zugriffsschutz}
+% ------------------------------------------------------------
+
+Der Zugriff auf personenbezogene Daten ist in Skyline ausschließlich
+für authentifizierte Benutzer möglich \cite{supabaseAuth}.
+Nicht authentifizierte Anfragen können auf keine der durch RLS
+geschützten Tabellen zugreifen; der einzige öffentlich zugängliche
+Bereich ist die Flughafenstammdatenbank (\texttt{airports}),
+die keine personenbezogenen Daten enthält.
+
+Supabase Auth stellt JSON Web Tokens (JWT) aus \cite{rfc7519},
+die bei jeder Datenbankoperation serverseitig validiert werden.
+Der darin enthaltene Wert \texttt{auth.uid()} entspricht der
+\texttt{profile\_id} in allen Nutzertabellen und bildet die
+einzige Grundlage für RLS-Entscheidungen.
+
+Im Teamkontext werden zusätzlich Rollen (\texttt{owner},
+\texttt{worker}) aus der Tabelle \texttt{company\_members}
+berücksichtigt.
+Firmeninhaber können Einladungslinks generieren
+(\texttt{company\_invites}); erst nach Annahme der Einladung
+entsteht ein \texttt{company\_members}-Eintrag, der den
+erweiterten Datenzugriff freischaltet.
+
+% ------------------------------------------------------------
 \subsubsection{RLS-Policies in Supabase}
-RLS stellt sicher, dass Nutzer nur eigene Daten sehen und verändern können.
-\subsubsection{Dokumentenspeicherung \& Rechte}
-Dokumente werden in privaten Buckets gespeichert; Zugriff erfolgt über
-kontrollierte Policies oder signierte URLs.
+% ------------------------------------------------------------
+
+Die zentrale Zugriffskontrolle in Skyline erfolgt über
+Row-Level Security-Policies auf PostgreSQL-Ebene \cite{supabaseRLS}.
+Tabelle~\ref{tab:rls_uebersicht} gibt eine Übersicht der
+Policy-Logik für die wichtigsten Tabellen:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Übersicht der RLS-Policy-Logik in Skyline}
+  \label{tab:rls_uebersicht}
+  \begin{tabularx}{\textwidth}{l X}
+    \toprule
+    \textbf{Tabelle} & \textbf{Policy-Logik (vereinfacht)} \\
+    \midrule
+    \texttt{profiles}
+      & Eigenes Profil: \texttt{id = auth.uid()} \\
+      & Firmenmitglieder: EXISTS-Abfrage gegen \texttt{company\_members}
+        (gleiche \texttt{company\_id}) \\
+    \texttt{user\_flights}
+      & \texttt{profile\_id = auth.uid()} für alle Operationen \\
+    \texttt{user\_notes}
+      & \texttt{profile\_id = auth.uid()} für alle Operationen \\
+    \texttt{user\_checklists}
+      & \texttt{profile\_id = auth.uid()} für alle Operationen \\
+    \texttt{user\_checklist\_items}
+      & Indirekt via \texttt{user\_checklists}: EXISTS-Abfrage,
+        ob die übergeordnete Checkliste dem Nutzer gehört \\
+    \texttt{flight\_documents}
+      & \texttt{profile\_id = auth.uid()} für alle Operationen \\
+    \texttt{airports}
+      & Öffentlich lesbar (\texttt{anon} und \texttt{authenticated});
+        kein Personenbezug \\
+    \texttt{achievements}
+      & Öffentlich lesbar; keine personenbezogenen Daten \\
+    \texttt{notifications}
+      & \texttt{user\_id = auth.uid()} für alle Operationen \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Die serverseitige Durchsetzung dieser Policies reduziert das Risiko,
+dass fehlerhafte oder manipulierte Client-Abfragen zu unbefugtem
+Datenzugriff führen.
+Damit wird das Prinzip der Integrität und Vertraulichkeit nach
+Art.~5 Abs.~1 lit.~f DSGVO auf technischer Ebene abgesichert --
+in Übereinstimmung mit den Empfehlungen der
+OWASP Mobile Top 10 \cite{owaspMobileTop10},
+die serverseitige Autorisierungsprüfung als kritische Anforderung
+für mobile Applikationen ausweisen.
+
+% ------------------------------------------------------------
+\subsubsection{Dokumentenspeicherung und Dateirechte}
+% ------------------------------------------------------------
+
+Dokumente werden im privaten Supabase-Storage-Bucket
+\texttt{flight-documents} gespeichert \cite{supabaseStorage}.
+Metadaten (Dateiname, Typ, Größe, Storage-Pfad, Gültigkeitsdauer
+der Signed URL) werden in der Tabelle \texttt{flight\_documents}
+verwaltet.
+Diese Trennung von Metadaten und Binärdaten ermöglicht eine
+effiziente Listendarstellung ohne vollständige Dateiübertragung.
+
+Für den Dateizugriff werden ausschließlich zeitlich begrenzte
+Signed URLs verwendet.
+Öffentliche Permanentlinks auf Nutzer-Dokumente sind
+architektonisch ausgeschlossen.
+Abgelaufene URLs werden serverseitig automatisch erneuert
+und in der Datenbank aktualisiert, sodass die App stets
+valide Zugriffslinks vorhält.
+
+Löschvorgänge umfassen sowohl das Storage-Objekt als auch
+den zugehörigen Metadateneintrag in der Datenbank.
+Durch den transaktionalen Rollback-Mechanismus im
+\texttt{DocumentService} wird zudem sichergestellt,
+dass keine Dateien im Bucket verbleiben, die keinem
+Datenbankdatensatz mehr zugeordnet sind -- ein zentraler
+Beitrag zur Speicherbegrenzung im Sinne der DSGVO.
+
+Das Telekommunikationsgesetz 2021 (TKG 2021) \cite{tkg2021}
+ist im Kontext der Benachrichtigungs- und Erinnerungsfunktionen
+von Skyline relevant, da die App lokale Push-Benachrichtigungen
+über den Notification-Service ausliefert.
+Die Speicherung von \texttt{fire\_at}, \texttt{kind} und
+\texttt{payload} in der Tabelle \texttt{notifications} erfolgt
+ausschließlich nutzerbezogen und RLS-gesichert.
