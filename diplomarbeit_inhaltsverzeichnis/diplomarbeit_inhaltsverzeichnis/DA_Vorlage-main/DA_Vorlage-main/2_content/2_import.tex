@@ -1,46 +1,521 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Implementierung: Automatischer Import von Boardkarten \& Buchungsdaten (Boris)}\label{chapter:import}
 
-Dieses Kapitel beschreibt die Umsetzung des automatischen Imports in Skyline. Die theoretischen Grundlagen (Datenquellen, Validierung, Fehlerbehandlung) werden in Kapitel 3 behandelt.
+Dieses Kapitel beschreibt die konkrete Umsetzung des automatischen Imports von Flug- und Buchungsdaten in Skyline.
+Die theoretischen Grundlagen zu Datenquellen, Validierung und Fehlerbehandlung werden in Kapitel~3 behandelt; hier liegt der Fokus auf den technischen Komponenten in der App und ihrem Zusammenwirken im Import-Workflow.
+Besonders relevant sind der standardisierte Bar Coded Boarding Pass (BCBP) nach IATA-Resolution~792 \cite{iataBCBP} sowie OCR-gestützte Verfahren zur Texterkennung \cite{mlKitTextRecognition,tesseractOcr}.
 
+% ============================================================
 \section{Implementierung in Skyline}
-In Skyline werden Flugdetails aus QR-Codes, Bildern und Dokumenten extrahiert und in die Flugverwaltung übernommen. Die App kombiniert mehrere Quellen, um die Abdeckung zu erhöhen und die Wahrscheinlichkeit eines erfolgreichen Imports zu steigern.
-\begin{figure}[h]
+% ============================================================
+
+In Skyline werden Flugdetails aus mehreren Quellen extrahiert und in die zentrale Flugverwaltung übernommen:
+QR-Codes auf Boardingpässen, Fotos bzw.\ Scans von Tickets und Boardingpässen sowie hochgeladene PDF-Dokumente (z.\,B.\ Buchungsbestätigungen aus E-Mails).
+Der Einstiegspunkt für den Nutzer ist ein einheitlicher \glqq Flight Addition Flow\grqq{}, in dem zwischen manueller Erfassung und Dokumentenimport gewählt werden kann.
+
+Die Komponente \texttt{FlightAdditionFlow} führt den Nutzer zunächst auf einen Auswahl-Screen, der zwei Wege anbietet:
+manuelle Eingabe oder Dokumentenimport.
+Wird der Importpfad gewählt, navigiert Skyline zum eigentlichen Import-Screen \texttt{AddFlightImportScreen}, der QR-Scan, Foto-/Galerieimport und Dateiupload anbietet.
+Der Flow ist bewusst so gestaltet, dass er sowohl Einmalnutzer (schneller Scan kurz vor Abflug) als auch Vielreisende mit wiederkehrenden Buchungsdokumenten unterstützt:
+Die Entscheidung \glqq Manual vs.\ Import\grqq{} steht immer am Anfang, danach werden die einzelnen Schritte (Scan, OCR, Preview, Speichern) über eine einfache Zustandsmaschine (\texttt{currentStep}) gesteuert.
+Fehlerzustände (z.\,B.\ fehlende Berechtigungen oder fehlgeschlagene OCR) führen nie in einen \glqq Dead-End\grqq{}, sondern immer zurück in einen klar definierten Zustand des Flows (erneuter Versuch oder manuelle Eingabe).
+
+\begin{figure}[htbp]
   \centering
-  \fbox{\parbox{0.8\textwidth}{TODO: Screenshot des Import-Flows (QR/OCR/E-Mail) einfuegen.}}
-  \caption{TODO: Import-Flow in Skyline}
-  \label{fig:todo_import_flow}
+  \includegraphics[width=0.46\textwidth]{content/img/additionflow.png}\hfill
+  \includegraphics[width=0.46\textwidth]{content/img/uploads.png}
+  \caption{Skyline Flight Addition Flow mit Auswahl \glqq Manual Input\grqq{} vs.\ \glqq Import Document\grqq{} (links) und Detailansicht der Import-Optionen (QR-/Kamera-Scan, Galerie-Import, Dateiupload; rechts).}
+  \label{fig:import_flow}
 \end{figure}
 
-\subsection{QR-Scan und BCBP-Parsing}
-Skyline nutzt die Kamera des Geräts zum Scannen von Boarding-Pass-QR-Codes. Die BCBP-Struktur (IATA-Standard) wird geparst, sodass Airline, Flugnummer, Datum sowie Abflug- und Zielairport extrahiert werden. Nicht alle Boardingpässe sind standardkonform; Skyline fängt Abweichungen ab und ermöglicht bei Bedarf manuelle Ergänzung.
+Im Folgenden werden die drei Importpfade (BCBP, OCR, Dokumente) und die nachgelagerten Schritte Validierung, Feld-Mapping, Deduplizierung und Übergabe an die Flugverwaltung beschrieben.
 
+% ------------------------------------------------------------
+\subsection{QR-Scan und BCBP-Parsing als \glqq Fast Path\grqq{}}
+% ------------------------------------------------------------
+
+Für den schnellsten Weg der Flugerfassung nutzt Skyline die Kameraschnittstelle von Expo.
+Die Kamera wird in den Barcode-Modus versetzt und auf die gängigen 2D-Barcode-Formate konfiguriert, die auch im BCBP-Standard genannt werden (PDF417, Aztec, Data Matrix, QR-Code) \cite{iataBCBP}.
+Der \texttt{CameraView} löst für jeden erkannten Barcode ein Event aus, das an den Handler \texttt{handleBarCodeScanned} übergeben wird.
+
+Der Handler liest den Rohinhalt des Barcodes aus, sucht darin das IATA-Standardsegment des Bar Coded Boarding Pass (typischerweise beginnend mit \texttt{M1}\,) und übergibt den gefundenen String an den Parser:
+
+\begin{lstlisting}[caption={Verarbeitung des QR-/Barcode-Scans in Skyline (vereinfacht, add-flight-import.tsx)},label={lst:handle_barcode_scanned}]
+const handleBarCodeScanned = async (result: { data: string }) => {
+  if (scanLocked) return;
+  setScanLocked(true);
+  setIsScanning(false);
+
+  try {
+    const raw = (result?.data ?? '').toString();
+    let parsed = parseBCBP(raw);
+
+    // Fallback: BCBP-Segment innerhalb groesserer Payload suchen
+    if (!parsed && raw) {
+      const idx = raw.indexOf('M1');
+      if (idx >= 0) {
+        const candidate = raw.slice(idx);
+        if (candidate.length >= 58) parsed = parseBCBP(candidate);
+      }
+    }
+
+    if (!parsed) {
+      Alert.alert('Scan failed', 'No valid boarding pass found. Try again.');
+      setScanLocked(false);
+      return;
+    }
+
+    // Aus parsed BCBP-Objekt: Flugnummer, Airports, Datum extrahieren
+    const fromIata = parsed.flight.departure.airport;
+    const toIata   = parsed.flight.arrival.airport;
+
+    const candidate = {
+      flightNumber: parsed.flight.number || '',
+      from: fromIata ? { iata: fromIata } : undefined,
+      to:   toIata   ? { iata: toIata   } : undefined,
+      date: parsed.flight.date ? toISODateOnly(parsed.flight.date) : undefined,
+    };
+
+    setCandidate(candidate);
+    setForm(s => ({
+      ...s,
+      flightNumber: candidate.flightNumber || s.flightNumber,
+      fromIata:     candidate.from?.iata   || s.fromIata,
+      toIata:       candidate.to?.iata     || s.toIata,
+      date:         candidate.date ? new Date(candidate.date) : s.date,
+    }));
+  } finally {
+    // Entprellung: erneutes Scannen erst nach Abschluss erlaubt
+    setTimeout(() => setScanLocked(false), 500);
+  }
+};
+\end{lstlisting}
+
+Die eigentliche BCBP-Parsinglogik ist in \texttt{bcbp.ts} gekapselt.
+Sie implementiert die stringbasierte Feldextraktion nach IATA-Standard:
+BCBP-Nachrichten sind als strukturierte Messages mit festen Feldlängen aufgebaut \cite{iataBCBP}.
+Aus dem Rohstring werden u.\,a.\ Name, Buchungsreferenz, Flughäfen und Flugnummer extrahiert; das Flugdatum liegt als Julian Day-of-Year vor und wird in ein ISO-Datum konvertiert.
+
+\begin{lstlisting}[caption={BCBP-Parser in Skyline (\texttt{bcbp.ts})},label={lst:bcbp_parser}]
+export type ParsedBCBP = {
+  passenger: { name: string | null };
+  flight: {
+    number: string | null;
+    date: string | null; // YYYY-MM-DD
+    departure: { airport: string | null; datetime: string | null };
+    arrival:   { airport: string | null; datetime: string | null };
+  };
+  seat: string | null;
+  pnr:  string | null;
+};
+
+export function julianToISODate(julian: string | number | null | undefined): string | null {
+  if (julian === null || julian === undefined) return null;
+  const dayNum = Number(julian);
+  if (!Number.isFinite(dayNum) || dayNum <= 0) return null;
+
+  const now  = new Date();
+  const year = now.getUTCFullYear();
+  const firstDay = new Date(Date.UTC(year, 0, 1));
+  const date = new Date(firstDay);
+  date.setUTCDate(dayNum);
+  return date.toISOString().slice(0, 10);
+}
+
+export function parseBCBP(raw: string): ParsedBCBP | null {
+  const s = (raw ?? '').toString().trim();
+  if (!s || s.length < 58 || s[0] !== 'M') return null;
+
+  try {
+    const nameRaw = s.substring(2, 22);
+    const pnr     = s.substring(23, 30).trim() || null;
+    const from    = s.substring(30, 33).trim() || null;
+    const to      = s.substring(33, 36).trim() || null;
+    const carrier = s.substring(36, 39).trim();
+    const flightNoRaw = s.substring(39, 44).trim();
+    const julian      = s.substring(44, 47).trim();
+    const seat        = s.substring(48, 52).trim() || null;
+
+    const name       = normalizeName(nameRaw);
+    const flightNoNum = flightNoRaw.replace(/^0+/, '') || flightNoRaw;
+    const flightNo    = `${carrier}${flightNoNum}`;
+    const flightDate  = julianToISODate(julian);
+
+    return {
+      passenger: { name: name || null },
+      flight: {
+        number:    flightNo   || null,
+        date:      flightDate || null,
+        departure: { airport: from, datetime: null },
+        arrival:   { airport: to,   datetime: null },
+      },
+      seat,
+      pnr,
+    };
+  } catch {
+    return null;
+  }
+}
+\end{lstlisting}
+
+Besonders wichtig ist hier die Kombination aus strenger Standard-Implementierung (fixe String-Positionen, Füllzeichen) und defensiver Programmierung:
+Bei ungültigen oder zu kurzen Codes wird \texttt{null} zurückgegeben, der Import bricht mit einer verständlichen Fehlermeldung ab und der Nutzer kann einen erneuten Scan versuchen.
+Gleichzeitig reduziert die \texttt{scanLocked}-Logik unnötige Mehrfach-Events --- ein praktisches Problem, da Kamera-Callbacks je nach Gerät sehr häufig feuern können.
+In der Praxis ist der BCBP-Pfad damit der bevorzugte \emph{Fast Path}: Wenn ein Standard-konformer 2D-Barcode vorliegt, erhält Skyline in einem Schritt eine strukturierte Nachricht mit hoher Informationsdichte (Airline, Flugnummer, Datum, Route, ggf.\ Sitzplatz).
+Zusätzliche BCBP-Felder wie Sitzplatz oder Sequenznummer werden aktuell nur teilweise in das interne Datenmodell übernommen, bilden aber ein klares Erweiterungspotenzial (z.\,B.\ spätere Sitzplatz-Visualisierung oder Boarding-Reihenfolge).
+Multi-Leg-BCBP (bis zu vier Legs in einem Code) sind standardseitig vorgesehen; die aktuelle Implementierung konzentriert sich auf den ersten Leg-Eintrag (Single-Leg-Parsing) und dokumentiert damit bewusst einen MVP-Scope, der bei Bedarf erweitert werden kann.
+
+% ------------------------------------------------------------
 \subsection{OCR-Verarbeitung aus Bildern und PDFs}
-Wenn kein QR-Code vorhanden ist, kann ein Foto des Boardingpasses oder ein PDF-Dokument importiert werden. Ein OCR-Service extrahiert den Text; Skyline parst anschließend relevante Felder (IATA-Codes, Datum, Flugnummer) über heuristische Regeln. Schriftgröße, Kontrast und Bildqualität beeinflussen die Erkennungsrate; die Validierungsschicht gleicht OCR-Fehler teilweise aus.
+% ------------------------------------------------------------
 
-\subsection{E-Mail-Import und Buchungsdaten}
-Buchungsbestätigungen können per E-Mail-Import in Skyline übernommen werden. Skyline unterstützt typische Formate gängiger Airlines (strukturierte Felder wie Buchungsreferenz, Routing, Zeiten). Unterschiedliche E-Mail-Templates erfordern flexible Parser; die Implementierung deckt die häufigsten Muster ab und erweitert diese iterativ.
+Wenn kein maschinenlesbarer Barcode verfügbar ist, nutzt Skyline einen OCR-basierten Import.
+Der Nutzer kann entweder ein Foto aufnehmen, ein Bild aus der Galerie wählen oder ein PDF-Dokument importieren.
+In allen Fällen wird die Datei eingelesen, als Base64-String kodiert und an einen externen OCR-Dienst geschickt.
 
+Der zentrale Wrapper \texttt{runOcrSpace} kapselt Aufruf, Fehlerbehandlung und Validierung der Antwortstruktur:
+
+\begin{lstlisting}[caption={OCR-Aufruf und Validierung (services/ocr.ts)},label={lst:run_ocr}]
+export async function runOcrSpace(
+  base64ImageDataUrl: string,
+  apiKey?: string
+): Promise<OcrResult> {
+  try {
+    const formData = new FormData();
+    formData.append('apikey', apiKey || 'helloworld');
+    formData.append('language', 'eng');
+    formData.append('OCREngine', '2');
+    formData.append('base64Image', base64ImageDataUrl);
+
+    const res  = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      body: formData as any,
+    });
+    const json = await res.json();
+    const parsed = OcrSpaceSchema.safeParse(json);
+    if (!parsed.success) return { ok: false, error: 'Invalid OCR response' };
+
+    if (parsed.data.IsErroredOnProcessing) {
+      const err = Array.isArray(parsed.data.ErrorMessage)
+        ? parsed.data.ErrorMessage.join(', ')
+        : (parsed.data.ErrorMessage || 'OCR processing error');
+      return { ok: false, error: err };
+    }
+
+    const txt = parsed.data.ParsedResults?.[0]?.ParsedText ?? '';
+    if (!txt.trim()) return { ok: false, error: 'No text recognized' };
+    return { ok: true, text: txt };
+  } catch (e: any) {
+    return { ok: false, error: e?.message || 'OCR request failed' };
+  }
+}
+\end{lstlisting}
+
+Im Import-Screen wird dieser Dienst innerhalb der Funktion \texttt{processDocument} verwendet.
+Diese liest das ausgewählte Bild oder PDF, bestimmt den MIME-Typ und ruft anschließend die OCR-API auf:
+
+\begin{lstlisting}[caption={Dokument-Import und OCR-Aufruf (add-flight-import.tsx)},label={lst:process_document}]
+const processDocument = async (uri: string) => {
+  setIsProcessing(true);
+  try {
+    // Datei als Base64 lesen
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: 'base64' as any,
+    });
+
+    // MIME-Typ aus Dateiendung bestimmen
+    const lower = uri.toLowerCase();
+    const isPdf = lower.endsWith('.pdf');
+    const isPng = lower.endsWith('.png');
+    const mime  = isPdf ? 'application/pdf'
+                        : (isPng ? 'image/png' : 'image/jpg');
+
+    const apiKey    = process.env.EXPO_PUBLIC_OCR_SPACE_API_KEY || undefined;
+    const textRes   = await runOcrSpace(`data:${mime};base64,${base64}`, apiKey);
+    if (!textRes.ok) throw new Error(textRes.error);
+
+    setParsedText(textRes.text);
+    const extracted = extractFlightData(textRes.text);
+    setCandidate(extracted);
+  } catch (error) {
+    Alert.alert(
+      'OCR Failed',
+      error instanceof Error
+        ? error.message
+        : 'Could not extract text. Try a clearer photo or use manual input.'
+    );
+    setCandidate(null);
+  } finally {
+    setIsProcessing(false);
+  }
+};
+\end{lstlisting}
+
+Die aus dem OCR-Text ermittelten Flugdaten werden durch eine heuristische Parsing-Funktion extrahiert.
+Diese sucht in dem Text u.\,a.\ nach typischen Mustern für Flugnummern, Routen (IATA-Codes), Datumsformaten und Uhrzeiten.
+Die heuristische Natur dieses Pfads ist bewusst: OCR-Erkennung ist stark von Bildqualität und Layout abhängig \cite{mlKitTextRecognition,tesseractOcr}.
+Fehlinterpretationen werden durch die nachgelagerte Validierung (Abschnitt~\ref{subsec:import_validation}) und die manuelle Kontrollmöglichkeit im Preview-Screen abgefedert.
+Die Funktion \texttt{extractFlightData} ist dabei so aufgebaut, dass sie zunächst robuste Primärmuster sucht (z.\,B.\ \glqq AA1234\grqq{}-Flugnummern und \glqq VIE--LHR\grqq{}-Routen) und danach auf schwächere Heuristiken zurückfällt:
+
+\begin{lstlisting}[caption={Heuristische Extraktion von Flugdaten aus OCR-Text (services/ocr.ts)},label={lst:extract_flight_data}]
+export function extractFlightData(text: string): ExtractedFlight {
+  const upper = text.replace(/\s+/g, ' ').toUpperCase();
+
+  // Flugnummer: AA123, OS0123, LH1234A etc.
+  const flightMatch = upper.match(/\b([A-Z]{2,3})\s?-?\s?(\d{2,4}[A-Z]?)\b/);
+  const flightNumber = flightMatch ? `${flightMatch[1]}${flightMatch[2]}` : undefined;
+
+  // Route: VIE-LHR, VIE -> LHR, VIE TO LHR usw.
+  let fromIata: string | undefined;
+  let toIata:   string | undefined;
+  const routeMatch = upper.match(/\b([A-Z]{3})\b\s*(?:-|→|TO|>|–)\s*\b([A-Z]{3})\b/);
+  if (routeMatch) {
+    fromIata = routeMatch[1];
+    toIata   = routeMatch[2];
+  } else {
+    // Fallback: DEP/ARR oder erste zwei Codes im Text
+    fromIata = upper.match(/\bDEP\s*[:\-]?\s*([A-Z]{3})\b/)?.[1];
+    toIata   = upper.match(/\bARR\s*[:\-]?\s*([A-Z]{3})\b/)?.[1];
+    if (!fromIata || !toIata) {
+      const allCodes = upper.match(/\b[A-Z]{3}\b/g) || [];
+      if (allCodes.length >= 2) {
+        fromIata = allCodes[0];
+        toIata   = allCodes.find(c => c !== fromIata);
+      }
+    }
+  }
+
+  // Datumsnormalisierung (DD.MM.YYYY, YYYY-MM-DD, 12 MAR 2025, etc.)
+  // ...
+}
+\end{lstlisting}
+
+Neben Flugnummer und Route normalisiert \texttt{extractFlightData} Datumsangaben aus unterschiedlichen Kulturräumen (numerische und alphanumerische Monatsdarstellung) in ein ISO-kompatibles Datum und extrahiert -- sofern vorhanden -- Abflug- und Ankunftszeiten.
+Aus Sicht der Implementierung ist wichtig, dass das Ergebnis explizit als \emph{Kandidat} gekennzeichnet wird:
+Es wird im UI immer anzeigbar und überschreibbar gehalten, d.\,h.\ Nutzerinnen und Nutzer sehen sofort, was die Heuristik erkannt hat, und können offensichtliche OCR-Fehler (z.\,B.\ \glqq O\grqq{} statt \glqq 0\grqq{}) direkt korrigieren.
+Damit wird die inhärente Unsicherheit von OCR-Auswertungen nicht versteckt, sondern transparent in den Workflow integriert.
+
+% ------------------------------------------------------------
+\subsection{Import von Buchungsbestätigungen und Dokumenten}
+% ------------------------------------------------------------
+
+Buchungsbestätigungen liegen im Alltag meist als E-Mail mit eingebetteter HTML-Darstellung oder als angehängtes PDF vor.
+Aus Datenschutzgründen implementiert Skyline keinen direkten Zugriff auf das E-Mail-Postfach, sondern folgt einem nutzerzentrierten Modell:
+Relevante Bestätigungen werden vom Nutzer selbst exportiert (z.\,B.\ als PDF oder Screenshot) und anschließend über den Dokumentenimport hochgeladen.
+Damit wird vermieden, dass große Mengen personenbezogener Daten automatisiert im Hintergrund verarbeitet werden \cite{gdpr,edpbArt25}.
+
+Der \texttt{DocumentUploadModal} stellt drei Wege zur Verfügung:
+Scan eines Boardingpasses mit der Kamera, Import eines PDFs oder Bilds aus dem Dateidialog sowie Import eines bestehenden Screenshots aus der Galerie.
+Die hochgeladenen Dokumente werden in einem dedizierten Service verarbeitet:
+\texttt{DocumentService.uploadDocument} liest die Datei, bestimmt MIME- und Dokumenttyp (z.\,B.\ \texttt{booking\_confirmation}) und legt sowohl den Binärinhalt im Supabase-Storage als auch passende Metadaten in der Tabelle \texttt{flight\_documents} ab \cite{supabaseStorage}.
+
+Damit ist die Buchungsbestätigung sowohl als Originaldokument verfügbar als auch -- sofern über OCR analysiert -- Quelle für strukturierte Flugdaten.
+Unterschiedliche E-Mail-Layouts werden bewusst nicht mit hart kodierten Templates adressiert; stattdessen setzt Skyline auf robuste, generische Erkennungsmuster und manuelle Korrekturmöglichkeiten.
+Die Koppelung an einen konkreten Flug erfolgt über das Feld \texttt{flight\_id} in \texttt{flight\_documents} (siehe Kapitel~\ref{chapter:datenverwaltung}):
+Wird ein Dokument direkt aus der Trip-Detailansicht hochgeladen, ist der Kontextflug bereits gesetzt; lädt der Nutzer ein Dokument aus dem globalen \glqq Travel Documents\grqq{}-Bereich, wird zunächst der Ziel-Flug gewählt und erst dann der Upload gestartet.
+So wird sichergestellt, dass jedes Dokument eindeutig einem Flug zugeordnet ist und später bei der Belegsuche schnell auffindbar bleibt.
+
+% ------------------------------------------------------------
 \subsection{Validierung und Plausibilitätsprüfung}
-Alle importierten Daten durchlaufen eine Validierungsstufe. IATA-Airport-Codes werden gegen eine Referenz geprüft, Datumsformate normalisiert und offensichtlich ungültige Werte abgefangen. Plausibilitätschecks verhindern fehlerhafte Einträge in der Flugverwaltung; unvollständige Daten werden gekennzeichnet und können manuell ergänzt werden.
+\label{subsec:import_validation}
+% ------------------------------------------------------------
 
+Alle importierten Daten (unabhängig von der Quelle) durchlaufen eine Validierungsstufe, bevor ein Flug endgültig gespeichert wird.
+Der erste Schritt ist eine einfache Pflichtfeld-Prüfung im Frontend:
+
+\begin{lstlisting}[caption={Synchrones Pflichtfeld-Check im Import-Screen (add-flight-import.tsx)},label={lst:import_required_fields}]
+const addToMyFlights = () => {
+  const newErrors: { [k: string]: boolean } = {};
+  if (!selectedFromAirport && !form.fromIata) newErrors.fromIata = true;
+  if (!selectedToAirport   && !form.toIata)   newErrors.toIata   = true;
+  if (!form.date)                             newErrors.date     = true;
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    Alert.alert(
+      'Missing details',
+      'Please select airports and fill in the date.'
+    );
+    return;
+  }
+  // ...
+};
+\end{lstlisting}
+
+Im Hintergrund wird die Gültigkeit der Flughäfen überprüft.
+Wenn der Nutzer keinen konkreten Airport aus der Suchliste ausgewählt hat, versucht Skyline, die IATA-Codes gegen eine bestehende Airport-Tabelle bzw.\ eine externe API aufzulösen.
+IATA- und ICAO-Codes sind dabei nicht frei erfunden, sondern basieren auf offiziellen Code-Listen bzw.\ Stammdaten \cite{movableTypeLatLong,aviationstack}.
+Sind beide Airports bekannt, berechnet Skyline mittels Haversine-Formel eine konsistente Flugdistanz \cite{movableTypeLatLong}.
+
+\begin{lstlisting}[caption={Berechnung der Flugdistanz per Haversine-Formel (add-flight-import.tsx)},label={lst:haversine}]
+const calculateFlightDistance = (from: Airport, to: Airport): number => {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371; // Erdradius in km
+
+  const dLat = toRad(to.latitude  - from.latitude);
+  const dLon = toRad(to.longitude - from.longitude);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(from.latitude)) * Math.cos(toRad(to.latitude)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+};
+\end{lstlisting}
+
+Sind zusätzlich Abflug- und Ankunftszeiten vorhanden, werden daraus lokale Zeitstempel und eine Flugdauer berechnet.
+Wichtige Hilfsfunktionen sind \texttt{buildLocalTimestamp} (führt Datum und Uhrzeit zu einem ISO-ähnlichen Zeitstempel zusammen) sowie \texttt{minutesBetweenTimes} (berechnet die Dauer in Minuten).
+Diese Berechnungen gewährleisten, dass nur fluglogisch plausible Kombinationen aus Datum, Zeit und Distanz persistiert werden.
+Schlägt einer der Schritte fehl (z.\,B.\ kein gültiger Airport auffindbar), bricht die Speicherung mit einer klaren Fehlermeldung ab; inkonsistente Einträge werden so strukturell verhindert.
+Darüber hinaus verarbeitet Skyline auch \emph{Teiltreffer}:
+Wenn beispielsweise Flugnummer und Datum sicher erkannt wurden, aber der Zielairport unklar bleibt, kann der Nutzer im Preview-Screen den korrekten Airport aus der Suchliste auswählen, während die übrigen Felder bereits vorbefüllt sind.
+Die Validierungsschicht erzwingt dabei, dass am Ende alle Pflichtfelder (Abflug, Ziel, Datum) gesetzt sind, lässt aber bewusst Interpretationsspielraum bei optionalen Attributen wie Gate oder Sitzplatz.
+
+% ------------------------------------------------------------
 \subsection{Feld-Mapping und Datennormalisierung}
-Externe Datenquellen liefern unterschiedliche Feldnamen und Formate. Skyline mappt diese auf das einheitliche interne Schema (Abflug, Ankunft, Datum, Airline, Flugnummer usw.). Datums- und Zeitformate werden normalisiert; Mehrsprachigkeit und Zeitzonen werden berücksichtigt.
+% ------------------------------------------------------------
 
+Externe Datenquellen liefern heterogene Formate (BCBP-Strings, OCR-Text, PDF-Metadaten).
+Skyline führt alle Informationen auf ein einheitliches internes Schema zurück, das im Typ \texttt{CreateFlightData} bzw.\ in der Flugentität verankert ist:
+
+\begin{lstlisting}[caption={Vereinheitlichtes Payload-Schema f\"ur Fl\"uge (CreateFlightData)},label={lst:create_flight_data}]
+export interface CreateFlightData {
+  companyId?: string;
+  from: Airport;
+  to:   Airport;
+  date: string;        // YYYY-MM-DD
+  departureAt?: string;
+  arrivalAt?:   string;
+  flightNumber?:      string;
+  airline?:           string;
+  confirmationCode?:  string;
+  bookingReference?:  string;
+  seat?:              string;
+  gate?:              string;
+  terminal?:          string;
+  status?: 'upcoming' | 'completed' | 'cancelled';
+  notes?:    string;
+  images?:   string[];
+  duration?: string;
+  distance?: string;
+  distanceKm?: number;
+}
+\end{lstlisting}
+
+Im Import-Flow wird aus dem gemischten Kandidatenobjekt (BCBP oder OCR) und den Benutzerangaben ein konsistentes \texttt{flightPayload} erzeugt, das genau dieses Schema abbildet.
+Zeit- und Datumsangaben werden in stringbasierte Zeitstempel im Format \texttt{YYYY-MM-DDTHH:mm:ss} überführt.
+Distanz liegt sowohl als formatierter Text (\glqq 1\,234~km\grqq) als auch in numerischer Form (\texttt{distanceKm}) vor, die für spätere Statistiken und Kartenberechnungen genutzt werden kann.
+Dieses Feld-Mapping stellt sicher, dass unabhängig von der Herkunft der Daten (QR, OCR, Dokument-Upload) ein homogenes, relationsfreundliches Datenmodell entsteht.
+Gleichzeitig sorgt die Normalisierung dafür, dass andere Skyline-Module (z.\,B.\ Weltkarte, Statistiken, Benachrichtigungen) nicht wissen müssen, aus welcher Quelle die Daten ursprünglich stammen:
+Sie arbeiten ausschließlich mit dem konsolidierten Schema.
+Konzeptionell wird damit die in Kapitel~3 eingeführte ETL-Logik (Extract--Transform--Load) \emph{auf App-Ebene} umgesetzt: Extraktion aus QR/OCR/Upload, Transformation in ein homogenes Schema, anschließendes Laden in die zentrale Datenbank.
+
+% ------------------------------------------------------------
 \subsection{Deduplizierung}
-Mehrfachimporte desselben Flugs (z.\,B. QR + E-Mail) werden erkannt. Skyline vergleicht Flugnummer, Datum und Airports; bestehende Einträge werden aktualisiert statt Duplikate anzulegen. Der Nutzer erhält eine Rückmeldung, ob der Import neu oder als Update gewertet wurde.
+% ------------------------------------------------------------
 
+Mehrfachimporte eines identischen Flugs (z.\,B.\ zuerst QR-Scan, später zusätzlich PDF-Buchungsbestätigung) sind in der Praxis häufig.
+In der aktuellen Ausbaustufe unterscheidet Skyline klar zwischen
+(a) der Flug-Ebene, auf der jeder Import einen eigenen Eintrag in der Flugtabelle erzeugen könnte, und
+(b) der Dokumenten-Ebene, auf der mehrere Dokumente bewusst zu einem Flug gehören.
+
+Der Import-Flow ist deshalb so gestaltet, dass in typischen Szenarien zunächst der Flug (über QR oder OCR) angelegt und anschließend weitere Dokumente über den \texttt{DocumentUploadModal} an genau diesen Flug angehängt werden.
+Auf Dokumentenebene werden Multiple-Uploads desselben Fluges gezielt akzeptiert; sie erscheinen im Travel-Documents-Screen gruppiert nach Flug.
+Eine explizite, datenbankseitige Deduplizierung auf Flug-Ebene (z.\,B.\ \glqq existiert bereits ein Flug mit gleicher Flugnummer, Datum und Route?\grqq) ist im aktuellen Prototyp noch nicht implementiert, aber durch das bestehende Schema technisch gut nachrüstbar.
+Da für Flüge ein klarer Identifikations-Kern aus Date, Carrier, Flugnummer und Route vorliegt, lässt sich Deduplizierung später auch serverseitig und datenschutzfreundlich umsetzen, ohne zusätzliche personenbezogene Daten zu speichern \cite{iataBCBP}.
+Für eine spätere Ausbaustufe ist zudem denkbar, Importvorgänge in einer eigenen \glqq Import-Historie\grqq{} zu protokollieren:
+Jeder Import könnte dort als Event mit Hash über die Kernfelder (Datum, Flugnummer, Route) abgelegt werden.
+Treffen weitere Events mit identischem Hash ein (z.\,B.\ Foto und PDF derselben Buchung), könnte Skyline eine Zusammenführung anbieten (\glqq Duplikat erkannt, Dokument anhängen statt neuen Flug anlegen?\grqq).
+Die aktuelle Architektur (klarer Flugschlüssel, getrennte Dokumententabelle) schafft dafür bereits die strukturelle Grundlage.
+
+% ------------------------------------------------------------
 \subsection{Fehlerbehandlung und Nutzerfeedback}
-Fehlgeschlagene Imports (z.\,B. unleserlicher QR-Code, OCR-Fehler) werden nutzerfreundlich kommuniziert. Skyline bietet Fallback auf manuelle Erfassung und zeigt konkrete Hinweise (z.\,B. „Airport-Code unbekannt“). Asynchrone Verarbeitung hält die Oberfläche responsiv; Fortschritt und Ergebnis werden angezeigt.
+% ------------------------------------------------------------
 
+Der gesamte Import-Prozess ist asynchron und mit einem ausgeprägten Fehlerbehandlungskonzept versehen.
+Typische Fehlerquellen sind:
+
+\begin{itemize}
+  \item fehlende Kamera- oder Dateizugriffsrechte,
+  \item ungültige bzw.\ unlesbare QR-Codes,
+  \item OCR-Fehler (keine oder fehlerhafte Texterkennung),
+  \item Netzwerkfehler bei externen Diensten (OCR-API, Airport-API),
+  \item Datenbankfehler beim Speichern.
+\end{itemize}
+
+Auf UI-Ebene reagiert Skyline konsistent mit klaren Meldungen und Fallback-Optionen.
+Beispiele sind der Hinweis auf fehlende Kameraberechtigungen, eine Fehlermeldung bei nicht erkennbaren Boardingpässen (\glqq Scan failed\grqq) oder ein spezifischer Hinweis bei OCR-Problemen (\glqq Try a clearer photo or use manual input.\grqq).
+Tritt ein Fehler auf, wird der Nutzer nie in einem halbdefinierten Zustand zurückgelassen; stattdessen kann er jederzeit auf manuelle Eingabe wechseln.
+
+Auch der Upload von Dokumenten wird robust behandelt:
+Während der Upload im Hintergrund läuft, zeigt der \texttt{DocumentUploadModal} einen klaren Status (\glqq Processing...\grqq{} / \glqq Upload continues in the background\grqq).
+Schlägt der Upload fehl, erhält der Nutzer eine konkrete Fehlermeldung und kann es später erneut versuchen.
+Dieses Muster entspricht etablierten UX-Guidelines für Fehlermeldungen (sichtbar, konkret, mit Handlungsvorschlag) und respektiert den Aufwand, den Nutzer bereits investiert haben \cite{androidNotifications,expoDocs}.
+Im Entwicklungsmodus (\texttt{\_\_DEV\_\_}) werden Fehler zusätzlich in der Konsole geloggt, was die Diagnose von Randfällen (z.\,B.\ exotische PDF-Layouts oder fehlerhafte Barcodes) erleichtert.
+In der Produktion werden hingegen nur nutzerrelevante Meldungen gezeigt; technische Details bleiben verborgen, um keine unnötigen Informationen über interne Schnittstellen preiszugeben.
+Damit folgt Skyline dem Prinzip \glqq Fail Loud in Development, Fail Safe in Production\grqq{}: Fehler sollen früh sichtbar werden, aber in der Live-Nutzung zu möglichst wenig Frustration führen.
+
+% ------------------------------------------------------------
 \subsection{Anbindung an die Flugverwaltung}
-Importierte Flüge werden direkt in die zentrale Flugverwaltung (Kapitel 5) übernommen. Nach erfolgreichem Import können Nutzer sofort Notizen, Dokumente oder Erinnerungen verknüpfen; die Weltkarte (Kapitel 6) und Benachrichtigungen (Kapitel 7) greifen auf dieselben Daten zu.
+% ------------------------------------------------------------
 
+Nach erfolgreicher Validierung wird der generierte \texttt{flightPayload} an die zentrale Flugverwaltung übergeben.
+Der Import-Screen ruft dazu die \texttt{addFlight}-Funktion aus dem globalen Store auf; diese kümmert sich um die Persistenz in Supabase Postgres und das anschließende Aktualisieren des lokalen Zustands.
+
+Die so gespeicherten Flüge stehen sofort in allen anderen Skyline-Modulen zur Verfügung.
+Dokumente, die dem Flug zugeordnet sind (Boardingpässe, Buchungsbestätigungen, Quittungen), werden im Screen \texttt{TravelDocumentsScreen} gruppiert nach Flug angezeigt.
+Weitere Skyline-Funktionen -- wie Notizen, Checklisten (Kapitel~\ref{chapter:datenverwaltung}), Weltkarte und Benachrichtigungen -- greifen auf dieselben Flugdaten zu und profitieren indirekt von der hohen Importqualität.
+Technisch wird diese Koppelung dadurch erreicht, dass alle Feature-Daten (Notizen, Checklisten, Dokumente) einen Foreign Key auf \texttt{user\_flights.id} besitzen (vgl.\ Kapitel~\ref{chapter:datenverwaltung}).
+Wird ein Flug gelöscht, entfernt die Datenbank alle abhängigen Einträge per \texttt{ON DELETE CASCADE}, sodass keine verwaisten Dokumente oder Notizen zurückbleiben.
+Umgekehrt bedeutet dies: Ein korrekt importierter und validierter Flug ist die Voraussetzung dafür, dass die übrigen Skyline-Funktionen zuverlässig funktionieren -- ein weiterer Grund, warum der Import-Workflow so robust ausgelegt ist.
+
+% ============================================================
 \section{Ergebnis}
-Der automatische Import ist ein zentraler Mehrwert von Skyline und entlastet Nutzer im Reisealltag.
+% ============================================================
+
+Der in Skyline implementierte Import-Workflow zeigt, dass sich ein Großteil der im Reisealltag relevanten Flugdaten automatisiert aus vorhandenen Boardingpässen und Buchungsdokumenten gewinnen lässt.
+Der Nutzer wird durch klare UI, automatische Vorbefüllung und integrierte Validierung spürbar entlastet.
+
+% ------------------------------------------------------------
 \subsection{Bewertung der Importqualität}
-Die Qualität zeigt sich in hoher Trefferquote bei QR- und E-Mail-Import sowie akzeptabler Erkennungsrate bei OCR. Geringe Nachbearbeitung und seltene manuelle Korrekturen bestätigen die Wirksamkeit von Validierung und Feld-Mapping.
+% ------------------------------------------------------------
+
+Die Implementierung erreicht bei QR-basierten Imports (BCBP) eine sehr hohe Trefferquote; Flugnummer, Datum und Route können in vielen Fällen vollständig ohne manuelle Nacharbeit übernommen werden \cite{iataBCBP}.
+Abweichungen vom BCBP-Standard werden durch Fallback-Logik (Suche nach \texttt{M1}-Segment, defensive String-Operationen) teilweise kompensiert und führen im Zweifel zu einem kontrollierten Abbruch mit Fehlermeldung statt zu falschen Daten.
+
+Die OCR-basierte Auswertung von Bildern und PDFs ist naturgemäß anfälliger für Fehler, da sie von Bildqualität und Layout der Dokumente abhängt \cite{mlKitTextRecognition,tesseractOcr}.
+Durch die Kombination aus robusten Heuristiken (\texttt{extractFlightData}), Validierung von IATA-Codes und Datum sowie manueller Kontrolle im Preview-Screen werden dennoch in den meisten Fällen korrekte oder leicht korrigierbare Vorschläge erzeugt.
+Geringe Nachbearbeitung und seltene manuelle Korrekturen bestätigen die Wirksamkeit der Validierungs- und Normalisierungsschicht.
+Empirisch zeigt sich im Projektverlauf, dass BCBP-Scans den Großteil der Flüge nahezu fehlerfrei abdecken, während OCR-basierte Importe vor allem bei schwierigen Layouts (mehrsprachige Tickets, stark grafische PDFs) manuelle Nacharbeit erfordern.
+Diese Beobachtungen decken sich mit der Literatur zu OCR-Qualität und der Empfehlung, Barcodes dort zu bevorzugen, wo sie verfügbar sind \cite{mlKitTextRecognition,tesseractOcr}.
+
+% ------------------------------------------------------------
 \subsection{Nutzen im Reise-Workflow}
-Nutzer können Flüge schneller erfassen, früher mit Planung starten und Belege direkt zuordnen. Die Kombination aus mehreren Datenquellen erhöht die Abdeckung auch bei heterogenen Buchungsabläufen.
+% ------------------------------------------------------------
+
+Nutzer können Flüge deutlich schneller erfassen, da Informationen nicht mehr von Hand abgetippt werden müssen.
+Bereits wenige Sekunden nach dem Eintreffen einer Buchungsbestätigung oder dem Erhalt des Boardingpasses kann der Flug strukturiert in Skyline vorliegen; nachgelagerte Funktionen (Checklisten, Notizen, Erinnerungen, Dokumentenablage) stehen damit frühzeitig zur Verfügung.
+
+Die Kombination aus QR-Scan, OCR-Auswertung und flexiblem Dokumenten-Upload deckt unterschiedliche Buchungs- und Reiseabläufe ab -- vom klassischen Papier-Boardingpass über mobile Wallet-Tickets bis hin zu reinen E-Mail-Bestätigungen.
+Insbesondere im Geschäftsreisekontext erleichtert dies die spätere Reisekostenabrechnung, da Boardingpässe, Buchungsbestätigungen und Quittungen direkt im Flugkontext abgelegt sind.
+
+% ------------------------------------------------------------
 \subsection{Grenzen und Verbesserungspotenzial}
-Nicht alle Airlines und E-Mail-Formate sind abgedeckt; OCR ist von Bildqualität abhängig. Für die Zukunft sind robustere Parser, erweiterte Airline-Templates und ggf. API-Anbindungen (z.\,B. GDS) denkbar.
+% ------------------------------------------------------------
+
+Nicht alle Airlines und Dokumentlayouts sind vollständig abgedeckt; insbesondere exotische oder stark grafische Tickets stellen OCR und Heuristiken vor Herausforderungen.
+Auch eine direkte E-Mail-Integration (z.\,B.\ über IMAP oder spezialisierte APIs) ist im aktuellen Stand aus Datenschutz- und Komplexitätsgründen nicht implementiert \cite{gdpr,edpbArt25}.
+
+Perspektivisch denkbar sind:
+
+\begin{itemize}
+  \item robustere Parser mit Template-Unterstützung für häufig genutzte Airlines,
+  \item eine optionale, explizit zustimmungsbasierte Anbindung an E-Mail-Konten,
+  \item eine datenbankseitige Deduplizierung von Flügen über Flugnummer, Datum und Route,
+  \item weitergehende Internationalisierung (weitere Sprachen, alternative Datumsformate),
+  \item verbesserte OCR-Pfade, etwa durch alternative Engines oder lokale OCR auf dem Gerät \cite{mlKitTextRecognition,tesseractOcr}.
+\end{itemize}
+
+Trotz dieser Grenzen liefert die aktuelle Implementierung des automatischen Imports ein tragfähiges Fundament, das den Reisealltag von Vielreisenden spürbar vereinfacht und zugleich sauber in das zentrale Datenmodell von Skyline integriert ist.

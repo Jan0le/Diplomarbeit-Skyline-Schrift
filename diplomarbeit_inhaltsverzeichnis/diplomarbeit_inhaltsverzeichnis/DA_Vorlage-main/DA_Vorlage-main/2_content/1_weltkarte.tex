@@ -1,38 +1,451 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Implementierung: Interaktive Weltkarte \& Routenvisualisierung (Boris)}\label{chapter:weltkarte}
 
-Dieses Kapitel beschreibt die Umsetzung der Kartenvisualisierung in Skyline. Die theoretischen Grundlagen (Haversine, Great Circle, Anforderungen an mobile Karten) werden in Kapitel 3 behandelt.
+Dieses Kapitel beschreibt die konkrete Umsetzung der Kartenvisualisierung in Skyline.
+Die theoretischen Grundlagen (Haversine‑Formel, Great‑Circle‑Routen, Anforderungen an mobile Karten) sind in Kapitel~3 erläutert; hier liegt der Fokus auf der praktischen Implementierung mit \texttt{react-native-maps}, der Berechnung geodätischer Routen, der Darstellung als Polylinien sowie der Live‑Visualisierung von Flügen.
 
+% ============================================================
 \section{Implementierung der Karten-Visualisierung}
-Die Implementierung kombiniert Map-Komponenten, Routenberechnung und UI-Interaktion. Ausgewaehlte Flüge werden hervorgehoben, die Route wird gezeichnet und optional animiert.
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.8\textwidth}{TODO: Screenshot der Weltkarte mit Route und Marker einfuegen.}}
-  \caption{TODO: Interaktive Weltkarte mit Flugroute}
-  \label{fig:todo_weltkarte}
-\end{figure}
-\subsection{Polyline-Darstellung}
-Routen werden mit Polylines gezeichnet. Die Punkte der Linie ergeben sich aus geodaetischer Interpolation zwischen Start und Ziel.
-\subsection{Geodaetische Kurven}
-Die Kurvenform entsteht durch das Sampling einer Great-Circle-Route in viele Zwischenpunkte, die als Polyline gerendert werden.
-\subsection{Live-Marker \& Flugbewegung}
-Ein Flugzeug-Marker wird entlang der Route positioniert. Bei aktiven Flügen wird er regelmaessig aktualisiert, um den Fortschritt abzubilden.
-\subsection{Fortschritts-Overlay (zurueckgelegte Flugdistanz)}
-Optional wird die bereits zurueckgelegte Strecke visuell markiert.
-\subsection{Interaktive Flugauswahl (Map -> Details)}
-Die Auswahl eines Flugs fuehrt in die Detailansicht.
-\subsection{History vs. Upcoming-Flüge}
-Vergangene Flüge werden von bevorstehenden getrennt, um die Karte nicht zu überladen.
+% ============================================================
 
-\section{Bewertung der Kartenloesung}
-Die Bewertung beruecksichtigt Bedienbarkeit, Genauigkeit und Performance.
+Die Kartenansicht befindet sich im Tab \texttt{MapScreen} und kombiniert drei zentrale Aspekte:
+
+\begin{itemize}
+  \item eine interaktive MapView auf Basis von \texttt{react-native-maps} \cite{reactNativeMaps},
+  \item Routenberechnung über Great‑Circle‑Interpolation und Haversine‑Formel \cite{movableTypeLatLong},
+  \item UI‑Interaktion (Flugauswahl, Live‑Marker, Fortschrittsanzeige).
+\end{itemize}
+
+Als technischer Einstiegspunkt dient die Komponente \texttt{MapScreen}:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Karten-Screen in Skyline (Ausschnitt aus \texttt{app/(tabs)/map.tsx})},
+  label={lst:map_screen_entry}]
+import MapView, {
+  AnimatedRegion,
+  Marker,
+  Polyline,
+  PROVIDER_GOOGLE,
+} from 'react-native-maps';
+
+export default function MapScreen() {
+  const DEBUG_LOGS = false;
+  const ENABLE_MAP_ANIMATION = true;
+
+  const mapRef = useRef<MapView>(null);
+  const planeMarkerRef = useRef<any>(null);
+  ...
+}
+\end{lstlisting}
+
+Der initiale Kartenausschnitt ist auf Wien gesetzt und wird über ein \texttt{initialRegion}-Objekt definiert:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Initialer Kartenausschnitt (Wien) in \texttt{map.tsx}},
+  label={lst:initial_region}]
+const INITIAL_REGION = {
+  latitude: 48.2082,
+  longitude: 16.3738,
+  latitudeDelta: 10,
+  longitudeDelta: 10,
+};
+\end{lstlisting}
+
+Die MapView selbst wird mit einem dunklen Kartenstil, Anzeige der Nutzerposition und plattformspezifischem Provider gerendert:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={MapView-Initialisierung mit Provider \& Styling},
+  label={lst:mapview_init}]
+<MapView
+  ref={(r) => {
+    (mapRef as any).current = r;
+    (global as any).__SKYLINE_MAP_REF = mapRef;
+  }}
+  style={styles.map}
+  initialRegion={INITIAL_REGION}
+  showsUserLocation={true}
+  showsMyLocationButton={false}
+  provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+  mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+  customMapStyle={Platform.OS === 'android' ? darkMapStyle : undefined}
+  loadingEnabled={true}
+>
+  {/* Marker, Routen, Live-Flugzeug */}
+</MapView>
+\end{lstlisting}
+
+Auf Android wird explizit \texttt{PROVIDER\_GOOGLE} gesetzt, während iOS auf die Standard‑Integration (MapKit) zurückfällt \cite{reactNativeMaps}.
+Der dunkle Stil (\texttt{darkMapStyle}) sorgt dafür, dass Routen und Marker sich deutlich vom Hintergrund abheben; auf iOS wird \texttt{mapType="mutedStandard"} genutzt, um eine zurückhaltende Kartendarstellung mit gut lesbaren Overlays zu kombinieren.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{content/img/map.png}
+  \caption{Interaktive Skyline-Weltkarte mit hervorgehobener Flugroute, Start- und Zielmarker sowie Live-Flugzeug-Icon.}
+  \label{fig:weltkarte_route}
+\end{figure}
+
+Im Folgenden werden die wichtigsten Bausteine der Kartenimplementierung beschrieben: Polyline‑Darstellung, Great‑Circle‑Sampling, Live‑Marker, Fortschritts‑Overlay, Interaktion sowie die Trennung von History‑ und Upcoming‑Flügen.
+
+% ------------------------------------------------------------
+\subsection{Polyline-Darstellung und Great-Circle-Sampling}
+% ------------------------------------------------------------
+
+Routen werden in Skyline als \emph{Polylinien} gezeichnet, deren Stützpunkte nicht linear interpoliert, sondern geodätisch entlang eines Großkreises (Great Circle) berechnet werden.
+Dadurch erscheinen Langstreckenflüge als realistische Bogenlinien auf der Karte und nicht als verzerrte Geraden der Projektionsfläche.
+
+Die \texttt{Polyline}-Komponente von \texttt{react-native-maps} akzeptiert ein Array aus Koordinaten und besitzt ein \texttt{geodesic}-Flag, das angibt, dass Segmente als geodätische Linien gezeichnet werden sollen \cite{reactNativeMaps}.
+
+Für den ausgewählten Flug wird eine hervorgehobene Route \texttt{pathPoints} gezeichnet:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Hervorgehobene Route f\"ur den ausgew\"ahlten Flug},
+  label={lst:selected_flight_polyline}]
+{selectedFlight && pathPoints.length > 0 && (showRouteOverlay || isAnimating || isLanding) && (
+  <>
+    {isLanding && (
+      <Polyline
+        coordinates={pathPoints}
+        geodesic
+        strokeColor="rgba(76, 175, 80, 0.3)"
+        strokeWidth={12}
+        lineCap="round"
+        lineJoin="round"
+      />
+    )}
+    <Polyline
+      coordinates={pathPoints}
+      geodesic
+      strokeColor={isLanding ? "#4CAF50" : "#888888"}
+      strokeWidth={isLanding ? 4 : 3}
+      lineCap="round"
+      lineJoin="round"
+    />
+  </>
+)}
+\end{lstlisting}
+
+Die Punkte in \texttt{pathPoints} entstehen durch das Sampling einer Great‑Circle‑Route mit der Funktion \texttt{generateGreatCircle}.
+Diese berechnet zunächst die Winkelentfernung $d$ zwischen Start‑ und Zielpunkt und konstruiert dann Zwischenpunkte über sphärische Interpolation \cite{movableTypeLatLong}:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Great-Circle-Sampling f\"ur eine Route (\texttt{generateGreatCircle})},
+  label={lst:generate_great_circle}]
+const generateGreatCircle = (
+  start: { latitude: number; longitude: number },
+  end:   { latitude: number; longitude: number },
+  points: number = 96
+) => {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const toDeg = (rad: number) => (rad * 180) / Math.PI;
+  const lat1 = toRad(start.latitude);
+  const lon1 = toRad(start.longitude);
+  const lat2 = toRad(end.latitude);
+  const lon2 = toRad(end.longitude);
+
+  const d = Math.acos(
+    Math.sin(lat1) * Math.sin(lat2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)
+  );
+  if (!isFinite(d) || d === 0) return [start, end];
+
+  const route: { latitude: number; longitude: number }[] = [];
+  for (let i = 0; i <= points; i++) {
+    const f = i / points;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d)       / Math.sin(d);
+    const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+    const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+    const z = A * Math.sin(lat1)   + B * Math.sin(lat2);
+    const lat = Math.atan2(z, Math.sqrt(x * x + y * y));
+    const lon = Math.atan2(y, x);
+    route.push({ latitude: toDeg(lat), longitude: toDeg(lon) });
+  }
+  return route;
+};
+\end{lstlisting}
+
+Für Live‑Positionen wird zusätzlich eine Single‑Point‑Variante \texttt{interpolateGreatCirclePoint} genutzt, die an einem Fortschrittsparameter $f\in[0,1]$ einen Punkt auf derselben Route berechnet.
+Diese Funktion ist die Grundlage für animierte Flugzeugmarker (Abschnitt~\ref{subsec:live_marker}).
+
+% ------------------------------------------------------------
+\subsection{Live-Marker \& Flugbewegung}
+\label{subsec:live_marker}
+% ------------------------------------------------------------
+
+Skyline zeigt aktive Flüge (d.\,h.\ Verbindungen, deren aktuelle Uhrzeit zwischen Abflug‑ und Ankunftszeit liegt) mit Live‑Markern auf der Karte.
+Ein periodischer Timer berechnet in einem Sekundenintervall den Fortschritt jedes Flugs und platziert den Marker entsprechend entlang der Great‑Circle‑Route:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Berechnung der Live-Positionen aller Fl\"uge},
+  label={lst:live_update_loop}]
+const update = () => {
+  const nowPlanes: LivePlaneMarker[] = [];
+  const nowRoutes: LiveRouteParts[]  = [];
+
+  for (const f of flights) {
+    if (!f?.from?.latitude || !f?.to?.latitude) continue;
+    const { inAir, progress } = getLiveProgress(f);
+    if (!inAir) continue;
+
+    const pt = interpolateGreatCirclePoint(
+      { latitude: f.from.latitude, longitude: f.from.longitude },
+      { latitude: f.to.latitude,   longitude: f.to.longitude   },
+      progress
+    );
+
+    const bearing = calculateBearing(
+      pt.latitude,
+      pt.longitude,
+      f.to.latitude,
+      f.to.longitude
+    );
+
+    nowPlanes.push({
+      flightId:     f.id,
+      flightNumber: f.flightNumber,
+      latitude:     pt.latitude,
+      longitude:    pt.longitude,
+      bearing,
+    });
+
+    const route = generateGreatCircle(
+      { latitude: f.from.latitude, longitude: f.from.longitude },
+      { latitude: f.to.latitude,   longitude: f.to.longitude   },
+      80
+    );
+    const split = splitRouteByProgress(route, progress);
+    nowRoutes.push({ flightId: f.id, past: split.past, future: split.future });
+  }
+
+  setLivePlanes(nowPlanes);
+  setLiveRoutes(nowRoutes);
+};
+\end{lstlisting}
+
+Die Hilfsfunktion \texttt{getLiveProgress} bestimmt, ob ein Flug „in der Luft“ ist, und berechnet einen Fortschrittswert zwischen 0 und 1 aus Abflug‑ und Ankunftszeit.
+Die Distanz zwischen Start‑ und Zielkoordinate wird konsistent mit der Haversine‑Formel berechnet, wie sie auch für Statistiken im Modul \texttt{flightMetrics} verwendet wird \cite{movableTypeLatLong}.
+
+Für die Darstellung der globalen Live‑Flugzeuge werden Marker mit pulsierendem Ring und optionalem Flugnummer‑Tag verwendet:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Globale Live-Flugzeugmarker auf der Karte},
+  label={lst:live_plane_marker}]
+{livePlanes.map((p) => (
+  <Marker
+    key={`live-${p.flightId}`}
+    coordinate={{ latitude: p.latitude, longitude: p.longitude }}
+    anchor={{ x: 0.5, y: 0.5 }}
+    tracksViewChanges={false}
+    flat={true}
+    onPress={() => {
+      const f = flights.find((x) => x.id === p.flightId);
+      if (f) focusOnFlightPlane(f);
+    }}
+  >
+    <View style={styles.livePlaneBubble}>
+      <RNAnimated.View style={[styles.livePlaneRing, ...]} />
+      {!!p.flightNumber && (
+        <View style={styles.livePlaneTag}>
+          <Text style={styles.livePlaneTagText}>{p.flightNumber}</Text>
+        </View>
+      )}
+      <View style={{ transform: [{ rotate: `${p.bearing}deg` }] }}>
+        <MaterialIcons name="flight" size={26} color="#4FC3F7" />
+      </View>
+    </View>
+  </Marker>
+))}
+\end{lstlisting}
+
+Für den aktuell ausgewählten Flug wird zusätzlich ein \texttt{Marker.Animated} mit \texttt{AnimatedRegion} eingesetzt, um eine flüssige Bewegung entlang der Route (z.\,B.\ als Preview‑Animation) zu realisieren.
+
+% ------------------------------------------------------------
+\subsection{Fortschritts-Overlay (zurückgelegte Flugdistanz)}
+% ------------------------------------------------------------
+
+Um die bereits zurückgelegte Strecke eines Flugs von der verbleibenden Distanz zu unterscheiden, wird die Route in \glqq past\grqq{} und \glqq future\grqq{} geteilt.
+Dies geschieht über die Funktion \texttt{splitRouteByProgress}, die die Stützpunkte anhand des Fortschrittswerts schneidet:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Aufteilung einer Route in bereits geflogenen und verbleibenden Teil},
+  label={lst:split_route_progress}]
+const splitRouteByProgress = (
+  route: { latitude: number; longitude: number }[],
+  progress01: number
+) => {
+  if (!route || route.length < 2) return { past: route || [], future: route || [] };
+  const p   = clamp01(progress01);
+  const idx = Math.max(0, Math.min(route.length - 1, Math.floor(p * (route.length - 1))));
+  const past   = route.slice(0, idx + 1);
+  const future = route.slice(idx);
+  return { past, future };
+};
+\end{lstlisting}
+
+Für Live‑Routen werden diese beiden Teile unterschiedlich dargestellt: der \emph{vergangene} Abschnitt als grüne, durchgezogene Linie, der \emph{zukünftige} Abschnitt als helle, gestrichelte Linie mit dunklem Underlay zur Kontrastverstärkung.
+Damit entsteht eine visuelle Fortschrittsanzeige, die auch ohne Text sofort erkennen lässt, wie weit ein Flug bereits ist.
+
+% ------------------------------------------------------------
+\subsection{Interaktive Flugauswahl (Map \texorpdfstring{$\leftrightarrow$}{<->} Details)}
+% ------------------------------------------------------------
+
+Die Karte ist eng mit der Flugliste und den Detailansichten verknüpft.
+Die Auswahl eines Flugs in der Liste führt zur Fokussierung auf der Karte; umgekehrt kann ein Tap auf einen Marker die Detailansicht desselben Flugs öffnen.
+
+Die Kartenansicht verwendet hierzu eine sortierte Liste von Flügen im Bottom‑Sheet, in der aktive Flüge priorisiert werden (Abschnitt~\ref{subsec:history_upcoming}).
+Beim Tippen auf eine Flugkarte wird \texttt{handleFlightSelect} aufgerufen:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Auswahl eines Flugs aus der Liste},
+  label={lst:flight_select_list}]
+const renderFlightItem = ({ item }: { item: Flight }) => (
+  <Pressable
+    style={styles.flightCard}
+    onPress={() => {
+      handleFlightSelect(item);
+      setTimeout(() => bottomSheetRef.current?.close(), 500);
+    }}
+  >
+    {/* Flugnummer, Route, Status, Fortschritt */}
+  </Pressable>
+);
+\end{lstlisting}
+
+\texttt{handleFlightSelect} setzt den ausgewählten Flug, berechnet die Great‑Circle‑Route und passt den Kartenausschnitt so an, dass Abflug‑ und Zielflughafen im Viewport liegen:
+
+\begin{lstlisting}[style=skyline-ts,
+  caption={Flugauswahl: Route berechnen und Karte fokussieren},
+  label={lst:handle_flight_select}]
+const handleFlightSelect = useCallback((flight: Flight) => {
+  if (selectedFlight?.id === flight.id) return;
+  setSelectedFlight(flight);
+
+  if (flight.from?.latitude && flight.from?.longitude &&
+      flight.to?.latitude   && flight.to?.longitude) {
+    const route = generateGreatCircle(
+      { latitude: flight.from.latitude, longitude: flight.from.longitude },
+      { latitude: flight.to.latitude,   longitude: flight.to.longitude   },
+      150
+    );
+    setPathPoints(route);
+
+    setTimeout(() => {
+      mapRef.current?.fitToCoordinates(
+        [
+          { latitude: flight.from.latitude, longitude: flight.from.longitude },
+          { latitude: flight.to.latitude,   longitude: flight.to.longitude   },
+        ],
+        {
+          edgePadding: { top: 200, right: 150, bottom: 400, left: 150 },
+          animated: true,
+        }
+      );
+    }, 150);
+  }
+}, [selectedFlight]);
+\end{lstlisting}
+
+Ein separater Button \glqq Show Flight Path\grqq{} bzw.\ \glqq Show Live Flight\grqq{} erlaubt es, gezielt die Route eines bestimmten Flugs einzublenden oder das Live‑Tracking zu aktivieren.
+Taps auf Live‑Marker rufen wiederum \texttt{focusOnFlightPlane} auf, das Karte und Detailansicht auf den entsprechenden Flug fokussiert.
+
+% ------------------------------------------------------------
+\subsection{History vs.\ Upcoming-Fl\"uge und Filter}
+\label{subsec:history_upcoming}
+% ------------------------------------------------------------
+
+Um die Karte nicht zu überladen, unterscheidet Skyline zwischen aktiven, bevorstehenden und vergangenen Flügen.
+Die Hilfsfunktion \texttt{isFlightInProgress} erkennt Verbindungen, deren aktueller Zeitpunkt zwischen Abflug‑ und Ankunftszeit liegt, während \texttt{getEffectiveFlightStatus} (in \texttt{flightMetrics.ts}) vergangene Flüge als \glqq completed\grqq{} klassifiziert.
+
+Im Karten‑Tab werden die Flüge entsprechend sortiert: aktive Flüge zuerst, dann Upcoming‑Flüge, anschließend Historie.
+Gemeinsam mit einem einfachen Filter (z.\,B.\ nach Status oder Airline) entsteht so eine Übersicht, die sich auch bei vielen gespeicherten Reisen noch sinnvoll nutzen lässt.
+Routen für historische Flüge können bei Bedarf ausgeblendet oder auf aggregierte Statistiken (z.\,B.\ Gesamtstrecke) reduziert werden, ohne die Kernfunktionen des Live‑Trackings zu beeinträchtigen.
+
+% ============================================================
+\section{Bewertung der Kartenl\"osung}
+% ============================================================
+
+Die Kartenlösung in Skyline wird entlang von drei Dimensionen bewertet: Bedienbarkeit, Genauigkeit der dargestellten Routen und Performance auf mobilen Endgeräten.
+
+% ------------------------------------------------------------
 \subsection{Kriterienkatalog}
-Die Karte soll eine klare Übersicht über Routen liefern, ohne Informationsflut.
+% ------------------------------------------------------------
+
+Ziel der Weltkarte ist nicht eine vollständige GIS‑Funktionalität, sondern eine klare, flugzentrierte Übersicht.
+Zentrale Kriterien sind:
+
+\begin{itemize}
+  \item \textbf{Übersichtlichkeit:} Nutzer sollen auf einen Blick sehen, welche Flüge in welchem Status sind und wie sich ihre persönlichen Routen über die Welt verteilen.
+  \item \textbf{Räumliche Korrektheit:} Langstreckenflüge sollen als realistische Bogenlinien erscheinen (Great‑Circle statt gerader Linie) \cite{movableTypeLatLong}.
+  \item \textbf{Interaktivität:} Karte, Liste und Detailansicht sollen konsistent zusammenarbeiten (Auswahl, Fokus, Live‑Tracking).
+  \item \textbf{Fehlerrobustheit:} Unvollständige Daten (z.\,B.\ fehlende Zeiten) dürfen nicht zu Abstürzen führen; in solchen Fällen wird z.\,B.\ auf statische Routen ohne Live‑Marker zurückgefallen.
+\end{itemize}
+
+In diesem Rahmen erfüllt die aktuelle Implementierung die im Pflichtenheft formulierten Anforderungen: Die Karte bietet eine verständliche, navigierbare Übersicht über alle Flüge und integriert sich nahtlos in die übrige Skyline‑Architektur.
+
+% ------------------------------------------------------------
 \subsection{Performance-Messungen}
-Messungen betreffen Ladezeiten, Renderzeiten der Polylines und Reaktionszeit bei Interaktionen.
+% ------------------------------------------------------------
+
+Performance‑relevante Aspekte sind insbesondere:
+
+\begin{itemize}
+  \item initiale Ladezeit der Karte und des Flugbestands,
+  \item Renderzeiten für Polylinien bei mehreren gleichzeitigen Routen,
+  \item Reaktionszeit von Animationen (Preview, Live‑Tracking),
+  \item CPU‑/GPU‑Belastung bei dauerhafter Live‑Aktualisierung.
+\end{itemize}
+
+Mehrere Designentscheidungen adressieren diese Punkte explizit:
+
+\begin{itemize}
+  \item \textbf{Begrenztes Sampling:} Great‑Circle‑Routen verwenden eine begrenzte Punktzahl (z.\,B.\ 80–150 Stützpunkte), um die Visualisierung glatt, aber noch effizient renderbar zu halten.
+  \item \textbf{Nutzung nativer Animationen:} \texttt{AnimatedRegion} und \texttt{Animated.Value} verschieben Marker und Rotation ohne ständige React‑Re‑Renders.
+  \item \textbf{Debouncete Aktualisierung:} Live‑Updates und Kamera‑Focus‑Operationen sind zeitlich gedrosselt, um bei intensiver Interaktion (z.\,B.\ schnelles Panning/Zooming) keine Flut von Updates zu erzeugen.
+  \item \textbf{Statusbasierte Darstellung:} Nur aktive und relevante Flüge werden mit Live‑Routen und Markern gezeichnet; historische Flüge sind primär in der Liste sichtbar.
+\end{itemize}
+
+Praktische Tests auf gängigen Mittelklasse‑Geräten zeigen, dass die Karte auch mit mehreren gleichzeitigen Live‑Flügen flüssig bedienbar bleibt.
+Engpässe entstehen hauptsächlich dann, wenn sehr viele historische Routen parallel dargestellt werden sollen – ein Szenario, für das sich perspektivisch zusätzliche Maßnahmen wie Polyline‑Vereinfachung oder Clustering anbieten.
+
+% ------------------------------------------------------------
 \subsection{Nutzerfeedback}
-Rueckmeldungen aus Tests zeigen, ob die Karte als hilfreich und intuitiv wahrgenommen wird.
-\subsection{Staerken-Schwaechen-Analyse}
-Staerken liegen in der visuellen Übersicht und der Interaktion, Schwaechen entstehen bei sehr vielen Flügen.
+% ------------------------------------------------------------
+
+Informelles Nutzerfeedback im Projektumfeld (Team, Testnutzer) hebt insbesondere folgende Punkte hervor:
+
+\begin{itemize}
+  \item \textbf{Verständlichkeit des Fortschritts:} Die Kombination aus farblich getrennten Routenabschnitten (vergangen/kommend) und prozentualem Fortschritt in der Liste wird als intuitiv und hilfreich beschrieben.
+  \item \textbf{Nützliche Fokussierungsfunktionen:} Buttons wie \glqq Show Flight Path\grqq{} und \glqq Show Live Flight\grqq{} erleichtern das schnelle Auffinden einzelner Verbindungen, insbesondere bei vielen Flügen.
+  \item \textbf{Stimmigkeit mit anderen Modulen:} Die Karte fügt sich aus Sicht der Nutzer in das Gesamtsystem ein – Flüge, die im Import-Modul angelegt werden, erscheinen kurz darauf konsistent in Karte, Dokumentenansicht und Statistiken.
+\end{itemize}
+
+Kritikpunkte betreffen vor allem Randfälle, etwa sehr viele historische Flüge oder fehlende Echtzeit‑Informationen bei Verspätungen, die in der aktuellen rein clientseitigen Zeitlogik nicht erkannt werden.
+
+% ------------------------------------------------------------
+\subsection{St\"arken-Schw\"achen-Analyse}
+% ------------------------------------------------------------
+
+Aus technischer Sicht lassen sich folgende Stärken identifizieren:
+
+\begin{itemize}
+  \item \textbf{Realistische Routen:} Great‑Circle‑Berechnung und Haversine‑Formel liefern konsistente Distanzen und visuell plausible Flugbahnen \cite{movableTypeLatLong}.
+  \item \textbf{Klare Interaktion:} Die Kopplung von Karte, Liste und Detailansicht unterstützt typische Aufgaben (Flug finden, Fortschritt prüfen, Dokumente öffnen) ohne Medienbruch.
+  \item \textbf{Erweiterbarkeit:} Die Architektur (separate Routenberechnungsfunktionen, Statuslogik in \texttt{flightMetrics}, Map‑Screen als reine Visualisierung) erlaubt es, später weitere Datenquellen (z.\,B.\ Echtzeit‑APIs) einzubinden.
+\end{itemize}
+
+Demgegenüber stehen einige Schwächen bzw.\ aktuelle Grenzen:
+
+\begin{itemize}
+  \item \textbf{Skalierung bei sehr vielen Flügen:} Ohne zusätzliche Aggregation oder Clustering kann eine sehr große Anzahl historischer Flüge zu visueller und rechnerischer Überlastung führen.
+  \item \textbf{Keine Echtzeit-Verzögerungen:} Verspätungen oder Umleitungen werden mit der aktuellen, ausschliesslich geplanten Zeitlogik nicht abgebildet.
+  \item \textbf{Kugelmodell statt Ellipsoid:} Die Great‑Circle‑Berechnung basiert auf einer Kugelannahme; für die hier geplanten Use‑Cases ist dies ausreichend, aber nicht geodätisch hochpräzise \cite{movableTypeLatLong}.
+\end{itemize}
+
+% ------------------------------------------------------------
 \subsection{Ergebnis}
-Die Kartenvisualisierung erfuellt die Kernanforderungen des Pflichtenhefts und stellt einen zentralen Mehrwert des Projekts dar.
+% ------------------------------------------------------------
+
+Die implementierte interaktive Weltkarte erfüllt die im Pflichtenheft definierten Anforderungen an Übersicht, Interaktivität und technische Qualität.
+Sie stellt einen zentralen Mehrwert von Skyline dar, weil sie Import‑, Dokumenten‑, Benachrichtigungs- und Statistikfunktionen in einer räumlich anschaulichen Darstellung zusammenführt.
+
+Durch die Kombination aus bewährten Bibliotheken (\texttt{react-native-maps} \cite{reactNativeMaps}), soliden geodätischen Grundlagen \cite{movableTypeLatLong} und einer auf mobile Endgeräte optimierten UI/UX ist die Kartenlösung zugleich robust genug für den praktischen Einsatz und flexibel genug für zukünftige Erweiterungen (Echtzeit‑Daten, Clustering, zusätzliche Visualisierungen).
