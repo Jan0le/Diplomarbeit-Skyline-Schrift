@@ -1,0 +1,603 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.achievements (
+  id text NOT NULL,
+  title text NOT NULL,
+  description text NOT NULL,
+  icon text NOT NULL DEFAULT 'emoji_events'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT achievements_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.airports (
+  id bigint NOT NULL DEFAULT nextval('airports_id_seq'::regclass),
+  iata text UNIQUE,
+  icao text UNIQUE,
+  name text NOT NULL,
+  city text,
+  country text,
+  latitude numeric,
+  longitude numeric,
+  timezone text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT airports_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.calendar_accounts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  name text NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['google'::text, 'outlook'::text, 'apple'::text, 'exchange'::text])),
+  access_token text,
+  refresh_token text,
+  token_expires_at timestamp with time zone,
+  is_connected boolean DEFAULT false,
+  sync_enabled boolean DEFAULT false,
+  last_sync timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT calendar_accounts_pkey PRIMARY KEY (id),
+  CONSTRAINT calendar_accounts_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.checklist_template_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  template_id uuid NOT NULL,
+  text text NOT NULL,
+  order_idx integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT checklist_template_items_pkey PRIMARY KEY (id),
+  CONSTRAINT checklist_template_items_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.checklist_templates(id)
+);
+CREATE TABLE public.checklist_templates (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid,
+  purpose text NOT NULL CHECK (purpose = ANY (ARRAY['business'::text, 'private'::text])),
+  title text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT checklist_templates_pkey PRIMARY KEY (id),
+  CONSTRAINT checklist_templates_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.companies (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  owner_profile_id uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  invite_code text UNIQUE,
+  CONSTRAINT companies_pkey PRIMARY KEY (id),
+  CONSTRAINT companies_owner_profile_id_fkey FOREIGN KEY (owner_profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.company_invites (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL,
+  email text NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['owner'::text, 'worker'::text])),
+  token text NOT NULL UNIQUE,
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'accepted'::text, 'expired'::text, 'revoked'::text])),
+  invited_by uuid NOT NULL,
+  invited_at timestamp with time zone NOT NULL DEFAULT now(),
+  expires_at timestamp with time zone,
+  accepted_at timestamp with time zone,
+  accepted_by uuid,
+  CONSTRAINT company_invites_pkey PRIMARY KEY (id),
+  CONSTRAINT company_invites_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id),
+  CONSTRAINT company_invites_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES public.profiles(id),
+  CONSTRAINT company_invites_accepted_by_fkey FOREIGN KEY (accepted_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.company_members (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['owner'::text, 'worker'::text])),
+  invited_by uuid,
+  invited_at timestamp with time zone NOT NULL DEFAULT now(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT company_members_pkey PRIMARY KEY (id),
+  CONSTRAINT company_members_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id),
+  CONSTRAINT company_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT company_members_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.email_accounts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  provider text NOT NULL CHECK (provider = ANY (ARRAY['gmail'::text, 'outlook'::text])),
+  email text NOT NULL,
+  refresh_token text,
+  access_token text,
+  access_token_expires_at timestamp with time zone,
+  sync_enabled boolean NOT NULL DEFAULT true,
+  last_synced_at timestamp with time zone,
+  metadata jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT email_accounts_pkey PRIMARY KEY (id),
+  CONSTRAINT email_accounts_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.email_imports (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  email_account_id uuid,
+  provider text NOT NULL CHECK (provider = ANY (ARRAY['gmail'::text, 'outlook'::text])),
+  message_id text NOT NULL,
+  received_at timestamp with time zone,
+  subject text,
+  snippet text,
+  raw_payload jsonb,
+  parse_status text NOT NULL DEFAULT 'pending'::text CHECK (parse_status = ANY (ARRAY['pending'::text, 'parsed'::text, 'failed'::text])),
+  parse_error text,
+  flight_id uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT email_imports_pkey PRIMARY KEY (id),
+  CONSTRAINT email_imports_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id),
+  CONSTRAINT email_imports_email_account_id_fkey FOREIGN KEY (email_account_id) REFERENCES public.email_accounts(id),
+  CONSTRAINT email_imports_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES public.user_flights(id)
+);
+CREATE TABLE public.flight_documents (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  flight_id uuid NOT NULL,
+  profile_id uuid NOT NULL,
+  file_name text NOT NULL,
+  file_type text NOT NULL CHECK (file_type = ANY (ARRAY['pdf'::text, 'image'::text, 'other'::text])),
+  mime_type text NOT NULL,
+  file_size bigint NOT NULL,
+  storage_path text NOT NULL,
+  storage_bucket text NOT NULL DEFAULT 'flight-documents'::text,
+  public_url text,
+  signed_url text,
+  signed_url_expires_at timestamp with time zone,
+  document_type text DEFAULT 'other'::text CHECK (document_type = ANY (ARRAY['boarding_pass'::text, 'booking_confirmation'::text, 'receipt'::text, 'other'::text])),
+  is_cached boolean DEFAULT false,
+  cache_path text,
+  uploaded_at timestamp with time zone DEFAULT now(),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT flight_documents_pkey PRIMARY KEY (id),
+  CONSTRAINT flight_documents_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES public.user_flights(id),
+  CONSTRAINT flight_documents_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.flight_users (
+  flight_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  assigned_by uuid NOT NULL,
+  status text NOT NULL DEFAULT 'assigned'::text CHECK (status = ANY (ARRAY['assigned'::text, 'accepted'::text, 'declined'::text])),
+  can_edit boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT flight_users_pkey PRIMARY KEY (flight_id, user_id),
+  CONSTRAINT flight_users_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES public.user_flights(id),
+  CONSTRAINT flight_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT flight_users_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.note_templates (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid,
+  purpose text NOT NULL CHECK (purpose = ANY (ARRAY['business'::text, 'private'::text])),
+  title text NOT NULL,
+  content text,
+  is_default boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT note_templates_pkey PRIMARY KEY (id),
+  CONSTRAINT note_templates_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.notifications (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  fire_at timestamp with time zone NOT NULL,
+  kind text NOT NULL,
+  payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  status text NOT NULL DEFAULT 'pending'::text,
+  local_id text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  full_name text,
+  avatar_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  account_type text NOT NULL DEFAULT 'worker'::text CHECK (account_type = ANY (ARRAY['worker'::text, 'company'::text])),
+  invite_code text UNIQUE,
+  preferences jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.spatial_ref_sys (
+  srid integer NOT NULL CHECK (srid > 0 AND srid <= 998999),
+  auth_name character varying,
+  auth_srid integer,
+  srtext character varying,
+  proj4text character varying,
+  CONSTRAINT spatial_ref_sys_pkey PRIMARY KEY (srid)
+);
+CREATE TABLE public.user_achievements (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  achievement_id text NOT NULL,
+  unlocked_at timestamp with time zone NOT NULL DEFAULT now(),
+  metadata jsonb DEFAULT '{}'::jsonb,
+  CONSTRAINT user_achievements_pkey PRIMARY KEY (id),
+  CONSTRAINT user_achievements_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_achievements_achievement_id_fkey FOREIGN KEY (achievement_id) REFERENCES public.achievements(id)
+);
+CREATE TABLE public.user_checklist_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  checklist_id uuid NOT NULL,
+  text text NOT NULL,
+  checked boolean NOT NULL DEFAULT false,
+  order_idx integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_checklist_items_pkey PRIMARY KEY (id),
+  CONSTRAINT user_checklist_items_checklist_id_fkey FOREIGN KEY (checklist_id) REFERENCES public.user_checklists(id)
+);
+CREATE TABLE public.user_checklists (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  flight_id uuid NOT NULL,
+  purpose text NOT NULL DEFAULT 'private'::text CHECK (purpose = ANY (ARRAY['business'::text, 'private'::text])),
+  title text NOT NULL,
+  reminder_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_checklists_pkey PRIMARY KEY (id),
+  CONSTRAINT user_checklists_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_checklists_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES public.user_flights(id)
+);
+CREATE TABLE public.user_flights (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  from_airport_id bigint,
+  to_airport_id bigint,
+  flight_number text,
+  airline text,
+  date date NOT NULL,
+  confirmation_code text,
+  booking_reference text,
+  seat text,
+  gate text,
+  terminal text,
+  duration text,
+  distance text,
+  status text DEFAULT 'upcoming'::text CHECK (status = ANY (ARRAY['upcoming'::text, 'completed'::text, 'cancelled'::text])),
+  notes text,
+  images ARRAY,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  distance_km integer,
+  company_id uuid,
+  departure_at timestamp without time zone,
+  arrival_at timestamp without time zone,
+  CONSTRAINT user_flights_pkey PRIMARY KEY (id),
+  CONSTRAINT user_flights_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_flights_from_airport_id_fkey FOREIGN KEY (from_airport_id) REFERENCES public.airports(id),
+  CONSTRAINT user_flights_to_airport_id_fkey FOREIGN KEY (to_airport_id) REFERENCES public.airports(id),
+  CONSTRAINT user_flights_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id)
+);
+CREATE TABLE public.user_notes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  profile_id uuid NOT NULL,
+  flight_id uuid NOT NULL,
+  purpose text NOT NULL DEFAULT 'private'::text CHECK (purpose = ANY (ARRAY['business'::text, 'private'::text])),
+  title text NOT NULL DEFAULT 'Trip Note'::text,
+  content text,
+  reminder_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_notes_pkey PRIMARY KEY (id),
+  CONSTRAINT user_notes_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_notes_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES public.user_flights(id)
+);
+
+Policies:
+
+🔐 SKYLINE – AKTUELLE RLS POLICIES
+1️⃣ achievements
+Zweck
+
+Globale Achievement-Definitionen (öffentlich lesbar)
+
+create policy achievements_select_all
+on public.achievements
+for select
+to anon, authenticated
+using (true);
+2️⃣ airports
+Zweck
+
+Globale Airport-Datenbank (lesbar für alle, Insert für eingeloggte User)
+
+create policy "Allow public read access to airports"
+on public.airports
+for select
+to anon, authenticated
+using (true);
+
+create policy "Authenticated can select airports"
+on public.airports
+for select
+to authenticated
+using (true);
+
+create policy "Authenticated can insert airports"
+on public.airports
+for insert
+to authenticated
+with check (true);
+3️⃣ profiles
+Zweck
+
+Jeder User darf nur sein eigenes Profil verwalten
+Zusätzlich: Lesen von Profilen derselben Company
+
+create policy "Users can view own profile"
+on public.profiles
+for select
+to authenticated
+using (id = auth.uid());
+
+create policy "Users can update own profile"
+on public.profiles
+for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
+create policy "Users can insert own profile"
+on public.profiles
+for insert
+to authenticated
+with check (id = auth.uid());
+
+create policy "Read profiles of same-company members"
+on public.profiles
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.company_members me
+    join public.company_members other
+      on other.company_id = me.company_id
+    where me.profile_id = auth.uid()
+      and other.profile_id = public.profiles.id
+  )
+);
+4️⃣ user_flights
+Zweck
+
+User darf nur eigene Flüge sehen und bearbeiten
+
+create policy "Users can view own user_flights"
+on public.user_flights
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy "Users can insert own user_flights"
+on public.user_flights
+for insert
+to authenticated
+with check (profile_id = auth.uid());
+
+create policy "Users can update own user_flights"
+on public.user_flights
+for update
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+
+create policy "Users can delete own user_flights"
+on public.user_flights
+for delete
+to authenticated
+using (profile_id = auth.uid());
+5️⃣ email_accounts
+Zweck
+
+User verwaltet nur eigene Mail-Accounts
+
+create policy "Users can manage own email accounts"
+on public.email_accounts
+for all
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+6️⃣ email_imports
+Zweck
+
+Nur eigene Import-Jobs sichtbar
+
+create policy "Users can view own email imports"
+on public.email_imports
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy "Users can insert own email imports"
+on public.email_imports
+for insert
+to authenticated
+with check (profile_id = auth.uid());
+
+create policy "Users can update own email imports"
+on public.email_imports
+for update
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+
+create policy "Users can delete own email imports"
+on public.email_imports
+for delete
+to authenticated
+using (profile_id = auth.uid());
+7️⃣ calendar_accounts
+create policy "Users can view own calendar_accounts"
+on public.calendar_accounts
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy "Users can insert own calendar_accounts"
+on public.calendar_accounts
+for insert
+to authenticated
+with check (profile_id = auth.uid());
+
+create policy "Users can update own calendar_accounts"
+on public.calendar_accounts
+for update
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+
+create policy "Users can delete own calendar_accounts"
+on public.calendar_accounts
+for delete
+to authenticated
+using (profile_id = auth.uid());
+8️⃣ user_notes
+create policy notes_select_own
+on public.user_notes
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy notes_insert_own
+on public.user_notes
+for insert
+to authenticated
+with check (profile_id = auth.uid());
+
+create policy notes_update_own
+on public.user_notes
+for update
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+
+create policy notes_delete_own
+on public.user_notes
+for delete
+to authenticated
+using (profile_id = auth.uid());
+9️⃣ user_checklists
+create policy checklists_select_own
+on public.user_checklists
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy checklists_insert_own
+on public.user_checklists
+for insert
+to authenticated
+with check (profile_id = auth.uid());
+
+create policy checklists_update_own
+on public.user_checklists
+for update
+to authenticated
+using (profile_id = auth.uid())
+with check (profile_id = auth.uid());
+
+create policy checklists_delete_own
+on public.user_checklists
+for delete
+to authenticated
+using (profile_id = auth.uid());
+🔟 user_checklist_items (über Parent-Row abgesichert)
+create policy items_select_via_parent
+on public.user_checklist_items
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.user_checklists c
+    where c.id = checklist_id
+      and c.profile_id = auth.uid()
+  )
+);
+
+create policy items_insert_via_parent
+on public.user_checklist_items
+for insert
+to authenticated
+with check (
+  exists (
+    select 1
+    from public.user_checklists c
+    where c.id = checklist_id
+      and c.profile_id = auth.uid()
+  )
+);
+
+create policy items_update_via_parent
+on public.user_checklist_items
+for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.user_checklists c
+    where c.id = checklist_id
+      and c.profile_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.user_checklists c
+    where c.id = checklist_id
+      and c.profile_id = auth.uid()
+  )
+);
+
+create policy items_delete_via_parent
+on public.user_checklist_items
+for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.user_checklists c
+    where c.id = checklist_id
+      and c.profile_id = auth.uid()
+  )
+);
+1️⃣1️⃣ notifications
+create policy "Notifications are insertable by owner"
+on public.notifications
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+create policy "Notifications are selectable by owner"
+on public.notifications
+for select
+to authenticated
+using (user_id = auth.uid());
+
+create policy "Notifications are updatable by owner"
+on public.notifications
+for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+1️⃣2️⃣ user_achievements
+create policy "Users can view own user_achievements"
+on public.user_achievements
+for select
+to authenticated
+using (profile_id = auth.uid());
+
+create policy "Users can insert own user_achievements"
+on public.user_achievements
+for insert
+to authenticated
+with check (profile_id = auth.uid());

@@ -1,70 +1,171 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Technische Umsetzung und Architektur}\label{chapter:technik}
 Dieses Kapitel beschreibt die technische Architektur von Skyline und fasst die
-Umsetzung der in Kapitel 4 bis 7 detailliert behandelten Module aus technischer
-Sicht zusammen. Skyline wurde primär als \textbf{native iOS-App} entwickelt und
-ist im \textbf{Apple App Store} verfügbar. Android wird als sekundäre
-Zielplattform unterstützt, wurde im Projektzeitraum jedoch weniger umfangreich
-getestet. Weitere projektbezogene Details finden sich in
-Abschnitt~\ref{sec:projektumsetzung}.
+Umsetzung aller Module aus technischer Sicht zusammen. Die vier
+Forschungsmodule (Import, Datenverwaltung, Weltkarte, Benachrichtigungen) werden
+in Kapitel~4 bis~7 im Detail behandelt. Darüber hinaus enthält Skyline weitere
+Funktionen wie Flugverwaltung, Dokumente, Notizen, Checklisten, Statistiken,
+Company-Features und Gamification, die in diesem Kapitel technisch beschrieben
+werden. Skyline wurde primär als \textbf{native iOS-App} entwickelt und ist im
+\textbf{Apple App Store} verfügbar. Android wird als sekundäre Zielplattform
+unterstützt, wurde im Projektzeitraum jedoch weniger umfangreich getestet.
 
 \section{Systemarchitektur}
 Die Architektur folgt einem Client-Server-Modell mit mobiler App und Supabase
-als Backend. Die App kommuniziert über Services mit der Datenbank und dem
-Storage \cite{supabasePlatform}.
-\begin{figure}[h]
+als Backend. Die App wird mit React Native und Expo umgesetzt und kommuniziert
+über eine Service-Schicht mit der Datenbank und dem Storage; sämtliche API-Calls
+laufen über HTTPS/REST. Die Service-Schicht kapselt die Logik für Supabase-Zugriffe,
+Dokumentenverwaltung, Reminder-Planung und Import-Prozesse. Details zu den vier
+Forschungsmodulen siehe Abschnitt~\ref{sec:projektumsetzung} sowie Kapitel~4--7
+\cite{supabasePlatform,reactNative,expoDocs}.
+
+\begin{figure}[H]
   \centering
-  \fbox{\parbox{0.8\textwidth}{TODO: Architekturdiagramm (Client, Services, Supabase) einfügen.}}
-  \caption{TODO: Systemarchitektur von Skyline}
-  \label{fig:todo_architektur}
+  \begin{tikzpicture}[
+    archbox/.style={draw, rounded corners, align=center, minimum width=2.8cm, minimum height=0.85cm, font=\small},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[archbox] (client) at (0, 2.2) {Mobile Client\\(React Native + Expo\\iOS-primär)};
+    \node[archbox] (services) at (0, 0.3) {Service-Schicht\\(Supabase, Document,\\Reminder, Import)};
+    \node[archbox] (supabase) at (5.8, 1.25) {Supabase\\(Auth, Postgres, RLS,\\Storage)};
+
+    \draw[arrow] (client.south) -- node[right, font=\scriptsize] {API-Calls} (services.north);
+    \draw[arrow] (services.east) -- node[above, font=\scriptsize] {HTTPS/REST} (supabase.west);
+  \end{tikzpicture}
+  \caption{Systemarchitektur von Skyline: Client, Service-Schicht und Supabase-Backend}
+  \label{fig:architektur}
 \end{figure}
 \subsection{Client (React Native + Expo, iOS-primär)}
-Der Client basiert auf React Native und Expo, nutzt Expo Router und eine
-modulare Komponentenstruktur \cite{reactNative,expoDocs}. Der
-\textbf{iOS-Build} wird über EAS Build erzeugt und im Apple App Store
-bereitgestellt; ein Android-Build existiert, wurde aber im Projektzeitraum
-deutlich weniger getestet.
+Der Client basiert auf React Native und Expo und nutzt Expo Router für die
+Navigation sowie eine modulare Komponentenstruktur \cite{reactNative,expoDocs}.
+Der globale Anwendungszustand wird mit Zustand verwaltet; Flugdaten, Nutzerprofil
+und Einstellungen werden dort zentral gehalten. Der \textbf{iOS-Build} wird über
+EAS Build erzeugt und im Apple App Store bereitgestellt; ein Android-Build
+existiert, wurde aber im Projektzeitraum deutlich weniger getestet. Die App
+nutzt native iOS-APIs für Kamera, Fotoauswahl und Datei-Picker über die
+jeweiligen Expo-Module.
+
 \subsection{Backend (Supabase + Postgres)}
-Supabase liefert Authentifizierung, Postgres-Datenbank, Realtime und RLS
-\cite{supabasePlatform,supabaseAuth,supabaseRLS}.
+Supabase liefert Authentifizierung (Supabase Auth), eine Postgres-Datenbank,
+optional Realtime-Subscriptions und Row-Level Security (RLS)
+\cite{supabasePlatform,supabaseAuth,supabaseRLS}. Die Datenbank enthält u.\,a.
+Tabellen für \texttt{profiles}, \texttt{user\_flights}, \texttt{user\_notes},
+\texttt{user\_checklists}, \texttt{flight\_documents}, \texttt{companies},
+\texttt{company\_members} und \texttt{notifications}. Alle operativen Tabellen
+sind durch RLS-Policies geschützt; Zugriffe sind auf den authentifizierten
+Nutzer bzw.\ die Firmenzugehörigkeit beschränkt.
+
 \subsection{Storage (Dokumente, Bilder)}
-Dokumente und Bilder werden in Storage-Buckets abgelegt und über signierte
-URLs bereitgestellt \cite{supabaseStorage}.
+Dokumente und Bilder werden im privaten Storage-Bucket \texttt{flight-documents}
+abgelegt und über zeitlich begrenzte signierte URLs bereitgestellt
+\cite{supabaseStorage}. Metadaten (Dateiname, MIME-Type, Größe, Storage-Pfad)
+werden in \texttt{flight\_documents} gespeichert. Kein öffentlicher Direktzugriff
+ist möglich; jeder Dateizugriff erfordert eine gültige Signed URL.
 \section{Technologien}
 Die Technologieauswahl orientiert sich am Pflichtenheft und an mobiler
-Cross-Platform-Entwicklung.
+Cross-Platform-Entwicklung. Skyline nutzt einen einheitlichen Tech-Stack;
+die Implementierung erfolgt konsequent in TypeScript.
+
 \subsection{Frontend-Stack}
-React Native, Expo, TypeScript, Zustand für State-Management und
-React Native Maps für die Karte \cite{reactNative,expoDocs,reactNativeMaps}.
-Der Primär-Deployment-Kanal ist der \textbf{Apple App Store} (iOS); Android
-ist als sekundäre Plattform vorgesehen.
+React Native und Expo bilden die Basis der mobilen Oberfläche
+\cite{reactNative,expoDocs}. Expo Router übernimmt die Navigation; Zustand
+verwaltet den globalen Anwendungszustand (Flüge, Nutzerprofil, Settings).
+React Native Maps wird für die Kartenvisualisierung genutzt; auf iOS kommt
+das native MapKit-Framework zum Einsatz \cite{reactNativeMaps}. Der
+Primär-Deployment-Kanal ist der \textbf{Apple App Store} (iOS); Android ist
+als sekundäre Plattform vorgesehen.
+
 \subsection{Backend-Stack}
-Supabase, Postgres, RLS-Policies und Storage für Dateiverwaltung
-\cite{supabasePlatform,supabaseRLS,supabaseStorage}.
-\subsection{APIs (Aviationstack, OCR, Maps, Email-Import)}
-Aviationstack liefert Airport-Daten, OCR extrahiert Text aus Dokumenten und
-Maps-APIs stellen Kartendaten bereit \cite{aviationstack}.
+Supabase liefert Auth, Postgres, Realtime und Storage. RLS-Policies sichern
+alle operativen Tabellen; der Zugriff erfolgt ausschließlich über den
+authentifizierten Supabase-Client \cite{supabasePlatform,supabaseRLS,supabaseStorage}.
+
+\subsection{APIs (Aviationstack, OCR, Maps, E-Mail-Konzept)}
+Aviationstack liefert Airport-Stammdaten (IATA-Codes, Koordinaten)
+\cite{aviationstack}. OCR (z.\,B.\ Tesseract oder Cloud-APIs) extrahiert Text
+aus Bildern und PDFs für den Import. Maps-APIs stellen Kartendaten bereit;
+Expo bzw.\ das native OS liefern Geodaten. Tabellen wie \texttt{email\_accounts}
+und \texttt{email\_imports} sind im Schema vorbereitet, um einen späteren,
+OAuth-basierten E-Mail-Import zu ermöglichen; ein produktiv nutzbarer,
+vollständig integrierter E-Mail-Import ist im aktuellen Stand jedoch nicht
+umgesetzt.
 \section{Funktionalitaet}
-Die App deckt Flüge, Dokumente, Stats, Notifications und Company-Funktionen ab.
+Skyline deckt neben den vier Forschungsmodulen weitere Funktionen ab: Flugverwaltung,
+Dokumente, Notizen, Checklisten, Statistiken, Company-Features und Gamification.
+Die Forschungsmodule (Import, Datenverwaltung, Weltkarte, Notifications) werden
+in Kapitel~4--7 im Detail behandelt; die übrigen Features sind ausschließlich
+in diesem Kapitel und in Abschnitt~\ref{sec:projektumsetzung} beschrieben.
+
 \subsection{Flugverwaltung (CRUD)}
-Flüge können erstellt, bearbeitet und gelöscht werden; Zeiten und Distanzen
-werden automatisch berechnet.
-\subsection{Import (QR/OCR/E-Mail)}
-Importfunktionen erlauben die schnelle Übernahme von Flugdaten.
+Flüge bilden die Kernentität der App. Nutzer können Flüge anlegen (manuell oder
+über Import), bearbeiten und löschen. Die Tabelle \texttt{user\_flights} speichert
+u.\,a.\ Airline, Flugnummer, Abflug-/Zielairport, \texttt{departure\_at},
+\texttt{arrival\_at}, Status und \texttt{company\_id}. Zeiten und Flugdistanzen
+werden automatisch berechnet. Die Flugverwaltung ist die Basis, an die alle
+anderen Module (Notizen, Checklisten, Dokumente, Reminder) über \texttt{flight\_id}
+angebunden sind. Details zum Datenmodell und RLS siehe
+Kapitel~\ref{chapter:datenverwaltung}.
+
+\subsection{Import (QR/OCR/Dokumente)}
+Importfunktionen erlauben die schnelle Übernahme von Flugdaten aus QR-Codes
+(BCBP) sowie aus Bildern und PDF-Dokumenten (z.\,B.\ exportierte E-Mail-
+Buchungsbestätigungen) per OCR. Die Umsetzung nutzt die Kamera, Fotoauswahl
+und Datei-Picker über Expo-Module sowie BCBP-Parsing; Validierung, Feld-
+Mapping und Deduplizierung sichern die Datenqualität. Ein direkter Zugriff
+auf E-Mail-Postfächer (IMAP/OAuth-Sync) ist im aktuellen Implementierungsstand
+nicht vorhanden, sondern lediglich konzeptionell vorbereitet. Details siehe
+Kapitel~\ref{chapter:import}.
+
 \subsection{Map \& Animation}
-Flugrouten werden geodätisch visualisiert und mit Animationen ergänzt.
+Flugrouten werden geodätisch als Great-Circle-Polylines visualisiert; auf iOS
+kommt MapKit zum Einsatz. Die Live-Position des Flugzeugs wird über Zeitstempel
+interpoliert. Nutzer können zwischen vergangenen und bevorstehenden Flügen
+filtern. Details siehe Kapitel~\ref{chapter:weltkarte}.
+
 \subsection{Notifications}
-Lokale Benachrichtigungen mit Offsets und Quiet Hours unterstützen die
-Reiseorganisation. Push-Benachrichtigungen laufen über APNs (iOS),
-da Skyline primär für iOS entwickelt wurde; FCM (Android) ist als
-künftige Erweiterung vorgesehen, aber noch nicht vollständig getestet.
-\subsection{Dokumente / Notizen / Checklisten}
-Reisende können Dokumente hochladen und Notizen/Checklisten pflegen.
+Lokale Benachrichtigungen mit Offsets (T-24h Check-in, T-60m/T-30m Boarding,
+T-12h Missing Docs, T+2h Receipt) und Quiet Hours unterstützen die
+Reiseorganisation. Push-Benachrichtigungen laufen über APNs (iOS); FCM (Android)
+ist als sekundäre Erweiterung vorgesehen. Die Registry (\texttt{notifications})
+persistiert geplante Reminder serverseitig. Details siehe
+Kapitel~\ref{chapter:notifications}.
+
+\subsection{Dokumente}
+Reisende können Flugdokumente (Boarding-Pass, Buchungsbestätigung, Quittungen)
+hochladen. Dokumente liegen im Storage-Bucket \texttt{flight-documents};
+Metadaten in \texttt{flight\_documents}. Der Zugriff erfolgt über zeitlich
+begrenzte Signed URLs. Details zu Signed URLs, Caching und Fehlerbehandlung
+siehe Kapitel~\ref{chapter:datenverwaltung}.
+
+\subsection{Notizen und Checklisten}
+Nutzer können freitextliche Notizen (\texttt{user\_notes}) und Checklisten
+(\texttt{user\_checklists}, \texttt{user\_checklist\_items}) pro Flug anlegen.
+Checklisten können optional mit einem Erinnerungszeitpunkt (\texttt{reminder\_at})
+versehen werden; die Reminder-Logik nutzt den \texttt{noteChecklistReminderService}.
+Beides ist über \texttt{flight\_id} an den Flug gebunden und RLS-gesichert.
+Technische Grundlage ist dieselbe Datenverwaltung wie in Kapitel~5.
+
 \subsection{Statistiken \& Export}
-Statistiken zeigen Distanz, Länder und Flugzeiten; CSV-Export ist möglich.
-Die Berechnungen basieren auf den in der Flugverwaltung gespeicherten Daten;
-Distanzen werden mittels Haversine-Formel ermittelt (Kapitel 6).
+Statistiken aggregieren Flugdistanzen, besuchte Länder und Flugzeiten aus
+\texttt{user\_flights}. Distanzen werden mittels Haversine-Formel berechnet
+(vgl.\ Implementierung in Kapitel~\ref{chapter:weltkarte}). CSV-Export
+ermöglicht die Weitergabe der Daten an externe Abrechnungssysteme.
+
 \subsection{Company-Features (Invite, Join, Dashboard)}
-Unternehmensfunktionen ermöglichen Team-Management, Einladungen und gemeinsame
-Übersichten. Die Details sind in der projektbezogenen Umsetzung
-(Abschnitt~\ref{sec:projektumsetzung}) dokumentiert.
+Unternehmensfunktionen ermöglichen Team-Management: Firmen (\texttt{companies})
+können Nutzer per Einladungscode einladen; \texttt{company\_members} und
+\texttt{company\_invites} steuern Mitgliedschaft und Einladungsstatus. Nutzer
+derselben Firma sehen gemeinsam ausgewertete Flugdaten, indem Flüge über
+\texttt{user\_flights.company\_id} der jeweiligen Company zugeordnet werden.
+Das Company-Dashboard aggregiert z.\,B.\ Gesamtstrecken, bereiste Länder und
+Anzahl der Flüge auf Unternehmensebene und unterstützt damit interne Reports
+oder firmeninterne Gamification-Ansätze (z.\,B.\ teamübergreifende Challenges).
+Details zum Datenmodell siehe Kapitel~\ref{chapter:datenverwaltung}.
+
+\subsection{Gamification (Achievements)}
+Achievements (\texttt{achievements}, \texttt{user\_achievements}) motivieren
+Nutzer durch Meilensteine (z.\,B.\ erste Flugreise, bestimmte Strecke). Die
+Achievement-Definitionen sind global lesbar; freigeschaltete Achievements sind
+pro Nutzer in \texttt{user\_achievements} mit \texttt{unlocked\_at} und
+\texttt{metadata} gespeichert. Toast-Nachrichten und haptisches Feedback
+unterstützen die Rückmeldung bei Aktionen.

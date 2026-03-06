@@ -1,0 +1,13 @@
+Great Circle Route vs. gerade Linie
+
+Dateiname im Ordner: great_circle_route.png
+Zielpfad in der Arbeit: content/img/great_circle_route.png
+
+Beschreibung:
+Visualisierung der kürzesten Flugstrecke auf der Erdoberfläche (Großkreisbogen) im Vergleich zur geraden Linie auf einer 2D-Kartenprojektion.
+Zeigt, warum Flugrouten als Kurven erscheinen und nicht als direkte Verbindungslinien.
+
+Quellenvorschlag: GIS Geography
+URL: https://gisgeography.com (Great-Circle-Shortest-Flight-Path.png)
+
+Format: PNG, ca. 80% Textbreite

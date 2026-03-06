@@ -21,7 +21,7 @@ Der Flow ist bewusst so gestaltet, dass er sowohl Einmalnutzer (schneller Scan k
 Die Entscheidung \glqq Manual vs.\ Import\grqq{} steht immer am Anfang, danach werden die einzelnen Schritte (Scan, OCR, Preview, Speichern) über eine einfache Zustandsmaschine (\texttt{currentStep}) gesteuert.
 Fehlerzustände (z.\,B.\ fehlende Berechtigungen oder fehlgeschlagene OCR) führen nie in einen \glqq Dead-End\grqq{}, sondern immer zurück in einen klar definierten Zustand des Flows (erneuter Versuch oder manuelle Eingabe).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.46\textwidth]{content/img/additionflow.png}\hfill
   \includegraphics[width=0.46\textwidth]{content/img/uploads.png}
@@ -95,7 +95,9 @@ const handleBarCodeScanned = async (result: { data: string }) => {
 Die eigentliche BCBP-Parsinglogik ist in \texttt{bcbp.ts} gekapselt.
 Sie implementiert die stringbasierte Feldextraktion nach IATA-Standard:
 BCBP-Nachrichten sind als strukturierte Messages mit festen Feldlängen aufgebaut \cite{iataBCBP}.
-Aus dem Rohstring werden u.\,a.\ Name, Buchungsreferenz, Flughäfen und Flugnummer extrahiert; das Flugdatum liegt als Julian Day-of-Year vor und wird in ein ISO-Datum konvertiert.
+Aus dem Rohstring werden u.\,a.\ Name, Buchungsreferenz, Flughäfen und Flugnummer extrahiert;
+das Flugdatum liegt als sogenannter \glqq Julian day of the year\grqq{} \cite{wikipediaJulianDay} vor und wird in ein
+ISO-Datum konvertiert.
 
 \begin{lstlisting}[caption={BCBP-Parser in Skyline (\texttt{bcbp.ts})},label={lst:bcbp_parser}]
 export type ParsedBCBP = {
@@ -158,6 +160,16 @@ export function parseBCBP(raw: string): ParsedBCBP | null {
   }
 }
 \end{lstlisting}
+
+Unter dem hier verwendeten Begriff \glqq Julian day of the year\grqq{} wird die fortlaufende
+Tagesnummer innerhalb eines Kalenderjahres verstanden (z.\,B.\ 1.~Jänner = Tag~1,
+31.~Dezember = Tag~365 bzw.~366) \cite{wikipediaJulianDay}.
+Diese Darstellung vereinfacht Datumsberechnungen und Sortierungen, da Zeitpunkte über eine
+einzige Ganzzahl repräsentiert werden können.
+Die Implementierung in \texttt{julianToISODate} folgt diesem vereinfachten Ansatz und
+überführt die Tagesnummer in ein standardkonformes ISO-Datum; sie verwendet damit bewusst
+nicht das astronomische julianische Datum, sondern die in vielen Bibliotheken übliche
+Tageszählung innerhalb des Kalenderjahres.
 
 Besonders wichtig ist hier die Kombination aus strenger Standard-Implementierung (fixe String-Positionen, Füllzeichen) und defensiver Programmierung:
 Bei ungültigen oder zu kurzen Codes wird \texttt{null} zurückgegeben, der Import bricht mit einer verständlichen Fehlermeldung ab und der Nutzer kann einen erneuten Scan versuchen.
@@ -224,9 +236,10 @@ const processDocument = async (uri: string) => {
       encoding: 'base64' as any,
     });
 
-    // MIME-Typ aus Dateiendung bestimmen
+    // MIME-Typ aus Dateiendung/URI bestimmen (file:// kann .pdf enthalten)
     const lower = uri.toLowerCase();
-    const isPdf = lower.endsWith('.pdf');
+    const isPdf = lower.endsWith('.pdf')
+      || (lower.startsWith('file://') && lower.includes('.pdf'));
     const isPng = lower.endsWith('.png');
     const mime  = isPdf ? 'application/pdf'
                         : (isPng ? 'image/png' : 'image/jpg');
@@ -302,15 +315,14 @@ Damit wird die inhärente Unsicherheit von OCR-Auswertungen nicht versteckt, son
 
 Buchungsbestätigungen liegen im Alltag meist als E-Mail mit eingebetteter HTML-Darstellung oder als angehängtes PDF vor.
 Aus Datenschutzgründen implementiert Skyline keinen direkten Zugriff auf das E-Mail-Postfach, sondern folgt einem nutzerzentrierten Modell:
-Relevante Bestätigungen werden vom Nutzer selbst exportiert (z.\,B.\ als PDF oder Screenshot) und anschließend über den Dokumentenimport hochgeladen.
+Relevante Bestätigungen werden vom Nutzer selbst exportiert (z.\,B.\ als PDF oder Screenshot) und anschließend hochgeladen.
 Damit wird vermieden, dass große Mengen personenbezogener Daten automatisiert im Hintergrund verarbeitet werden \cite{gdpr,edpbArt25}.
 
-Der \texttt{DocumentUploadModal} stellt drei Wege zur Verfügung:
-Scan eines Boardingpasses mit der Kamera, Import eines PDFs oder Bilds aus dem Dateidialog sowie Import eines bestehenden Screenshots aus der Galerie.
-Die hochgeladenen Dokumente werden in einem dedizierten Service verarbeitet:
-\texttt{DocumentService.uploadDocument} liest die Datei, bestimmt MIME- und Dokumenttyp (z.\,B.\ \texttt{booking\_confirmation}) und legt sowohl den Binärinhalt im Supabase-Storage als auch passende Metadaten in der Tabelle \texttt{flight\_documents} ab \cite{supabaseStorage}.
+\textbf{Flug-Import (QR/OCR/Datei):} Der \emph{Add-Flight-Import}-Flow (\texttt{add-flight-import.tsx}) bietet die drei Wege zum Anlegen eines \emph{neuen} Flugs: Scan eines Boardingpasses mit der Kamera, Import eines PDFs oder Bilds aus dem Dateidialog sowie Auswahl eines Screenshots aus der Galerie. Die Datei wird per OCR ausgewertet, Flugdaten extrahiert und nach Validierung als neuer Flug gespeichert.
 
-Damit ist die Buchungsbestätigung sowohl als Originaldokument verfügbar als auch -- sofern über OCR analysiert -- Quelle für strukturierte Flugdaten.
+\textbf{Dokumente an bestehenden Flug anhängen:} Der \texttt{DocumentUploadModal} dient dem Hochladen weiterer Dokumente zu einem \emph{bereits angelegten} Flug (z.\,B.\ aus der Trip-Detailansicht oder der Dokumentenliste). \texttt{DocumentService.uploadDocument} liest die Datei, bestimmt MIME- und Dokumenttyp und legt den Binärinhalt im Supabase-Storage sowie Metadaten in \texttt{flight\_documents} ab \cite{supabaseStorage}. Die Koppelung erfolgt über \texttt{flight\_id}.
+
+Damit ist die Buchungsbestätigung sowohl als Originaldokument verfügbar als auch -- sofern im Add-Flight-Import über OCR analysiert -- Quelle für strukturierte Flugdaten.
 Unterschiedliche E-Mail-Layouts werden bewusst nicht mit hart kodierten Templates adressiert; stattdessen setzt Skyline auf robuste, generische Erkennungsmuster und manuelle Korrekturmöglichkeiten.
 Die Koppelung an einen konkreten Flug erfolgt über das Feld \texttt{flight\_id} in \texttt{flight\_documents} (siehe Kapitel~\ref{chapter:datenverwaltung}):
 Wird ein Dokument direkt aus der Trip-Detailansicht hochgeladen, ist der Kontextflug bereits gesetzt; lädt der Nutzer ein Dokument aus dem globalen \glqq Travel Documents\grqq{}-Bereich, wird zunächst der Ziel-Flug gewählt und erst dann der Upload gestartet.

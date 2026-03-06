@@ -23,7 +23,16 @@ ermöglicht vollständige Transparenz und Rückverfolgbarkeit im Unternehmenskon
 
 \section{Ausblick und zukünftige Entwicklungen}
 \subsection{Erweiterungsmöglichkeiten der App}
-Mögliche Erweiterungen umfassen die Integration weiterer Transportmittel (Zug, Hotel), erweiterte Analytics-Funktionen und verbesserte Team-Kollaboration.
+Mögliche Erweiterungen umfassen die Integration weiterer Transportmittel (Zug, Hotel), erweiterte Analytics-Funktionen und verbesserte Team-Kollaboration. Darüber hinaus bieten sich folgende Ausbaustufen an:
+
+\begin{itemize}
+  \item \textbf{E-Mail-Import:} Automatischer Import aus E-Mail-Postfächern (IMAP/OAuth).
+  \item \textbf{Weitere Internationalisierung:} Zusätzliche Sprachen und alternative Datumsformate.
+  \item \textbf{BCBP-Erweiterungen:} Sitzplatz-Visualisierung, Boarding-Reihenfolge, Multi-Leg-Parsing (bis zu vier Legs).
+  \item \textbf{Echtzeit-Daten:} Anzeige von Verspätungen, Umleitungen und weiteren Live-Informationen.
+  \item \textbf{Zusätzliche Visualisierungen:} Erweiterte Darstellungsmöglichkeiten auf der Weltkarte und in den Statistiken.
+  \item \textbf{Android-Testabdeckung und Google Play Store:} Vollständige Validierung der Android-Variante sowie Veröffentlichung im Google Play Store.
+\end{itemize}
 
 \subsection{Verbesserungspotenziale}
-Verbesserungspotenziale liegen in der Erweiterung der Testabdeckung, der Optimierung der Performance bei sehr großen Datenmengen und der Erweiterung der Import-Funktionen.
+Verbesserungspotenziale liegen vor allem in der Performance-Optimierung: schnellere Datenbankabfragen durch gezielte Indizes und Query-Batching, kürzere Ladezeiten durch Prefetch und Caching (z.\,B.\ Flughafenlisten, Dokumente), Reduktion von Re-Renders und Lazy Loading bei großen Listen sowie Polyline-Vereinfachung und Virtualisierung für die Kartenvisualisierung bei vielen Flügen.

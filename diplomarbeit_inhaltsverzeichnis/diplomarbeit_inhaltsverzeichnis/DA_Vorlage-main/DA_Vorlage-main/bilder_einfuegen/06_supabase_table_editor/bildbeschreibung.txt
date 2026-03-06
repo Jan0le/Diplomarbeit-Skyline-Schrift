@@ -1,0 +1,14 @@
+Supabase Table Editor – user_flights
+
+Dateiname im Ordner: supabase_table_editor.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+Screenshot aus dem Supabase Dashboard:
+  - Table Editor öffnen
+  - Tabelle „user_flights“ auswählen
+  - Spaltenübersicht mit Datentypen, Foreign Keys und Constraints sichtbar
+
+Soll die Tabellenstruktur von user_flights dokumentieren.
+
+Format: PNG, ca. 88% Textbreite

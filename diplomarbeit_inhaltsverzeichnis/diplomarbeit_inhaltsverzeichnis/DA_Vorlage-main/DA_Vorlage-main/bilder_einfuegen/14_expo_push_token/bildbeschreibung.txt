@@ -1,0 +1,12 @@
+Expo Push Token im App-Profil
+
+Dateiname im Ordner: expo_push_token.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+Screenshot: Expo Push Token im App-Profil sichtbar.
+  - Entweder: App → Profil/Settings, wo der Token angezeigt wird
+  - Oder: Supabase → Table Editor → Tabelle mit Token-Registry (notifications o.ä.)
+  - Zeigt die Registrierung des Geräts für Push-Benachrichtigungen
+
+Format: PNG, ca. 88% Textbreite

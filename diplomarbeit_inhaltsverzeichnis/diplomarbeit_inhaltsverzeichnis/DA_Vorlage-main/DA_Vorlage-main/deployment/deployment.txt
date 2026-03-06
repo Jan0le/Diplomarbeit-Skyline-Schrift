@@ -1,0 +1,14 @@
+Build-Konfiguration (4.9.1):
+Welches EAS-Profil wurde genutzt? -> production!
+Schema-Name - keinen
+Wichtige Environment-Variablen - in der env Datei aber weiter nicht wichtig (außer du brauchst was bestimmtes, wenn ja sags mir)
+TestFlight (4.9.3):
+Wurde TestFlight genutzt?
+Wenn ja: ja wurde genutzt, tester wir als Entwickler und weiters auch Klassenkollegen 
+Review-Prozess (4.9.4):
+Gab es Rückfragen oder Ablehnungen?
+ja gab es: es wurde einmal abgelehnt wegen Mehrsprachigkeit und fehlenden QR code den sie wollten um die scan Funktion zu testen! (siehe verlauf-rückfragen.png (zeigt den verlauf bis zur annahme der app)
+Anzahl und Formate der Store-Screenshots (z. B. 6× iPhone 6,7", 6× iPhone 6,5") – falls du das dokumentieren möchtest.
+es wurde ein 6'5 Display verwendet! store screenshots -> siehe ordner "screens"
+
+und Quelle für Testflight: https://www.ralfebert.de/ios/testflight-tutorial/

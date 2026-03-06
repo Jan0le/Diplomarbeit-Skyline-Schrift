@@ -1,0 +1,11 @@
+Projektscreenshot (Prelude/Kurzfassung)
+
+Dateiname im Ordner: projekt_screenshot.png
+Zielpfad in der Arbeit: 0_prelude/ oder content/img/
+
+Beschreibung:
+Projektscreenshot oder Kartenansicht für die Kurzfassung (da_doku_de.tex / da_doku_en.tex).
+  - Z.B. Home-Screen oder Map-Ansicht von Skyline
+  - Soll die App im Rahmen der Projektdokumentation vorstellen
+
+Format: PNG, ca. 67% Textbreite

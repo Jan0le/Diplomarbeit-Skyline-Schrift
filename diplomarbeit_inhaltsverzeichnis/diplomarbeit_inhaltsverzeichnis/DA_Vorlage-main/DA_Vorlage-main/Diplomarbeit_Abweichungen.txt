@@ -1,0 +1,283 @@
+================================================================================
+ABWEICHUNGSPRÜFUNG: diplomarbeit.md vs. Projekt
+================================================================================
+Erstellt zur Gegenüberstellung der Diplomarbeit mit dem tatsächlichen 
+Projektstand. Alle Abweichungen in Formulierungen, Architektur, Tabellen, 
+Code-Snippets und nicht vorhandenen Features.
+
+================================================================================
+
+1. "Native iOS-App" und "Apple App Store verfügbar"
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (mehrfach):
+- "Skyline wurde als native iOS-App entwickelt und ist im Apple App Store 
+  verfügbar." (z. B. Abschnitt 2.3, 4, 4.9, 5, 7, 8)
+- "primär für iOS entwickelt", "iOS-primär", "im Apple App Store bereitgestellt"
+
+PROJEKTREALITÄT:
+- Die App ist mit React Native und Expo umgesetzt, also cross-platform 
+  (iOS und Android).
+- "Native iOS" trifft nur in dem Sinne zu, dass auf dem Gerät ein nativer 
+  Build läuft; die Entwicklung ist nicht in Swift/Objective-C, sondern 
+  in TypeScript/React.
+- Ob die App tatsächlich im Apple App Store veröffentlicht ist, lässt sich 
+  aus dem Repo nicht belegen (kein Store-Link, kein Nachweis).
+
+EMPFEHLUNG:
+Formulierung auf "mit React Native/Expo entwickelte mobile App, primär für 
+iOS getestet/vorgesehen" umstellen; "im Apple App Store verfügbar" nur 
+stehen lassen, wenn die App tatsächlich dort gelistet ist.
+
+================================================================================
+
+2. Tabelle flight_users existiert nicht / wird nicht genutzt
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- Abb. 6.1 (Datenmodell): "flight_users" als Tabelle mit 1:n-Beziehung.
+- Abschnitt 4.6.1: "Gemeinsame Firmenflüge werden über flight_users zugeordnet."
+- Abschnitt 4.9.8: "flight_users ordnet Nutzer Firmenflügen zu."
+
+PROJEKTREALITÄT:
+- Es gibt KEINE Tabelle flight_users und KEINEN Verweis darauf in den 
+  App-Services.
+- Firmenflüge werden über user_flights.company_id und company_members 
+  abgebildet: Flüge mit gesetzter company_id gehören zur Firma; Zugriff 
+  erfolgt über die Mitglieder in company_members.
+
+EMPFEHLUNG:
+"flight_users" in Text und Abbildung entfernen bzw. durch 
+"user_flights (company_id) + company_members" ersetzen.
+
+================================================================================
+
+3. Invite-System: company_invites vs. companies.invite_code
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- Abschnitt 4.9.8: "Firmen können Nutzer per Einladungscode (company_invites) 
+  einladen."
+- Im Schema existiert die Tabelle company_invites (complete_working_schema.sql).
+
+PROJEKTREALITÄT:
+- Der genutzte Einladungsfluss ist in services/companyService.ts 
+  implementiert und basiert auf:
+  - companies.invite_code (8-stelliger Code),
+  - company_members (Beitritt mit Rolle 'worker').
+- Die Tabelle company_invites wird im App-Code NICHT verwendet 
+  (kein Import, keine Abfragen).
+
+EMPFEHLUNG:
+In der Doku klarstellen, dass der implementierte Beitritt über 
+companies.invite_code und company_members läuft; "company_invites" nur 
+erwähnen, wenn als geplante/alternative Struktur dokumentiert.
+
+================================================================================
+
+4. Quellcode Invite-Code-Generierung (Quellcode 4.5)
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (Quellcode 4.5):
+  const candidate = Array.from({ length: 8 }, () =>
+    INVITE_CODE_ALPHABET[Math.floor(Math.random() * INVITE_CODE_ALPHABET.length)]
+  ).join('');
+
+IM PROJEKT (services/companyService.ts):
+  const generateInviteCode = () => {
+    let code = '';
+    for (let i = 0; i < INVITE_CODE_LENGTH; i += 1) {
+      code += INVITE_CODE_ALPHABET.charAt(Math.floor(Math.random() * INVITE_CODE_ALPHABET.length));
+    }
+    return code;
+  };
+
+EMPFEHLUNG:
+Quellcode 4.5 in der Diplomarbeit an die tatsächliche Implementierung 
+(for-Schleife + charAt) anpassen.
+
+================================================================================
+
+5. RLS-Policy "Read profiles of same-company members" (Quellcode 6.2)
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- Policy mit me.profile_id und other.profile_id in Bezug auf company_members.
+
+PROJEKTREALITÄT:
+- In complete_working_schema.sql hat company_members die Spalte user_id 
+  (FK auf auth.users(id)), KEIN profile_id.
+- profiles.id entspricht auth.users.id; für "gleiche Firma" wird über 
+  company_members.user_id und Join gearbeitet.
+
+EMPFEHLUNG:
+Quellcode 6.2 so anpassen, dass user_id statt profile_id in company_members 
+verwendet wird (oder exakten Policy-Text aus dem Schema übernehmen).
+
+================================================================================
+
+6. BCBP-Typ ParsedBCBP (Quellcode 5.2)
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- flight enthält ein Feld status.
+
+IM PROJEKT (Skyline ticket ausleser/bcbp.ts):
+- Der Typ ParsedBCBP enthält KEIN status-Feld unter flight 
+  (nur number, date, departure, arrival).
+
+EMPFEHLUNG:
+Im Quellcode 5.2 der Diplomarbeit das Feld status aus der Typdefinition 
+entfernen.
+
+================================================================================
+
+7. Mapbox / Deck.gl vs. React Native Maps
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (Abschnitt 3.3.2):
+- "Render-Bibliotheken wie Mapbox GL JS oder Deck.gl nutzen 
+  GPU-beschleunigtes Rendering …"
+
+PROJEKTREALITÄT:
+- In der App wird React Native Maps verwendet (laut Diplomarbeit selbst 
+  in 4.2.1/4.2.3: MapKit auf iOS, Google Maps auf Android). 
+  Mapbox und Deck.gl kommen im Projekt NICHT vor.
+
+EMPFEHLUNG:
+Im theoretischen Teil klarstellen, dass es sich um allgemeine Beispiele 
+aus der Literatur handelt, oder den Satz auf "Bibliotheken wie React 
+Native Maps (MapKit/Google Maps) …" umstellen.
+
+================================================================================
+
+8. E-Mail-Import und emailImportService.ts
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT / README:
+- E-Mail-Import wird konzeptionell und in der Aufgabenstellung erwähnt.
+- README.md listet unter der Struktur emailImportService.ts auf.
+
+PROJEKTREALITÄT:
+- Die Datei emailImportService.ts existiert NICHT im Projekt.
+- E-Mail-Buchungsbestätigungen werden über OCR von Screenshots/PDFs 
+  verarbeitet; die Tabellen email_accounts und email_imports sind im 
+  Schema vorhanden, aber ein dedizierter E-Mail-Parser-Service ist 
+  nicht implementiert.
+
+EMPFEHLUNG:
+In der Diplomarbeit und README eindeutig machen: E-Mail-Import ist 
+geplant/vorgesehen, aktuell umgesetzt ist OCR-basierter Import von 
+Screenshots/PDFs; Verweis auf emailImportService.ts aus README 
+entfernen oder als "geplant" kennzeichnen.
+
+================================================================================
+
+9. CSV-Export (Company-Statistiken)
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (Abschnitt 4.5.2, 4.9.7):
+- "Ein CSV-Export gibt alle relevanten Felder aus user_flights aus und 
+  ermöglicht die Weitergabe an externe Abrechnungssysteme."
+
+PROJEKTREALITÄT:
+- Im Repo wurde KEIN CSV-Export für Flüge oder Company-Statistiken 
+  gefunden (keine Funktion, kein Button, kein Datei-Export).
+
+EMPFEHLUNG:
+Entweder CSV-Export implementieren oder in der Diplomarbeit auf 
+"geplant" / "vorgesehen" setzen bzw. den Satz streichen.
+
+================================================================================
+
+10. Aviationstack-Schreibweise
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- Durchgängig "Aviationstack" (ein Wort).
+
+PROJEKTREALITÄT:
+- In services/airportApiService.ts wird "Aviationstack" bzw. 
+  "aviationstack" verwendet; die offizielle API ist aviationstack.com. 
+  Schreibweise inhaltlich konsistent; ggf. einheitlich wählen.
+
+================================================================================
+
+11. processDocument – PDF-Pfad (Quellcode 5.4)
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (Quellcode 5.4):
+  const isPdf = lower.endsWith('.pdf');
+
+IM PROJEKT (app/add-flight-import.tsx):
+- Zusätzlich: lower.startsWith('file://') && lower.includes('.pdf') 
+  (weil manche URIs als file:///…/…pdf kommen).
+
+EMPFEHLUNG:
+Quellcode 5.4 um die file://-Prüfung ergänzen.
+
+================================================================================
+
+12. Dokumenten-Upload: DocumentUploadModal und DocumentService.uploadDocument
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT (5.1.3):
+- "Der DocumentUploadModal stellt drei Wege zur Verfügung: Scan …, 
+  Import eines PDFs …, Import eines Screenshots …"
+- "DocumentService.uploadDocument liest die Datei, … legt … Binärinhalt 
+  im Supabase-Storage … und … Metadaten in flight_documents ab."
+
+PROJEKTREALITÄT:
+- DocumentUploadModal existiert und wird für Dokument-Upload genutzt.
+- Der Import von Boarding-Pass/PDF (QR/OCR) passiert im Add-Flight-Import-
+  Screen (Kamera/Galerie/Datei → OCR → Flug anlegen). Der DocumentUploadModal 
+  dient dem Hochladen von Dokumenten zu einem BEREITS angelegten Flug 
+  (Trip-Details/Dokumentenliste), NICHT dem initialen "drei Wege"-Import.
+
+EMPFEHLUNG:
+In 5.1.3 trennen: (1) Flug-Import (QR/OCR/Datei) im Add-Flight-Import-Flow, 
+(2) Anhängen weiterer Dokumente an einen bestehenden Flug über 
+DocumentUploadModal und documentService.
+
+================================================================================
+
+13. Checklisten: reminder_at
+--------------------------------------------------------------------------------
+IN DER DIPLOMARBEIT:
+- "Checklisten können optional mit einem Erinnerungszeitpunkt 
+  (reminder_at) versehen werden."
+
+PROJEKTREALITÄT:
+- user_checklists hat reminder_at; store nutzt noteChecklistReminderService. 
+  Inhaltlich korrekt.
+
+HINWEIS:
+In der Doku ggf. zwischen user_notes.reminder_at und 
+user_checklists.reminder_at sprachlich klar trennen (beide haben Reminder).
+
+================================================================================
+
+14. Weitere kleine Punkte
+--------------------------------------------------------------------------------
+- airports-Tabelle (Tabelle 6.2): In der Diplomarbeit teils 
+  "id BIGINT (BIGSERIAL)" angegeben; Schema prüfen und Tabelle 6.2 
+  ggf. anpassen.
+
+- user_flights (Quellcode 6.3): Einige Felder (confirmation_code, 
+  booking_reference, seat, gate, terminal, notes, images, duration, 
+  distance) fehlen in der gezeigten Kerndefinition – entweder ergänzen 
+  oder als "vereinfacht" kennzeichnen.
+
+- TODO/Platzhalter: Mehrere "TODO: Screenshot einfügen", 
+  "TODO: Projektscreenshot", "Abbildung 4.2/4.3: Platzhalter" – vor 
+  Abgabe durch echte Inhalte ersetzen oder einheitlich kennzeichnen.
+
+================================================================================
+
+KURZÜBERBLICK
+--------------------------------------------------------------------------------
+Thema                    | Diplomarbeit              | Projekt                    | Handlung
+-------------------------|---------------------------|----------------------------|---------------------------
+Native iOS / App Store   | native iOS, App Store     | React Native/Expo, Cross    | Formulierung anpassen
+flight_users             | Erwähnt / Diagramm        | Existiert nicht            | Ersetzen durch company_id
+company_invites          | Für Einladung genutzt     | Nicht genutzt; invite_code | Doku umstellen
+Invite-Code-Generierung  | Array.from(…)              | for + charAt               | Quellcode 4.5 anpassen
+company_members          | policy profile_id         | Spalte user_id             | Quellcode 6.2 anpassen
+ParsedBCBP               | flight.status              | Kein status                | status entfernen
+Mapbox/Deck.gl           | Als genutzte Libs         | Nicht verwendet            | Theorie kennzeichnen
+E-Mail-Import            | Erwähnt / README          | Nicht implementiert        | Als geplant kennzeichnen
+CSV-Export               | Vorhanden beschrieben     | Nicht implementiert        | Geplant kennzeichnen/streichen
+processDocument isPdf    | nur .endsWith('.pdf')     | + file:// und .includes    | Quellcode 5.4 ergänzen
+DocumentUploadModal      | "Drei Wege" Flug-Import   | Modal für Docs an Flug     | Zwei Flows in 5.1.3 trennen
+
+================================================================================
+Ende der Abweichungsliste
+================================================================================

@@ -1,0 +1,10 @@
+Flug-Kalender mit Monatsansicht
+
+Dateiname im Ordner: flug_kalender.png
+Zielpfad in der Arbeit: content/img/
+
+Beschreibung:
+App-Screenshot: Flug-Kalender mit Monatsübersicht und Tagesdetails.
+Zeigt die Kalenderansicht mit eingetragenen Flügen.
+
+Format: PNG, iPhone-Screenshot, ca. 75% Textbreite

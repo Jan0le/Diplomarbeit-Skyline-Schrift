@@ -1,0 +1,526 @@
+seite 15 - grafik
+seite 27 - passt das bild überhaupt dazu?
+seite 32 - grafik
+seite 36 - grafik
+seite 38 - datenfluss -> text oob -> Grafik -> stimmt? 
+seite 39 -> wird wirklich ein neuer Airport created auch wenn es den in der API noch nicht gibt?
+seite 43 -> 4.7 Gamification (db erwähnungen eigentlich überflüssig?) | wo steht eig erklärung für company sinn? (1-2 sätze einbauen maybe)
+4.10 projektbezogene Umsetzung vll ausschreiben? 
+seite 49 - Julian day of the year (Quelle und erklärung vll)
+seite 61 - text außerhalb der seite 
+seite 63 - tabelle airports - von api? und bild vll einfügen? - UND 6.3 und 6.2 (abbildungen) liegen ineinander
+seite 67 - text außerhalb
+seite 75 - cache invaliderung -> auf nächste seite maybe
+seite 78 (kapitel 6) - verbesserung nachvollziehbarkeit --> filter? was genau damit gemeint bzw wirklich filter gibt es nicht
+seite 85 - code ausschnitt bild dazwischen
+seite 90 - 7.1.4 -> sstimmt nicht ganz 
+seite 91 - 7.1.5 -> filter in flughistory nicht implementiert -> nicht erwähnen am besten
+seite 92 - 7.2 -> drei dimensionen stimmt nicht ganz -> siehe 7.2.1
+seite 101 - abbildung zwischen code
+seite 103 - 8.1.4 -> vielleciht noch bisschen eklären
+seite 108 - abbildung zwischen code
+seite 111 - 8.1.9 ist der screen implementiert in der fertigen app? -> wenn ja -> gut -> wenn nein -> sagen das es für das testen und funktionieren verwendetet wurde!
+seite 112 - 8.2 drei dimensionen anpassen auf 8.2.1
+seite 113 - 8.2.3 Testfunktion ?
+seite 114 - 9.1 - stimmen die kriterien?
+seite 114-115 - 9.3 - stimmen die kriterien, bewertungsmodule usw?
+seite 117 - 11.11 Beantwortung vll ausformulieren und 11.2.1 Erweiterungen ausschreiben
+
+
+
+
+
+wichtig: email-import -> nicht umgesetzt (s.38)
+
+ToDo:
+Abbildung 4.2
+4.9
+abbildung 6.7 und 8.2 und 8.3 und 8.5 --> spacing anpassen
+
+Allgemein -> code ausschnitte und sonstige ausschnitte schaun das man die auf eine seite bekommt .> nicht durch seiten abgeschnitten werden!
+
+
+Überprüfung 2:
+
+seite 15 - grafik - gehört noch bissl verhönert (linie geht durch text)
+seite 27 - anderes bild rein
+seite 32 - grafik
+seite 36 - grafik
+
+4.10 projektbezogene Umsetzung vll ausschreiben? 
+seite 49 - Julian day of the year (Quelle und erklärung vll)
+seite 61 - text außerhalb der seite 
+seite 63 - tabelle airports - von api? und bild vll einfügen? - UND 6.3 und 6.2 (abbildungen) liegen ineinander
+seite 67 - text außerhalb
+seite 75 - cache invaliderung -> auf nächste seite maybe
+seite 78 (kapitel 6) - verbesserung nachvollziehbarkeit --> filter? was genau damit gemeint bzw wirklich filter gibt es nicht
+seite 85 - code ausschnitt bild dazwischen
+seite 90 - 7.1.4 -> sstimmt nicht ganz 
+seite 91 - 7.1.5 -> filter in flughistory nicht implementiert -> nicht erwähnen am besten
+seite 92 - 7.2 -> drei dimensionen stimmt nicht ganz -> siehe 7.2.1
+seite 101 - abbildung zwischen code
+seite 103 - 8.1.4 -> vielleciht noch bisschen eklären
+seite 108 - abbildung zwischen code
+seite 111 - 8.1.9 ist der screen implementiert in der fertigen app? -> wenn ja -> gut -> wenn nein -> sagen das es für das testen und funktionieren verwendetet wurde!
+seite 112 - 8.2 drei dimensionen anpassen auf 8.2.1
+seite 113 - 8.2.3 Testfunktion ?
+seite 114 - 9.1 - stimmen die kriterien?
+seite 114-115 - 9.3 - stimmen die kriterien, bewertungsmodule usw?
+seite 117 - 11.11 Beantwortung vll ausformulieren und 11.2.1 Erweiterungen ausschreiben
+### Abweichungsdokument Skyline  
+*(Diplomarbeit vs. tatsächliche Implementierung – formelle, direkt übernehmbare Formulierungen)*  
+
+---
+
+## 1. Einleitung
+
+In diesem Dokument werden wesentliche Abweichungen zwischen der Beschreibung in der Diplomarbeit und der tatsächlich implementierten Version der Skyline‑Applikation dargestellt.  
+Für jede betroffene Stelle werden der Inhalt der Diplomarbeit (Soll‑Beschreibung), der reale Implementierungsstand (Ist‑Zustand) sowie konkrete Vorschläge für die Anpassung von Text und Abbildungen formuliert.  
+Ziel ist es, die Konsistenz zwischen Dokumentation und Software sicherzustellen und insbesondere unimplementierte oder nur konzeptionell vorhandene Funktionen korrekt einzuordnen.
+
+---
+
+## 2. Detailbetrachtung nach Seiten
+
+### 2.1 Seite 15 – Übersichtsgrafik
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Auf Seite 15 befindet sich eine Übersichtsgrafik, welche die grundlegende Architektur bzw. den Aufbau der Skyline‑Applikation darstellt. In der aktuellen Fassung wird die Applikation tendenziell als „native iOS‑App“ präsentiert, ohne die tatsächliche technische Basis (React Native/Expo) deutlich hervorzuheben.
+
+**Ist‑Zustand (Implementierung)**  
+Die Skyline‑App ist mit React Native und Expo umgesetzt. Technisch handelt es sich damit um eine Cross‑Platform‑Lösung, die primär für iOS entwickelt und getestet wurde. Für die Kartendarstellung wird React Native Maps verwendet, welches auf iOS MapKit und auf Android Google Maps nutzt.
+
+**Abweichung**  
+Die Grafik suggeriert eine klassische native iOS‑Implementierung, während in der Realität eine React‑Native‑/Expo‑Lösung eingesetzt wird.
+
+**Korrekturvorschlag (Text für Bildunterschrift/Beschreibung)**  
+> „Abbildung X zeigt die grundlegende Architektur der Skyline‑Applikation. Die mobile App wird mit React Native und Expo umgesetzt und ist primär für iOS entwickelt und getestet. Für die Kartendarstellung kommt React Native Maps zum Einsatz, welches auf iOS MapKit und auf Android Google Maps verwendet.“
+
+---
+
+### 2.2 Seite 27 – Passung der Abbildung zum Text
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Auf Seite 27 wird eine Abbildung gezeigt, die einen bestimmten Aspekt der Applikation illustrieren soll (z. B. einen konkreten Screen oder einen Teil des Workflows).
+
+**Ist‑Zustand (Implementierung)**  
+Die gezeigte Abbildung steht nur bedingt im Zusammenhang mit dem unmittelbar davor oder danach beschriebenen Inhalt. Es besteht die Gefahr, dass Leser:innen den Bezug zwischen Text und Bild nicht eindeutig erkennen können.
+
+**Abweichung**  
+Die Abbildung passt thematisch nicht oder nur unzureichend zum beschriebenen Inhalt.
+
+**Korrekturvorschlag (Option A – Abbildung austauschen)**  
+> „Die auf Seite 27 verwendete Abbildung wird durch einen Screenshot ersetzt, der exakt den im zugehörigen Abschnitt beschriebenen Screen darstellt. Dadurch wird der Zusammenhang zwischen Text und Abbildung für Leser:innen klarer nachvollziehbar.“
+
+**Korrekturvorschlag (Option B – Bild als Beispiel kennzeichnen)**  
+> „Abbildung X zeigt einen beispielhaften Bildschirm der Skyline‑App. Die Abbildung dient der Veranschaulichung des allgemeinen Erscheinungsbildes und ist nicht unmittelbar dem in diesem Abschnitt beschriebenen Use‑Case zugeordnet.“
+
+---
+
+### 2.3 Seite 32 – Architektur-/Datenmodellgrafik
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Die Grafik auf Seite 32 stellt Teile der Systemarchitektur bzw. des Datenmodells dar, unter anderem die Beziehungen zwischen Nutzer:innen, Flügen, Firmen und ggf. weiteren Entitäten.
+
+**Ist‑Zustand (Implementierung)**  
+Im aktuellen Datenmodell werden Firmenflüge über die Tabelle `user_flights` (mit `company_id`) sowie die Tabelle `company_members` abgebildet. Ältere oder konzeptionelle Tabellen wie etwa ein separates `flight_users`‑Konstrukt werden in der implementierten Version nicht verwendet.
+
+**Abweichung**  
+Die Grafik kann noch veraltete Tabellen oder Beziehungskonzepte enthalten, die in der tatsächlichen Implementierung nicht mehr existieren.
+
+**Korrekturvorschlag (Textergänzung zur Grafik)**  
+> „Das in Abbildung X dargestellte Datenmodell basiert auf den Tabellen `user_flights`, `companies` und `company_members`. Firmenflüge werden dadurch abgebildet, dass Flüge in `user_flights` mit einer `company_id` versehen werden und die Zuordnung von Nutzer:innen zu Firmen über `company_members` erfolgt. Veraltete Entitäten aus früheren Konzeptionen (z. B. eine separate Zuordnungstabelle für Flüge und Nutzer:innen) werden in der implementierten Version nicht mehr verwendet.“
+
+---
+
+### 2.4 Seite 36 – Systemübersichts- oder Modulgrafik
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Die Abbildung auf Seite 36 zeigt voraussichtlich eine Systemübersicht mit verschiedenen Modulen (z. B. Import, Auswertung, Gamification, Firmenmodul, E‑Mail‑Verarbeitung).
+
+**Ist‑Zustand (Implementierung)**  
+In der implementierten Version existieren zentrale Module wie Flugimport (Boarding‑Pässe, PDF/Screenshots), Auswertung/Statistiken und Firmenfunktionen. Ein automatischer E‑Mail‑Import ist hingegen nicht umgesetzt.
+
+**Abweichung**  
+Falls in der Grafik der E‑Mail‑Import als vollwertiges Modul dargestellt ist, entspricht dies nicht der Realität.
+
+**Korrekturvorschlag**  
+> „In der Systemübersicht (Abbildung X) werden ausschließlich die in der implementierten Version vorhandenen Module dargestellt. Der ursprünglich konzipierte automatische E‑Mail‑Import wird im Text als mögliche Erweiterung beschrieben, ist jedoch nicht Bestandteil der aktuell umgesetzten Lösung.“
+
+---
+
+### 2.5 Seite 38 – Datenfluss & E‑Mail‑Import
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Der Datenfluss beschreibt, auf welche Weise Flugdaten in das System gelangen. In der derzeitigen Fassung wird neben dem Import von Boarding‑Pässen und Dokumenten auch ein automatischer E‑Mail‑Import von Buchungsbestätigungen dargestellt bzw. erwähnt.
+
+**Ist‑Zustand (Implementierung)**  
+In der aktuellen Applikation existiert kein implementierter E‑Mail‑Import. Flugdaten werden über folgende Wege eingebracht:
+
+- Scan bzw. Auslesen von Boarding‑Pässen,
+- Import und Verarbeitung von PDFs bzw. Screenshots mit anschließender Auswertung (OCR/Parser),
+- manuelle Ergänzung bzw. Korrektur der Flugdaten.
+
+Ein eigenständiger Service zur automatischen Verarbeitung von E‑Mails ist nicht vorhanden.
+
+**Abweichung**  
+Die Diplomarbeit stellt den E‑Mail‑Import als umgesetzten Bestandteil des Datenflusses dar, obwohl dieses Feature in der Implementierung nur konzeptionell vorgesehen, aber nicht realisiert wurde.
+
+**Korrekturvorschlag (Formulierung für den Datenfluss‑Abschnitt)**  
+> „Flugdaten gelangen auf drei Wegen in das System: (1) über das Auslesen von Boarding‑Pässen, (2) über den Import von PDF‑Dokumenten bzw. Screenshots mit anschließender automatischer Auswertung sowie (3) über manuelle Ergänzungen durch die Nutzer:innen. Ein ursprünglich geplanter automatischer E‑Mail‑Import von Buchungsbestätigungen wurde im Rahmen dieser Arbeit konzeptionell vorgesehen, jedoch nicht implementiert. Der in den frühen Konzepten dargestellte E‑Mail‑Pfad ist daher als mögliche Erweiterung zu verstehen und nicht Bestandteil der aktuellen Implementierung.“
+
+---
+
+### 2.6 Seite 39 – Anlage neuer Airports
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es wird beschrieben, dass beim Anlegen eines Fluges für den Fall, dass ein Airport in der Datenbank bzw. API nicht vorhanden ist, ein neuer Airport‑Datensatz erzeugt wird.
+
+**Ist‑Zustand (Implementierung)**  
+In der Praxis wird davon ausgegangen, dass die verwendete externe API alle relevanten Flughäfen abdeckt. Ein spezielles Fallback‑Verhalten zur Anlage neuer Airports ist nicht erforderlich und daher nicht implementiert.
+
+**Abweichung**  
+Die beschriebene automatische Anlage eines neuen Airports bei Nichtexistenz in der API findet in der Realität nicht statt.
+
+**Korrekturvorschlag**  
+> „Für die Verwaltung von Flughäfen wird eine externe API verwendet, die alle relevanten Airports bereitstellt. Es wird davon ausgegangen, dass alle in der Anwendung benötigten Flughäfen in dieser API enthalten sind. Ein eigenes Fallback‑Verhalten zur automatischen Anlage neuer Airport‑Datensätze ist daher in der implementierten Version nicht vorgesehen. Die in der ursprünglichen Konzeption erwähnte automatische Erstellung neuer Airports wurde nicht umgesetzt.“
+
+---
+
+### 2.7 Seite 43 – Abschnitt 4.7 Gamification & Sinn der Company‑Funktion  
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Kapitel 4.7 erläutert das Gamification‑Konzept der Applikation. Dabei werden teilweise detaillierte Datenbankaspekte beschrieben. Der konkrete Nutzen der Company‑Funktion für Unternehmen wird nur am Rande oder nicht ausreichend hervorgehoben.
+
+**Ist‑Zustand (Implementierung)**  
+Die Gamification‑Funktionen bauen auf den in der Datenbank gespeicherten Flügen auf, stellen jedoch aus Nutzersicht primär Punkte, Kennzahlen und Auswertungen bereit. Die Company‑Funktion ermöglicht es Unternehmen, Flugdaten ihrer Mitarbeiter:innen gemeinsam auszuwerten und so z. B. bereiste Länder, Distanzen usw. auf Unternehmensebene zu analysieren.
+
+**Abweichung**  
+Die starke Fokussierung auf Datenbankdetails lenkt vom eigentlichen Nutzen der Gamification ab. Der konkrete Mehrwert der Company‑Funktion für Firmen wird zu wenig explizit erläutert.
+
+**Korrekturvorschlag (straffere Beschreibung Gamification + Company‑Sinn)**  
+> „Das Gamification‑Konzept von Skyline basiert auf den in der Datenbank gespeicherten Flugdaten. Aus Sicht der Nutzer:innen stehen nicht die technischen Details des Datenmodells im Vordergrund, sondern Kennzahlen wie Anzahl der Flüge, zurückgelegte Distanz oder CO₂‑Emissionen, die in Form von Auswertungen und spielerischen Elementen (z. B. Vergleiche, Ranglisten) aufbereitet werden.  
+>  Die Company‑Funktion ermöglicht es Unternehmen, Flugdaten ihrer Mitarbeiter:innen gemeinsam auszuwerten. Dadurch können beispielsweise Gesamtdistanzen Diese Auswertungen können sowohl für interne Berichte als auch für firmeninterne Gamification‑Ansätze (z. B. Wettbewerbe zwischen Teams) genutzt werden.“
+
+---
+
+### 2.8 Kapitel 4.10 – Projektbezogene Umsetzung
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Kapitel 4.10 skizziert die projektbezogene Umsetzung, bleibt jedoch relativ allgemein und stellt nicht klar heraus, welche Bestandteile tatsächlich implementiert wurden und welche nur konzeptionell vorhanden sind.
+
+**Ist‑Zustand (Implementierung)**  
+Die Implementierung umfasst unter anderem:
+
+- Datenhaltung in einer Supabase‑Datenbank mit Tabellen für Nutzerprofile, Flüge, Firmen und zugehörige Dokumente,
+- mehrere Importpfade für Flugdaten (Boarding‑Pass, Dokumente, manuelle Ergänzungen),
+- Auswertungs‑ und Visualisierungsfunktionen einschließlich grundlegender Gamification‑Elemente,
+- eine Company‑Funktion zur gemeinsamen Betrachtung von Flügen auf Unternehmensebene.
+
+Nicht umgesetzt wurden insbesondere ein automatischer E‑Mail‑Import sowie weitergehende Filter‑ und Exportfunktionen.
+
+**Abweichung**  
+Die aktuelle Fassung differenziert nicht ausreichend zwischen implementierten Funktionen und geplanten Erweiterungen.
+
+**Korrekturvorschlag (ausformulierter Absatz)**  
+> „In der projektbezogenen Umsetzung wurden die im vorangegangenen Kapitel beschriebenen konzeptionellen Überlegungen in eine lauffähige Applikation überführt. Die Datenhaltung erfolgt in einer Supabase‑Datenbank, welche Tabellen für Nutzerprofile, Flüge, Firmen und zugehörige Dokumente umfasst. Flugdaten können über das Auslesen von Boarding‑Pässen, den Import von PDF‑Dokumenten bzw. Screenshots sowie über manuelle Eingaben in das System eingebracht werden. Darauf aufbauend stellt die Anwendung Auswertungs‑ und Visualisierungsfunktionen sowie grundlegende Gamification‑Elemente bereit.  
+>  Ein ursprünglich geplanter automatischer E‑Mail‑Import von Buchungsbestätigungen sowie weitergehende Filter‑ und Exportfunktionen wurden im Rahmen dieser Arbeit aus Zeitgründen nicht umgesetzt und werden in Kapitel 11.2 als mögliche Erweiterungen beschrieben.“
+
+---
+
+### 2.9 Seite 49 – „Julian day of the year“
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Der Begriff „Julian day of the year“ wird verwendet, ohne vertiefte Erklärung oder Quellenangabe.
+
+**Ist‑Zustand (Implementierung)**  
+In der Implementierung wird der „Julian day of the year“ als laufende Tagesnummer innerhalb eines Kalenderjahres verwendet (z. B. 1. Januar = Tag 1, 31. Dezember = Tag 365/366), um Datumsberechnungen und Sortierungen zu vereinfachen.
+
+**Abweichung**  
+Ohne Erklärung kann der Begriff missverständlich sein, da er mit dem astronomischen „julianischen Datum“ verwechselt werden kann.
+
+**Korrekturvorschlag (Erklärung + Quelle)**  
+> „Unter dem im Folgenden verwendeten Begriff ‚Julian day of the year‘ wird die laufende Tagesnummer innerhalb eines Kalenderjahres verstanden (z. B. 1. Januar = Tag 1, 31. Dezember = Tag 365 bzw. 366). Diese Darstellung vereinfacht insbesondere Datumsberechnungen und Vergleiche, da Zeitpunkte durch eine fortlaufende Zahl repräsentiert werden können.  
+>  Vgl. hierzu etwa die Darstellung von Tagesnummern in gängigen Datumsbibliotheken sowie die Übersicht in einschlägigen Nachschlagewerken (z. B. [Wikipedia: „Julianisches Datum“], wobei in dieser Arbeit die vereinfachte Variante der Tagesnummer im Kalenderjahr verwendet wird).“
+
+---
+
+### 2.10 Seiten 61 und 67 – Text außerhalb des Satzspiegels
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Auf den Seiten 61 und 67 befindet sich Text, der optisch über den vorgesehenen Satzspiegel hinausragt.
+
+**Ist‑Zustand (Implementierung)**  
+Dies ist ein reines Layout‑Problem und hat keinen Bezug zur Implementierung.
+
+**Abweichung**  
+Durch den überstehenden Text entsteht ein unprofessioneller Eindruck des Dokuments.
+
+**Korrekturvorschlag (Layout‑Hinweis)**  
+> „Die Absätze auf den Seiten 61 und 67 sind so zu überarbeiten, dass der Text vollständig innerhalb des Satzspiegels liegt. Gegebenenfalls sind manuelle Zeilen‑ bzw. Seitenumbrüche oder geringfügige Anpassungen der Formatierung vorzunehmen.“
+
+---
+
+### 2.11 Seite 63 – Airports‑Tabelle und Abbildungen 6.2/6.3
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Die Tabelle zu den Airports sowie die zugehörigen Abbildungen werden auf Seite 63 dargestellt. Text und Layout lassen offen, ob die Airports manuell gepflegt oder über eine API bezogen werden. Zusätzlich überlappen sich die Abbildungen 6.2 und 6.3 teilweise.
+
+**Ist‑Zustand (Implementierung)**  
+Die Airports werden über eine externe API bereitgestellt; es wird davon ausgegangen, dass alle relevanten Flughäfen dort enthalten sind. Eine manuelle Pflege durch Nutzer:innen findet nicht statt.
+
+**Abweichung**  
+Die Rolle der API bei der Befüllung der Airports‑Tabelle wird nicht ausreichend deutlich, und die überlappenden Abbildungen beeinträchtigen die Lesbarkeit.
+
+**Korrekturvorschlag (Inhaltstext)**  
+> „Die in Tabelle 6.2 dargestellten Airports werden initial und bei Bedarf über eine externe Schnittstelle (z. B. aviationstack) in die Datenbank übernommen. Nutzer:innen legen keine Flughäfen manuell an, sondern referenzieren bestehende Einträge anhand ihrer IATA‑ bzw. ICAO‑Codes.“
+
+**Korrekturvorschlag (Layout)**  
+> „Die Abbildungen 6.2 und 6.3 sind so anzuordnen, dass sie sich nicht überlappen. Gegebenenfalls ist ein Seitenumbruch zwischen Tabelle und nachfolgender Abbildung einzufügen, um eine klare Trennung und gute Lesbarkeit sicherzustellen.“
+
+---
+
+### 2.12 Seite 75 – Cache‑Invalidierung
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Die Diplomarbeit beschreibt, dass nach bestimmten Aktionen Caches invalidiert bzw. aktualisiert werden, um dem Nutzer stets aktuelle Daten anzuzeigen.
+
+**Ist‑Zustand (Implementierung)**  
+In der Implementierung werden nach relevanten Aktionen (z. B. Import eines Fluges) die betroffenen Datenbereiche bzw. Stores aktualisiert, damit aktuelle Flugdaten und Statistiken sichtbar sind.
+
+**Abweichung**  
+Inhaltlich ist die Aussage korrekt, sie ist jedoch ungünstig am Seitenende platziert.
+
+**Korrekturvorschlag (Layout + kurze Präzisierung)**  
+> „Nach dem erfolgreichen Import eines Fluges oder der Änderung relevanter Daten werden die entsprechenden Datenbereiche der Anwendung (z. B. Flugliste und Statistiken) explizit neu geladen. Dadurch ist sichergestellt, dass Nutzer:innen unmittelbar den aktuellen Stand sehen. Der entsprechende Abschnitt zur Cache‑Invalidierung sollte vollständig auf einer Seite dargestellt werden, um den Zusammenhang nicht durch einen Seitenumbruch zu unterbrechen.“
+
+---
+
+### 2.13 Seite 78 (Kapitel 6) – „Verbesserung der Nachvollziehbarkeit“ durch Filter
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es wird ausgeführt, dass durch Filterfunktionen die Nachvollziehbarkeit der Daten verbessert wird.
+
+**Ist‑Zustand (Implementierung)**  
+In der Flug‑Historie existieren aktuell keine implementierten Filterfunktionen; es wird eine Liste (ggf. sortiert) dargestellt.
+
+**Abweichung**  
+Die zugeschriebene „Verbesserung der Nachvollziehbarkeit durch Filter“ ist faktisch nicht gegeben, da keine Filter vorhanden sind.
+
+**Korrekturvorschlag (neue Formulierung)**  
+> „Die Nachvollziehbarkeit der gespeicherten Flugdaten wird insbesondere durch eine klare zeitliche Sortierung und eine konsistente Darstellung der wichtigsten Kennzahlen verbessert. Erweiterte Filterfunktionen, etwa nach Zeitraum, Airline oder Verkehrsmittel, wären eine sinnvolle Ergänzung, konnten im Rahmen dieser Arbeit jedoch nicht mehr umgesetzt werden.“
+
+---
+
+### 2.14 Seiten 85, 101 und 108 – Abbildungen zwischen Code‑Ausschnitten
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Auf diesen Seiten werden Codebeispiele dargestellt, die durch Abbildungen unterbrochen werden.
+
+**Ist‑Zustand (Implementierung)**  
+Die Implementierung ist hiervon nicht betroffen; es handelt sich um Layoutfragen der Dokumentation.
+
+**Abweichung**  
+Die Unterbrechung von Code‑Blöcken durch Abbildungen erschwert das Verständnis des Beispiels und wirkt unübersichtlich.
+
+**Korrekturvorschlag (allgemein)**  
+> „Alle Code‑Beispiele sind so zu formatieren, dass sie jeweils als geschlossene Blöcke vollständig auf einer Seite dargestellt werden. Abbildungen sollten entweder vor oder nach dem jeweiligen Code‑Block platziert werden, jedoch nicht innerhalb eines laufenden Beispiels.“
+
+---
+
+### 2.15 Seite 90 – Abschnitt 7.1.4
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Abschnitt 7.1.4 beschreibt einen konkreten Funktionsumfang bzw. einen bestimmten Screen der Anwendung.
+
+**Ist‑Zustand (Implementierung)**  
+Die Beschreibung weicht in einzelnen Details von der final implementierten Version ab (z. B. Benennung von Schaltflächen, Reihenfolge von Schritten, verfügbare Optionen).
+
+**Abweichung**  
+Der Text bildet die tatsächliche Funktionalität nicht exakt ab.
+
+**Korrekturvorschlag (Allgemeinempfehlung)**  
+> „Der Abschnitt 7.1.4 ist anhand der finalen Version der Skyline‑App zu überarbeiten. Alle beschriebenen Schritte und Bedienelemente sollten der tatsächlichen Benutzeroberfläche entsprechen. Nicht vorhandene Optionen sind zu entfernen, geänderte Bezeichnungen (z. B. von Buttons oder Menüpunkten) sind anzupassen. Der Abschnitt sollte ausschließlich den tatsächlich implementierten Funktionsumfang beschreiben.“
+
+---
+
+### 2.16 Seite 91 – Abschnitt 7.1.5, Filter in der Flug‑Historie
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es werden Filterfunktionen in der Flug‑Historie beschrieben.
+
+**Ist‑Zustand (Implementierung)**  
+In der aktuellen Implementierung existieren keine Filter in der Flug‑Historie; es wird lediglich eine Liste der Flüge angezeigt.
+
+**Abweichung**  
+Die Beschreibung von Filtern ist sachlich falsch.
+
+**Korrekturvorschlag (Streichung bzw. Umformulierung)**  
+> „Die in einem frühen Konzept vorgesehenen Filterfunktionen für die Flug‑Historie (z. B. nach Zeitraum oder Verkehrsmittel) konnten im Rahmen der Implementierung nicht mehr realisiert werden und stehen in der aktuellen Version der Anwendung nicht zur Verfügung. Der Abschnitt 7.1.5 ist entsprechend zu kürzen bzw. anzupassen, sodass nur der tatsächlich implementierte Funktionsumfang beschrieben wird.“
+
+---
+
+### 2.17 Seite 92 – Abschnitt 7.2, „drei Dimensionen“
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es wird von „drei Dimensionen“ der Auswertung gesprochen, ohne klar zwischen echten 3D‑Darstellungen und drei Kennzahlen/Aspekten zu unterscheiden.
+
+**Ist‑Zustand (Implementierung)**  
+In der Implementierung werden drei zentrale Kennzahlen bzw. Aspekte visualisiert (vgl. detaillierte Beschreibung in 7.2.1). Es handelt sich nicht notwendigerweise um eine räumliche 3D‑Darstellung.
+
+**Abweichung**  
+Die Formulierung „drei Dimensionen“ kann missverständlich sein.
+
+**Korrekturvorschlag**  
+> „In der Auswertung werden drei zentrale Kennzahlen betrachtet, die im Folgenden als ‚Dimensionen‘ der Analyse bezeichnet werden (vgl. Abschnitt 7.2.1). Es handelt sich dabei nicht um eine räumliche 3D‑Darstellung, sondern um drei inhaltliche Aspekte, die in den Auswertungen kombiniert dargestellt werden.“
+
+---
+
+### 2.18 Seite 103 – Abschnitt 8.1.4
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Abschnitt 8.1.4 beschreibt eine Funktion oder einen Screen, bleibt dabei jedoch relativ knapp und technisch.
+
+**Ist‑Zustand (Implementierung)**  
+Die Funktion ist vorhanden, ihr Nutzen für die Anwender:innen könnte jedoch deutlicher hervorgehoben werden.
+
+**Korrekturvorschlag (Ergänzender Absatz)**  
+> „Die in Abschnitt 8.1.4 beschriebene Funktion trägt wesentlich zur Datenqualität und Nachvollziehbarkeit bei. Nutzer:innen erhalten an dieser Stelle die Möglichkeit, die automatisch erkannten Flugdaten zu überprüfen und bei Bedarf zu korrigieren oder zu ergänzen. Dadurch wird sichergestellt, dass die späteren Auswertungen und Gamification‑Elemente auf konsistenten und vollständigen Daten basieren.“
+
+---
+
+### 2.19 Seite 111 – Abschnitt 8.1.9, Test‑Screen
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es wird ein Screen detailliert beschrieben und dargestellt, der in der Praxis nur als Test‑ bzw. Entwicklungsscreen genutzt wurde.
+
+**Ist‑Zustand (Implementierung)**  
+Der in 8.1.9 dargestellte Screen ist in der finalen, für Nutzer:innen bestimmten Version der App nicht enthalten.
+
+**Abweichung**  
+Die Darstellung als regulärer Bestandteil der Anwendung ist irreführend.
+
+**Korrekturvorschlag**  
+> „Der in Abschnitt 8.1.9 dargestellte Screen wurde im Rahmen der Entwicklung als Test‑ und Prototypscreen verwendet. Er diente dazu, einzelne Komponenten und Abläufe der Anwendung zu prüfen, ist jedoch in der finalen Version der App nicht sichtbar. In der Dokumentation wird dieser Umstand explizit hervorgehoben, um eine klare Abgrenzung zwischen produktiven und rein testweisen Bestandteilen zu gewährleisten.“
+
+---
+
+### 2.20 Seite 112 – Abschnitt 8.2, „drei Dimensionen“
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Analog zu 7.2 wird auch hier von „drei Dimensionen“ gesprochen.
+
+**Ist‑Zustand (Implementierung)**  
+Die tatsächlichen getesteten Aspekte werden in 8.2.1 konkretisiert.
+
+**Abweichung**  
+Terminologisch besteht dieselbe Unschärfe wie in 7.2.
+
+**Korrekturvorschlag**  
+> „Im Rahmen der in Abschnitt 8.2 beschriebenen Tests werden drei zentrale Aspekte der Anwendung untersucht (vgl. 8.2.1). Anstelle einer räumlichen 3D‑Darstellung werden diese Aspekte in Form von getrennten Kennzahlen und Testfällen betrachtet.“
+
+---
+
+### 2.21 Seite 113 – Abschnitt 8.2.3, Testfunktion
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+Es wird eine Testfunktion beschrieben, die während der Entwicklung verwendet wurde.
+
+**Ist‑Zustand (Implementierung)**  
+Die Testfunktion steht Endnutzer:innen nicht zur Verfügung und wurde ausschließlich zu internen Testzwecken eingesetzt.
+
+**Abweichung**  
+Ohne zusätzlichen Hinweis kann der Eindruck entstehen, dass es sich um eine reguläre Nutzerfunktion handelt.
+
+**Korrekturvorschlag**  
+> „Die in Abschnitt 8.2.3 beschriebene Testfunktion wurde ausschließlich während der Entwicklung zur internen Qualitätssicherung verwendet und ist in der ausgelieferten Version der Anwendung nicht verfügbar. Sie dient daher lediglich der Dokumentation des Testvorgehens und nicht der Beschreibung eines produktiven Features.“
+
+---
+
+### 2.22 Seite 114 – Abschnitt 9.1, Bewertungskriterien
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+In 9.1 werden Kriterien zur Beurteilung des Projekterfolgs definiert, teilweise auch in Bezug auf Funktionen, die nicht vollständig umgesetzt wurden.
+
+**Ist‑Zustand (Implementierung)**  
+Einige ursprünglich geplante Funktionen (z. B. E‑Mail‑Import, erweiterte Filter‑ und Exportfunktionen) sind nicht vorhanden.
+
+**Abweichung**  
+Bewertungskriterien, die auf nicht umgesetzten Features basieren, sind für die tatsächliche Projektbewertung ungeeignet.
+
+**Korrekturvorschlag**  
+> „Die in Abschnitt 9.1 definierten Bewertungskriterien sind an den tatsächlich erreichten Funktionsumfang anzupassen. Kriterien, die auf nicht implementierten Funktionen (z. B. automatischer E‑Mail‑Import oder erweiterte Filter‑ und Exportmöglichkeiten) beruhen, werden entweder gestrichen oder als nicht erfüllt ausgewiesen. Auf diese Weise wird eine transparente und realistische Bewertung des Projekterfolgs ermöglicht.“
+
+---
+
+### 2.23 Seiten 114–115 – Abschnitt 9.3, Bewertungsmodule
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+In 9.3 wird eine detaillierte Bewertungsmatrix mit Modulen, Punkten und Gewichtungen beschrieben.
+
+**Ist‑Zustand (Implementierung)**  
+Ein Teil der Kriterien bezieht sich auf Funktionen, die nur konzeptionell vorhanden sind.
+
+**Abweichung**  
+Eine vollumfängliche positive Bewertung aller Kriterien ist nicht sachgerecht, wenn einzelne Features fehlen.
+
+**Korrekturvorschlag**  
+> „Die Bewertungsmatrix in Abschnitt 9.3 wird so überarbeitet, dass jedes Kriterium in Bezug auf den tatsächlich erreichten Umsetzungsstand bewertet wird. Funktionen, die nur konzeptionell vorgesehen, aber nicht implementiert wurden, werden als nicht erfüllt oder nur teilweise erfüllt gekennzeichnet. Die Gewichtungen sind gegebenenfalls anzupassen, sodass der Schwerpunkt der Bewertung auf den tatsächlich realisierten Kernfunktionen (Import, Visualisierung, grundlegende Gamification, Company‑Auswertungen) liegt.“
+
+---
+
+### 2.24 Seite 117 – Abschnitte 11.1.1 Beantwortung und 11.2.1 Erweiterungen
+
+**Soll‑Beschreibung (Diplomarbeit)**  
+11.1.1 fasst die Beantwortung der Forschungs‑ bzw. Projektfragen zusammen, 11.2.1 skizziert mögliche Erweiterungen.
+
+**Ist‑Zustand (Implementierung)**  
+Ein Teil der ursprünglich vorgesehenen Funktionen wurde nicht umgesetzt. Diese sollten nicht als erreicht, sondern als Erweiterung ausgewiesen werden.
+
+**Abweichung**  
+Die Trennung zwischen tatsächlich Erreichtem und geplanten Erweiterungen ist noch nicht klar genug.
+
+**Korrekturvorschlag (Beispiel für 11.1.1)**  
+> „Die in der Einleitung formulierten Forschungs‑ und Projektfragen konnten weitgehend beantwortet werden. Die Entwicklung der Skyline‑Applikation zeigt, dass sich Flugdaten aus unterschiedlichen Quellen (Boarding‑Pässe, PDF‑Dokumente, Screenshots und manuelle Eingaben) in einem zentralen System zusammenführen und auswerten lassen. Die grundlegenden Funktionen zur Visualisierung von Kennzahlen und zur Einbindung von Firmenkonten wurden erfolgreich implementiert.  
+>  Einzelne in der Konzeption vorgesehene Erweiterungen, wie etwa ein automatischer E‑Mail‑Import oder weitergehende Filter‑ und Exportfunktionen, konnten aus Zeitgründen nicht realisiert werden. Sie werden in Abschnitt 11.2 als mögliche Ausbaustufen diskutiert.“
+
+**Korrekturvorschlag (Beispiel für 11.2.1 Erweiterungen)**  
+> „Als mögliche Erweiterungen der Skyline‑Applikation bieten sich insbesondere folgende Punkte an:  
+>  – die Implementierung eines automatischen E‑Mail‑Imports von Buchungsbestätigungen,  
+>  – die Ergänzung erweiterter Filter‑ und Suchfunktionen in der Flug‑Historie und in den Auswertungen,  
+>  – die Bereitstellung von Exportmöglichkeiten (z. B. CSV‑ oder PDF‑Exporte) für Firmenberichte sowie  
+>  – die Ausweitung der Gamification‑Elemente, etwa in Form von teambezogenen Challenges oder zusätzlichen Auszeichnungen.  
+>  Diese Erweiterungen würden den Nutzen der Anwendung sowohl für Einzelpersonen als auch für Unternehmen weiter erhöhen, ohne die bestehende Architektur grundlegend verändern zu müssen.“
+
+---
+
+## 3. Allgemeine Layout‑ToDos
+
+- **Abbildungen 4.2 und 4.9**  
+  Die Abbildungen sind so zu wählen und zu beschriften, dass sie den jeweils beschriebenen Use‑Case bzw. Screen eindeutig wiedergeben. Platzhalter sollten vor Abgabe durch passende Screenshots aus der aktuellen Applikation ersetzt werden.
+
+- **Abbildungen 6.7, 8.2, 8.3 und 8.5**  
+  Der vertikale Abstand zu benachbarten Elementen (Überschriften, Tabellen, Text) ist zu erhöhen, sodass keine optischen Überlagerungen entstehen. Gegebenenfalls sind zusätzliche Seitenumbrüche einzufügen.
+
+- **Code‑Ausschnitte und Tabellen**  
+  Sämtliche Code‑Beispiele und Tabellen sind so zu positionieren, dass sie nicht durch Seitenumbrüche zerschnitten werden. Falls erforderlich, sind Seitenumbrüche vor den jeweiligen Blöcken zu setzen oder die Beispiele geringfügig zu kürzen.
+
+- **Texte außerhalb des Satzspiegels**  
+  Alle Seiten sind im Hinblick auf Texte außerhalb des Satzspiegels zu überprüfen. Entsprechende Absätze sind so umzuformatieren, dass die typografischen Vorgaben der Diplomarbeit eingehalten werden.
+
+---
+
+## 4. Übergeordnete inhaltliche Klarstellungen
+
+Zusätzlich zu den seitenweisen Anpassungen sollten im gesamten Dokument einige zentrale Punkte konsistent klargestellt werden:
+
+- **Technologie‑Stack der App**  
+  Die App ist mit React Native und Expo umgesetzt und primär für iOS entwickelt und getestet. Formulierungen, die eine klassische native iOS‑Entwicklung in Swift/Objective‑C suggerieren, sind zu vermeiden oder zu präzisieren.
+
+- **E‑Mail‑Import**  
+  Der automatische E‑Mail‑Import von Buchungsbestätigungen ist konzeptionell vorgesehen, wurde jedoch nicht implementiert. Überall, wo dieses Feature erwähnt wird, ist dies entsprechend zu kennzeichnen oder in den Erweiterungsteil (Kapitel 11.2) zu verschieben.
+
+- **Filter‑Funktionen in der Flug‑Historie**  
+  Da in der aktuellen Implementierung keine Filter in der Flug‑Historie vorhanden sind, sind diesbezügliche Beschreibungen zu streichen oder klar als geplante Erweiterung zu kennzeichnen.
+
+Mit den oben ausgearbeiteten Formulierungen und Hinweisen kann die Diplomarbeit konsistent an den aktuellen Stand der Skyline‑Implementierung angepasst werden.

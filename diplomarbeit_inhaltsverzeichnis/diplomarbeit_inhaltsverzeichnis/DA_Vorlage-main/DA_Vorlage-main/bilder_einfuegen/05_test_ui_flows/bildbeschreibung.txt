@@ -1,0 +1,11 @@
+Testfälle und UI-Flows
+
+Dateiname im Ordner: test_ui_flows.png (oder .jpg)
+Zielpfad: wird in 4_architektur.tex und 7_projektumsetzung.tex verwendet
+
+Beschreibung:
+Beispielhafte UI-Flows oder Testfall-Screenshots.
+Zeigt typische Testabläufe: z.B. Flug hinzufügen, Import durchführen, Trip-Details öffnen, Dokumente hochladen, Notizen/Checklisten, Statistiken prüfen.
+Kann eine Collage mehrerer Screenshots oder ein Ablaufdiagramm sein.
+
+Format: PNG/JPG, ca. 80–85% Textbreite

@@ -1,0 +1,13 @@
+Haversine-Formel visuell
+
+Dateiname im Ordner: haversine_sketch.png
+Zielpfad in der Arbeit: content/img/haversine_sketch.png
+
+Beschreibung:
+Skizze/Illustration zur Haversine-Formel – visuelle Erklärung der Distanzberechnung zwischen zwei Punkten auf der Erdoberfläche (Kugel).
+Zeigt die geometrische Bedeutung der Formel.
+
+Quellenvorschlag: Sketchplanations
+URL: https://sketchplanations.com/the-haversine-formula
+
+Format: PNG, ca. 50% Textbreite

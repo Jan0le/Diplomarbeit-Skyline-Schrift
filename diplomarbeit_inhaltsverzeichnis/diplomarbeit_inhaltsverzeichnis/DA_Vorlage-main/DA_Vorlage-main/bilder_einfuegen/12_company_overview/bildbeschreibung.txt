@@ -1,0 +1,10 @@
+Company-Screen mit Firmen-Statistiken
+
+Dateiname im Ordner: company_overview.png
+Zielpfad in der Arbeit: content/img/company_overview.png
+
+Beschreibung:
+App-Screenshot: Company-Übersicht mit aggregierten Firmen-Statistiken und Mitgliederliste.
+Zeigt das Company-Dashboard (bereiste Länder, Gesamtstrecke, Flüge pro Firma).
+
+Format: PNG, iPhone-Screenshot, ca. 75% Textbreite

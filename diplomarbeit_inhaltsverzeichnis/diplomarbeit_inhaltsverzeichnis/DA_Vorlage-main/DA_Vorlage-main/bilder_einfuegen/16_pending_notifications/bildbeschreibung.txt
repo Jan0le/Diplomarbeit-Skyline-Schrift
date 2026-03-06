@@ -1,0 +1,12 @@
+Pending-Notifications-Screen
+
+Dateiname im Ordner: pending_notifications.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+App-Screenshot: Pending-Notifications-Screen.
+  - Liste mit geplanten lokalen Notifications
+  - Registry-Einträge (Supabase notifications-Tabelle)
+  - Zeigt die geplanten Reminder für kommende Flüge
+
+Format: PNG, iPhone-Screenshot, ca. 88% Textbreite

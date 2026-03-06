@@ -1,0 +1,13 @@
+BCBP Feldstruktur (Übersicht)
+
+Dateiname im Ordner: bcbp_structure.png
+Zielpfad in der Arbeit: content/img/bcbp_structure.png
+
+Beschreibung:
+Übersicht über die BCBP-Feldstruktur (Bar Coded Boarding Pass) gemäß IATA-Standard.
+Zeigt die Anordnung und Bedeutung der einzelnen Felder im Barcode.
+
+Quellenvorschlag: SlidePlayer -- JCAA Aviation Seminar, BCBP Data Field Structure
+URL: https://slideplayer.com/slide/12543027/
+
+Format: PNG, ca. 85% Textbreite

@@ -1,0 +1,619 @@
+%!TEX root = ../DA_MainDocument.tex
+\chapter{Systemarchitektur \& technische Übersicht}\label{chapter:architektur}
+
+Dieses Kapitel beschreibt die Architektur von Skyline und die technische Umsetzung
+jener Features, die in den Implementierungskapiteln~5--8 nicht behandelt werden:
+Flugverwaltung, Dokumente, Notizen, Checklisten, Statistiken, Company-Features und
+Gamification. Die vier Forschungsmodule -- Import (Kapitel~\ref{chapter:import}),
+Datenverwaltung (Kapitel~\ref{chapter:datenverwaltung}), Weltkarte
+(Kapitel~\ref{chapter:weltkarte}) und Benachrichtigungen
+(Kapitel~\ref{chapter:notifications}) -- werden hier nur referenziert.
+
+Skyline wurde mit React Native und Expo als mobile Cross-Platform-App umgesetzt, im Projektzeitraum primär für iOS entwickelt und getestet und ist im \textbf{Apple App Store} verfügbar. Eine Android-Variante existiert, wurde jedoch weniger umfangreich validiert.
+
+% ============================================================
+\section{Systemarchitektur}
+% ============================================================
+
+Die Architektur folgt einem Client-Server-Modell: Die mobile App kommuniziert
+ausschließlich über HTTPS/REST mit Supabase als Backend. Eine zentrale
+\textbf{Service-Schicht} entkoppelt UI-Komponenten von der Datenhaltung und kapselt
+alle Supabase-Zugriffe, Dokumentenoperationen, Reminder-Planung und
+Import-Prozesse. Sämtliche Sicherheitslogik liegt in der Datenbank selbst (RLS);
+die Service-Schicht ist bewusst kein Sicherheitsmechanismus, sondern ein
+Wartbarkeits-Layer.
+
+\begin{figure}[H]
+  \centering
+  \vspace{1.5em}
+  \begin{tikzpicture}[
+    archbox/.style={draw, rounded corners, align=center, minimum width=3cm, minimum height=1cm, font=\small},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[archbox] (client) at (0, 3.8) {Mobile Client\\React Native + Expo\\(primär iOS getestet)};
+    \node[archbox] (services) at (0, 1.2) {Service-Schicht\\services/supabase.ts\\documentService, ocr, company};
+    \node[archbox] (supabase) at (6.2, 2.5) {Supabase\\Auth + Postgres\\RLS, Storage, Realtime};
+    \node[font=\scriptsize] (store) at (-1.8, 2.5) {store/index.ts};
+    \draw[arrow] (client.south) -- node[right, font=\scriptsize] {API-Calls} (services.north);
+    \draw[arrow] (services.east) -- node[above=3mm, pos=0.5, font=\scriptsize, fill=white, inner sep=2pt] {HTTPS/REST} (supabase.west);
+    \draw[->, dashed] (client.west) -- ++(-0.3,0) node[left, font=\scriptsize]{UI-Screens};
+  \end{tikzpicture}
+  \vspace{2.5em}
+  \caption{Systemarchitektur von Skyline: Client, Service-Schicht und Supabase-Backend}
+  \label{fig:architektur}
+\end{figure}
+
+\subsection{Client}
+
+Der Client basiert auf \textbf{React Native} und \textbf{Expo} \cite{reactNative,expoDocs}.
+\textbf{Expo Router} übernimmt die dateibasierte Navigation; der globale Anwendungszustand wird mit
+\textbf{Zustand} in einem zentralen Store (\texttt{store/index.ts}) verwaltet -- Flugdaten,
+Nutzerprofil und Einstellungen liegen dort zentral vor. Native iOS-APIs für Kamera,
+Fotoauswahl und Datei-Picker werden über die jeweiligen Expo-Module eingebunden. Der
+iOS-Build wird über \textbf{EAS Build} erzeugt und im \textbf{Apple App Store} bereitgestellt \cite{easBuild}.
+
+\subsection{Backend}
+
+\textbf{Supabase} liefert Authentifizierung (Supabase Auth), eine Postgres-Datenbank,
+optionale Realtime-Subscriptions und Row-Level Security \cite{supabasePlatform,supabaseAuth,supabaseRLS}.
+Alle operativen Tabellen -- darunter \texttt{user\_flights}, \texttt{user\_notes},
+\texttt{user\_checklists}, \texttt{flight\_documents}, \texttt{companies},
+\texttt{company\_members}, \texttt{notifications} und \texttt{user\_achievements} --
+sind durch RLS-Policies geschützt. Details zum Datenbankschema
+und zur RLS-Architektur sind in Kapitel~\ref{chapter:datenverwaltung} dokumentiert.
+
+\subsection{Storage}
+
+Dokumente und Bilder werden im privaten Storage-Bucket \texttt{flight-documents} abgelegt
+und ausschließlich über zeitlich begrenzte Signed URLs bereitgestellt \cite{supabaseStorage}.
+Kein öffentlicher Direktzugriff ist möglich. Metadaten (Dateiname, MIME-Type, Größe,
+Storage-Pfad) werden in der Tabelle \texttt{flight\_documents} persistiert. Details zu
+Upload-Ablauf, URL-Refresh und Rollback-Logik sind in Kapitel~\ref{chapter:datenverwaltung} beschrieben.
+
+% ============================================================
+\section{Technologien \& externe APIs}
+% ============================================================
+
+\subsection{Frontend-Stack}
+
+\begin{table}[H]
+  \centering
+  \caption{Frontend-Stack von Skyline}
+  \label{tab:frontend_stack}
+  \begin{tabular}{p{4.2cm}p{8.5cm}}
+  \toprule
+  \textbf{Technologie} & \textbf{Zweck} \\
+  \midrule
+  React Native + Expo & Cross-Platform-Basis, primär für iOS getestet \cite{reactNative,expoDocs} \\
+  Expo Router & Dateibasierte Navigation \\
+  Zustand & Globaler State-Management-Store \\
+  TypeScript & Einheitliche Typsicherheit im gesamten Codebase \\
+  React Native Maps & Kartenvisualisierung (MapKit auf iOS) \cite{reactNativeMaps} \\
+  EAS Build & Build- und Deployment-Pipeline (App Store) \cite{easBuild} \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Backend-Stack}
+
+\begin{table}[H]
+  \centering
+  \caption{Backend-Stack von Skyline}
+  \label{tab:backend_stack}
+  \begin{tabular}{p{4.2cm}p{8.5cm}}
+  \toprule
+  \textbf{Technologie} & \textbf{Zweck} \\
+  \midrule
+  Supabase Auth & Authentifizierung (JWT, Session-Management) \\
+  Postgres + RLS & Relationale Datenhaltung mit zeilenbasierter Zugriffssteuerung \cite{supabaseRLS} \\
+  Supabase Storage & Datei-Storage mit Signed URLs \cite{supabaseStorage} \\
+  Supabase Realtime & Optionale Live-Subscriptions \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Externe APIs}
+
+\textbf{Aviationstack} liefert Airport-Stammdaten (IATA-Codes, ICAO-Codes, Koordinaten,
+Stadt, Land), die bei Import und manueller Eingabe zur Validierung und
+Distanzberechnung herangezogen werden \cite{aviationstack}.
+
+\textbf{OCR.space} ist der eingesetzte OCR-Dienst für die Texterkennung aus Bildern und
+PDFs \cite{ocrSpace}. Anfragen werden als HTTP-POST mit Base64-kodiertem Bildinhalt an
+\url{https://api.ocr.space/parse/image} geschickt; als Engine wird OCREngine~2 (präziser
+für gedruckten Text) verwendet. Der API-Key wird über die Umgebungsvariable
+\texttt{EXPO\_PUBLIC\_OCR\_SPACE\_API\_KEY} konfiguriert. Details zur Parsing-Pipeline sind in
+Kapitel~\ref{chapter:import} dokumentiert.
+
+\textbf{Apple MapKit} (via React Native Maps) stellt die Kartendarstellung auf iOS bereit.
+Auf Android wird die Google Maps API als sekundäre Plattform genutzt. Die Berechnung
+geodätischer Routen (Great-Circle-Polylines) erfolgt appintern; externe
+Routing-APIs werden nicht verwendet. Details zur Kartenimplementierung sind in
+Kapitel~\ref{chapter:weltkarte} dokumentiert.
+
+\textbf{E-Mail-Import:} Die Architektur sieht OAuth-verknüpfte E-Mail-Accounts
+(Gmail, Outlook, Yahoo, IMAP) über die Tabellen \texttt{email\_accounts} und
+\texttt{email\_imports} in Supabase vor; ein dedizierter E-Mail-Parser-Service ist
+nicht implementiert. Umgesetzt ist der OCR-basierte Import von Buchungsbestätigungen
+aus Screenshots und PDFs (vom Nutzer hochgeladen); E-Mail-Import ist als Erweiterung
+vorgesehen.
+
+% ============================================================
+\section{Flugverwaltung}
+% ============================================================
+
+Flüge sind die Kernentität von Skyline. Alle anderen Module -- Notizen, Checklisten,
+Dokumente, Reminder -- sind über \texttt{flight\_id} an einen Flug gebunden.
+
+\subsection{Datenfluss: UI $\rightarrow$ Store $\rightarrow$ Service}
+
+Es gibt keinen separaten Middleware-Layer. Die UI-Screens (\texttt{add-flight-manual.tsx},
+\texttt{add-flight-import.tsx}) rufen \texttt{addFlight} bzw.\ \texttt{updateFlight} direkt am Store auf.
+Der Store berechnet fehlende Werte (Distanz, Dauer) und delegiert anschließend an
+den \texttt{supabaseService}:
+
+\begin{lstlisting}[caption={Datenfluss Flug anlegen (vereinfacht)},label={lst:flight_dataflow},language={}]
+UI-Screen (ensureAirportByCode vor Aufruf)
+  -> store.addFlight(flightData)
+        | Distanz berechnen (haversineDistanceKm)
+        | Dauer berechnen (computeDurationMinutesFromTimestamps)
+        -> supabaseService.createFlight(...)
+              | Airport via getOrCreateAirport() in DB persistieren
+              | INSERT in user_flights (mit RLS)
+              -> Rueckgabe: vollstaendiges Flight-Objekt (inkl. Airport-Join)
+\end{lstlisting}
+
+\subsection{Distanz- und Dauerberechnung}
+
+Distanz und Flugdauer werden im Store automatisch ermittelt, sofern sie nicht
+bereits durch den Import geliefert wurden. Für die Distanz kommt die
+Haversine-Formel zum Einsatz (vgl.\ auch Kapitel~\ref{chapter:weltkarte}); die Dauer ergibt sich aus der
+Differenz von \texttt{departureAt} und \texttt{arrivalAt}:
+
+\begin{lstlisting}[style=skyline-ts,caption={Distanz- und Dauerberechnung im Store (Auszug store/index.ts)},label={lst:addflight_distance_duration}]
+if (!distanceStr && flightData.from?.latitude != null
+                 && flightData.to?.latitude != null) {
+  distanceKm = haversineDistanceKm(flightData.from, flightData.to);
+  distanceStr = formatDistanceKm(distanceKm);
+}
+
+if (!durationStr && flightData.departureAt && flightData.arrivalAt) {
+  const mins = computeDurationMinutesFromTimestamps(
+    flightData.departureAt, flightData.arrivalAt
+  );
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  durationStr = h > 0 && m > 0 ? `${h}h ${m}m`
+              : h > 0            ? `${h}h`
+              :                    `${m}m`;
+}
+\end{lstlisting}
+
+\subsection{Status-Berechnung}
+
+Der Flugstatus (\texttt{upcoming} / \texttt{completed}) wird beim Speichern automatisch aus
+\texttt{departureAt} relativ zur aktuellen Zeit berechnet und mit \texttt{getEffectiveFlightStatus}
+beim Update normalisiert -- ohne manuelle Eingabe durch den Nutzer.
+
+\subsection{Airport-Auflösung}
+
+Airports werden über die Funktion \texttt{ensureAirportByCode()} aufgelöst. Dabei wird
+zunächst über den \texttt{AirportAPI}-Service versucht, den Airport per IATA- oder
+ICAO-Code zu finden. Liefert die API (einschließlich der vordefinierten
+\texttt{POPULAR\_AIRPORTS}) keinen Treffer, wird \emph{kein} neuer Airport in der
+lokalen \texttt{airports}-Tabelle angelegt und die Funktion gibt \texttt{null} zurück.
+
+Nur wenn ein Airport von der API bzw.\ aus \texttt{POPULAR\_AIRPORTS} gefunden wird,
+wird er über \texttt{upsertAirportFromApi()} in der Datenbank angelegt oder -- falls
+bereits vorhanden -- wiederverwendet. Dadurch bleibt das Datenmodell konsistent,
+gleichzeitig wird aber verhindert, dass für komplett unbekannte oder fehlerhafte
+Codes fiktive Airports angelegt werden.
+
+% ============================================================
+\section{Dokumente, Notizen und Checklisten}
+% ============================================================
+
+Reisende können Flugdokumente (Boarding-Pass, Buchungsbestätigung, Quittungen) über
+den \texttt{documentService} hochladen. Dateiinhalt landet im Storage-Bucket
+\texttt{flight-documents}; Metadaten (Dateiname, MIME-Type, Größe, Storage-Pfad,
+Signed URL) werden in \texttt{flight\_documents} referenziert. Der Zugriff erfolgt
+ausschließlich über zeitlich begrenzte Signed URLs, die bei Ablauf automatisch
+erneuert werden. Details zu Upload-Ablauf und Rollback-Logik sind in Kapitel~\ref{chapter:datenverwaltung}
+dokumentiert.
+
+Freitextliche Notizen (\texttt{user\_notes}) und Checklisten (\texttt{user\_checklists},
+\texttt{user\_checklist\_items}) sind über \texttt{flight\_id} an den jeweiligen Flug gebunden und
+durch RLS-Policies auf den jeweiligen Nutzer beschränkt. Checklisten können optional
+mit einem Erinnerungszeitpunkt (\texttt{reminder\_at}) versehen werden; der
+\texttt{noteChecklistReminderService} plant in diesem Fall eine lokale Notification (vgl.\
+Kapitel~\ref{chapter:notifications}). Die Trip-Detailansicht lädt Notizen und Checklisten beim Öffnen parallel
+via \texttt{Promise.allSettled}, sodass keine sequenziellen Wartezeiten entstehen.
+
+% ============================================================
+\section{Statistiken}
+% ============================================================
+
+Statistiken werden clientseitig aus den im Store vorliegenden Flugdaten berechnet --
+es gibt keine separaten Aggregationsabfragen an die Datenbank. Die Berechnung
+erfolgt in einem \texttt{useMemo}-Hook, der nur neu berechnet wird, wenn sich die
+Flugdaten ändern.
+
+\subsection{Nutzer-Statistiken}
+
+Für das Nutzerprofil werden folgende Kennzahlen berechnet:
+
+\begin{table}[H]
+  \centering
+  \caption{Nutzer-Statistiken (Kennzahlen)}
+  \label{tab:user_stats}
+  \begin{tabular}{p{4cm}p{9cm}}
+  \toprule
+  \textbf{Kennzahl} & \textbf{Beschreibung} \\
+  \midrule
+  \texttt{tripsTaken} & Anzahl aller Flüge des Nutzers \\
+  \texttt{totalDistance} & Summierte Flugdistanz in km \\
+  \texttt{countriesVisited} & Eindeutige Länder aus \texttt{from.country} und \texttt{to.country} \\
+  \texttt{favoriteDestination} & Häufigstes Reiseziel (nach \texttt{to.city}) \\
+  \texttt{averageTripDuration} & Durchschnittliche Flugdauer in Stunden \\
+  \texttt{nextFlight} & Nächster bevorstehender Flug (sortiert nach \texttt{departureAt}) \\
+  \texttt{currentStreak} & Aktueller Reise-Streak (max.\ 5, gamifiziert) \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{lstlisting}[style=skyline-ts,caption={Berechnung totalDistance und countriesVisited (Auszug profile.tsx)},label={lst:user_stats_code}]
+const totalDistance = userFlights.reduce((sum, f) => {
+  if (!f.distance) return sum;
+  const match = f.distance.replace(/[^\d]/g, '').match(/(\d+)/);
+  const num = match ? parseInt(match[1], 10) : 0;
+  return sum + (isNaN(num) ? 0 : num);
+}, 0);
+
+const countriesVisited = new Set<string>();
+userFlights.forEach(f => {
+  if (f.from?.country) countriesVisited.add(f.from.country);
+  if (f.to?.country)   countriesVisited.add(f.to.country);
+});
+\end{lstlisting}
+
+\subsection{Company-Statistiken}
+
+Für die aktive Firma (sichtbar für Owner) werden Gesamtflüge, Gesamtdistanz und
+Länderanzahl aller Firmenmitglieder aggregiert. Die Abfrage läuft direkt gegen
+\texttt{user\_flights} gefiltert auf die \texttt{profile\_id}-Liste aller \texttt{company\_members} und die
+\texttt{company\_id}:
+
+\begin{lstlisting}[style=skyline-ts,caption={Company-Statistiken (Auszug app/company/index.tsx)},label={lst:company_stats}]
+const { data } = await supabase
+  .from('user_flights')
+  .select(`id, distance_km, distance,
+           from_airport:from_airport_id (country),
+           to_airport:to_airport_id (country)`)
+  .in('profile_id', memberIds)
+  .eq('company_id', activeMembership.companyId);
+\end{lstlisting}
+
+Ein CSV-Export für Flugdaten und Company-Statistiken ist als Erweiterung vorgesehen und soll die Weitergabe an externe Abrechnungssysteme ermöglichen.
+
+% ============================================================
+\section{Company-Features}
+% ============================================================
+
+\subsection{Firmenstruktur und Rollen}
+
+Firmen (\texttt{companies}) werden von einem Owner angelegt. Mitglieder können die Rolle
+\texttt{owner} oder \texttt{worker} innehaben; die Mitgliedschaft wird in \texttt{company\_members}
+verwaltet. RLS-Policies erlauben Lesezugriff auf Profile innerhalb derselben Firma.
+Gemeinsame Firmenflüge werden über \texttt{user\_flights.company\_id} und die Mitgliedschaft in \texttt{company\_members} abgebildet; Flüge mit gesetzter \texttt{company\_id} gehören zur Firma, der Zugriff erfolgt über die Mitglieder.
+
+\subsection{Invite-Code-System}
+
+Das Beitreten zu einer Firma erfolgt über einen 8-stelligen Einladungscode. Der Code
+wird aus dem Alphabet \texttt{ABCDEFGHJKLMNPQRSTUVWXYZ23456789} (ohne leicht
+verwechselbare Zeichen wie \texttt{0}, \texttt{O}, \texttt{1}, \texttt{I}) zufällig generiert und auf
+Einzigartigkeit in der \texttt{companies}-Tabelle geprüft (max.\ 10 Versuche). Der Code hat
+kein Ablaufdatum und bleibt dauerhaft gültig.
+
+\begin{lstlisting}[style=skyline-ts,caption={Generierung eindeutigen Invite-Codes (Auszug companyService.ts)},label={lst:invite_code}]
+const INVITE_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const INVITE_CODE_LENGTH = 8;
+
+function generateInviteCode(): string {
+  let code = '';
+  for (let i = 0; i < INVITE_CODE_LENGTH; i += 1) {
+    code += INVITE_CODE_ALPHABET.charAt(
+      Math.floor(Math.random() * INVITE_CODE_ALPHABET.length)
+    );
+  }
+  return code;
+}
+
+async function generateUniqueCompanyInviteCode(): Promise<string> {
+  for (let i = 0; i < 10; i++) {
+    const candidate = generateInviteCode();
+    const { data } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('invite_code', candidate)
+      .maybeSingle();
+    if (!data) return candidate;
+  }
+  throw new Error('Unable to generate invite code');
+}
+\end{lstlisting}
+
+\subsection{Beitrittsprozess}
+
+Beim Einlösen eines Codes wird dieser normalisiert (trim + toUpperCase), in
+\texttt{companies} gesucht und -- sofern der Nutzer noch kein Mitglied ist -- ein Eintrag
+mit \texttt{role: 'worker'} in \texttt{company\_members} eingefügt. Ist der Nutzer bereits
+Mitglied, wird die bestehende Rolle zurückgegeben ohne einen Fehler zu werfen.
+
+\begin{lstlisting}[style=skyline-ts,caption={Beitritt per Invite-Code (Auszug companyService.ts)},label={lst:join_invite}]
+const code = codeInput.trim().toUpperCase();
+const { data: company } = await supabase
+  .from('companies')
+  .select('id')
+  .eq('invite_code', code)
+  .maybeSingle();
+
+if (!company) throw new Error('Invite code not found');
+
+const { data: membership } = await supabase
+  .from('company_members')
+  .select('role')
+  .eq('company_id', company.id)
+  .eq('user_id', currentUser.id)
+  .maybeSingle();
+
+if (membership) return { companyId: company.id, joinedAs: membership.role };
+
+await supabase
+  .from('company_members')
+  .insert({ company_id: company.id, user_id: currentUser.id, role: 'worker' });
+\end{lstlisting}
+
+% ============================================================
+\section{Gamification}
+% ============================================================
+
+Achievements motivieren Nutzer durch definierte Meilensteine (z.\,B.\ erste Flugreise,
+bestimmte zurückgelegte Gesamtstrecke). Die globalen Achievement-Definitionen liegen
+in der Tabelle \texttt{achievements} und sind öffentlich lesbar, da sie keine
+personenbezogenen Daten enthalten. Freigeschaltete Achievements werden pro Nutzer in
+\texttt{user\_achievements} mit \texttt{unlocked\_at} und \texttt{metadata} gespeichert.
+
+Das System ist bewusst einfach gehalten: Es gibt keine XP-Punkte, kein Levelsystem
+und keine Rangliste. Beim Freischalten eines Achievements erhält der Nutzer eine
+Toast-Nachricht und haptisches Feedback als unmittelbare Rückmeldung.
+
+% ============================================================
+\section{Teststrategie \& Validierung}
+% ============================================================
+
+Skyline wurde primär auf iOS-Geräten getestet. Manuelle UI-Tests sichern die
+Hauptabläufe (Flug hinzufügen, Import, Trip-Details, Dokumente, Notizen,
+Checklisten). Reminder-Tests prüfen Offsets, Quiet Hours und Reschedule-Verhalten
+nach App-Neustart; Import-Tests decken QR-Scan (BCBP), OCR und
+E-Mail-Screenshot-Upload ab. Statistiken und Achievements werden bei typischen
+Nutzerabläufen mitgeprüft. Die Android-Variante wurde im Projektzeitraum nur
+eingeschränkt validiert; eine vollständige Android-Testabdeckung ist als
+Erweiterung vorgesehen.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.85\textwidth}{\centering\small Screenshot Testfälle / UI-Flows -- hier einfügen.}}
+  \caption{Testfälle und UI-Flows (Platzhalter)}
+  \label{fig:test_ui_flows}
+\end{figure}
+
+% ============================================================
+\section{Deployment \& App Store Release}\label{sec:deployment-appstore}
+% ============================================================
+
+Dieser Abschnitt dokumentiert den Weg von Skyline vom Build bis zur Veröffentlichung
+im Apple App Store: verwendete Build-Konfiguration, Einreichung über App Store Connect,
+Nutzung von TestFlight sowie Erfahrungen im Review-Prozess.
+
+\subsection{Build-Konfiguration (EAS Build)}
+
+Die iOS-Builds werden mit \textbf{EAS Build} (Expo Application Services) erzeugt
+\cite{easBuild}. Konkret wurde ein \textbf{Produktions-Profil} (\emph{production})
+für die App-Store-Version verwendet. Ein separates Build-Schema wurde nicht
+definiert; die Konfiguration erfolgt über \texttt{eas.json}. Sensible Werte wie
+API-Keys werden über Environment-Variablen in der lokalen \texttt{.env}-Datei
+verwaltet.
+
+\subsection{App Store Connect \& Einreichung}
+
+Über \textbf{App Store Connect} wurde die App bei Apple eingereicht. Die konkreten
+Angaben: \textbf{Bundle ID} \texttt{com.borisplesnicar.skyline}, App-Name
+\textbf{Skyline Hub}, \textbf{Version} 2.2.0 (Build 14), \textbf{Kategorie} Travel.
+Die Store-Beschreibung lautet: \emph{Skyline is an app that lets you track and
+organize your flights and travels. You can add flights, view your past journeys
+on an interactive world map, and see simple statistics such as countries visited
+or total distance flown. In addition, you can store important travel documents
+and photos for each trip and monitor your progress through goals and achievements.}
+Datenschutzangaben sind in der App hinterlegt; Support-URL und Nutzungsbedingungen
+verweisen auf \url{https://skylinehub.vercel.app/}. Für den Store wurden
+Screenshots im Format iPhone 6,5'' Display eingereicht (Abbildung~\ref{fig:store_screenshots}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.48\textwidth]{screens/Onboarding_01}\hfill
+  \includegraphics[width=0.48\textwidth]{screens/Onboarding_02}
+  \caption{Store-Screenshots (iPhone 6,5'') -- Auswahl der eingereichten App-Store-Bilder}
+  \label{fig:store_screenshots}
+\end{figure}
+
+\subsection{TestFlight für interne Tests}
+
+\textbf{TestFlight} ermöglicht die Verteilung von Builds an interne und externe
+Tester vor der öffentlichen Freigabe \cite{testflight}. TestFlight wurde für
+interne Tests genutzt: neben den Entwicklern wurden auch Klassenkollegen als
+Tester eingeladen, um die App vor der Veröffentlichung zu validieren
+\cite{ralfebertTestflight}.
+
+\subsection{Review-Prozess und Erfahrungen}
+
+Apple prüft jede App-Einreichung nach den App-Store-Richtlinien; der Review kann
+mehrere Tage dauern und bei Beanstandungen zu Ablehnung oder Nachfragen führen
+\cite{appleAppReview}. Die Einreichung von Skyline Hub wurde zunächst
+\emph{abgelehnt}: Apple monierte fehlende Mehrsprachigkeit sowie das Fehlen eines
+QR-Codes, mit dem die Scan-Funktion (BCBP-Barcode) von den Prüfern getestet werden
+konnte. Nach Behebung dieser Punkte wurde die App in einem weiteren Review-Durchlauf
+angenommen. Abbildung~\ref{fig:review_verlauf} zeigt den Verlauf der Einreichung
+bis zur Freigabe.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{verlauf-rueckfragen}
+  \caption{Verlauf der App-Store-Einreichung bis zur Annahme}
+  \label{fig:review_verlauf}
+\end{figure}
+
+\subsection{App im Store}
+
+Skyline Hub ist im Apple App Store verfügbar:
+\url{https://apps.apple.com/us/app/skyline-hub/id6758091952}
+
+% ============================================================
+\section{Überblick über die App und Benutzeroberfläche}\label{sec:app-overview}
+% ============================================================
+
+Dieser Abschnitt gibt einen Überblick über die Benutzeroberfläche von Skyline.
+Features, die in den Implementierungskapiteln~5--8 ausführlich behandelt werden
+(Import, Weltkarte, Benachrichtigungen, Datenverwaltung), werden hier nur kurz
+referenziert. Für alle übrigen Features -- Home-Screen, Navigation, Statistik-Ansicht,
+Gamification und Company-Features -- ist dies die einzige Stelle in der Arbeit, an der
+sie mit Screenshots und Sinn-Erklärung dokumentiert werden.
+
+\subsection{Forschungsmodule (Kurzreferenz)}
+
+Die vier Forschungsmodule werden in eigenen Kapiteln detailliert beschrieben:
+
+\begin{itemize}
+  \item \textbf{Import} (Kapitel~\ref{chapter:import}): OCR-basierte Erkennung von
+    Buchungsbestätigungen aus Screenshots und PDFs, BCBP-Barcode-Scan, manuelle
+    Flugeingabe mit Airport-Autocomplete.
+  \item \textbf{Weltkarte} (Kapitel~\ref{chapter:weltkarte}): Interaktive Kartenansicht
+    mit Great-Circle-Routen, Flugvisualisierung und Distanzberechnung.
+  \item \textbf{Benachrichtigungen} (Kapitel~\ref{chapter:notifications}): Lokale
+    Erinnerungen für Checklisten und Notizen, Quiet Hours, Reschedule nach App-Neustart.
+  \item \textbf{Datenverwaltung} (Kapitel~\ref{chapter:datenverwaltung}): RLS-Architektur,
+    Dokumenten-Upload, Notizen und Checklisten pro Flug.
+\end{itemize}
+
+\subsection{Home-Screen und Navigation}
+
+Der Home-Screen ist die zentrale Einstiegsseite nach dem Login. Er zeigt eine
+Übersicht der nächsten Flüge, eine Schnellaktion zum Hinzufügen neuer Flüge sowie
+-- bei Firmenmitgliedschaft -- einen direkten Zugang zum Company-Workspace. Die
+Gesamtdistanz und der aktuelle Reise-Streak werden prominent angezeigt und
+motivieren zur regelmäßigen Nutzung.
+
+Die Navigation erfolgt über eine \textbf{floating Tab-Bar} mit vier Tabs: Home,
+Karte, Profil und Einstellungen. Die Tab-Bar ist als schwebendes, abgerundetes
+Element am unteren Bildschirmrand positioniert und nutzt einen animierten
+Sliding-Indicator zur Hervorhebung des aktiven Tabs.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.75\textwidth}{\centering\small
+    \textbf{[Screenshot: Home-Screen mit Flugübersicht und Tab-Bar einfügen -- z.\,B.\ \texttt{content/img/home\_screen.png}]}
+  }}
+  \caption{Home-Screen von Skyline mit Flugübersicht und floating Tab-Bar}
+  \label{fig:home_screen}
+\end{figure}
+
+\subsection{Statistik-Ansicht und Profil}
+
+Das Profil zeigt die persönlichen Reise-Statistiken:
+Anzahl der Flüge, zurückgelegte Gesamtstrecke, besuchte Länder, beliebtestes Reiseziel,
+durchschnittliche Flugdauer und den nächsten bevorstehenden Flug. Die Berechnung
+erfolgt clientseitig aus den im Store vorliegenden Flugdaten (vgl.\ Abschnitt~4.5).
+Zusätzlich wird der aktuelle \emph{Reise-Streak} angezeigt -- ein Gamification-Element,
+das Vielreisende dazu anregen soll, die App kontinuierlich zu nutzen und Flüge zeitnah
+einzutragen. Über das Profil gelangt der Nutzer auch zu Achievements, Einstellungen
+und dem Company-Workspace.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.75\textwidth}{\centering\small
+    \textbf{[Screenshot: Profil mit Statistik-Kennzahlen einfügen -- z.\,B.\ \texttt{content/img/profile\_stats.png}]}
+  }}
+  \caption{Profil-Screen mit Nutzer-Statistiken und Streak-Anzeige}
+  \label{fig:profile_stats}
+\end{figure}
+
+\subsection{Gamification und Achievements}
+
+Achievements werden bei definierten Meilensteinen freigeschaltet (z.\,B.\ erster Flug,
+10 Flüge, 5 Länder, 10.000\,km Gesamtstrecke). Der \textbf{Sinn} dahinter: Vielreisende
+sollen motiviert werden, die App aktiv zu nutzen und Reisedaten vollständig
+einzupflegen. Vollständige Daten verbessern wiederum die Qualität der Statistiken
+und -- bei Firmenmitgliedschaft -- die Aussagekraft der Company-Übersicht. Das System
+ist bewusst schlank gehalten: keine XP-Punkte, kein Levelsystem, keine Rangliste.
+Beim Freischalten erscheint eine Toast-Nachricht und haptisches Feedback.
+
+Die Achievements-Ansicht listet alle verfügbaren Meilensteine mit Fortschrittsbalken.
+Bereits freigeschaltete Achievements werden visuell hervorgehoben.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.75\textwidth}{\centering\small
+    \textbf{[Screenshot: Achievements-Übersicht mit Fortschrittsbalken einfügen -- z.\,B.\ \texttt{content/img/achievements.png}]}
+  }}
+  \caption{Achievements-Screen mit Meilensteinen und Fortschrittsanzeige}
+  \label{fig:achievements}
+\end{figure}
+
+\subsection{Company-Features und Firmenansicht}
+
+Company-Features richten sich an Firmen, die Dienstreisen ihrer Mitarbeiter zentral
+erfassen und auswerten möchten. Der \textbf{Business-Sinn}: Die Firma erhält einen
+Überblick über alle Dienstreisen der Mitarbeiter, vereinfacht die Abrechnung und
+kann Reisekosten und -muster analysieren. Flüge werden beim Anlegen optional einer
+Firma zugeordnet (\texttt{company\_id}); nur Mitglieder derselben Firma sehen die
+aggregierten Daten.
+
+Die Firmenansicht zeigt für Owner: Gesamtflüge,
+Gesamtdistanz und Länderanzahl aller Mitglieder, die Einladung von neuen Mitgliedern
+über einen Invite-Code sowie die Liste der Firmenflüge. Worker sehen die aggregierten
+Statistiken und können bei mehreren Firmenmitgliedschaften zwischen diesen wechseln.
+Der Beitritt erfolgt über einen 8-stelligen Einladungscode (vgl.\ Abschnitt~4.6).
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.75\textwidth}{\centering\small
+    \textbf{[Screenshot: Company-Übersicht mit Statistiken und Mitgliederliste einfügen -- z.\,B.\ \texttt{content/img/company\_overview.png}]}
+  }}
+  \caption{Company-Screen mit aggregierten Firmen-Statistiken}
+  \label{fig:company_overview}
+\end{figure}
+
+\subsection{Trip-Details und Flug hinzufügen}
+
+Die Trip-Detailansicht zeigt einen einzelnen Flug mit allen zugehörigen Daten:
+Abflug/Ziel, Zeiten, Dokumente, Notizen und Checklisten. Das Hinzufügen neuer
+Flüge erfolgt über manuelle Eingabe oder Import aus Screenshot/PDF/BCBP; Details
+zum Import-Flow sind in Kapitel~\ref{chapter:import} dokumentiert.
+
+\subsection{Flug-Kalender}
+
+Der Flug-Kalender bietet eine monatsbasierte Übersicht aller Flüge und
+Erinnerungstermine. Nutzer können zwischen Flügen und geplanten Events
+(Checklisten-Reminder, Notizen-Erinnerungen) wechseln oder beide Ansichten
+kombiniert anzeigen. Ein Tipp auf ein Datum zeigt die Flüge und Termine des
+Tages; von dort aus gelangt man direkt zur Trip-Detailansicht. Der Kalender
+unterstützt die Planung von Reisen im Zeitverlauf und macht anstehende
+Erinnerungen auf einen Blick sichtbar.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.75\textwidth}{\centering\small
+    \textbf{[Screenshot: Flug-Kalender mit Monatsansicht einfügen]}
+  }}
+  \caption{Flug-Kalender mit Monatsübersicht und Tagesdetails}
+  \label{fig:flight_calendar}
+\end{figure}

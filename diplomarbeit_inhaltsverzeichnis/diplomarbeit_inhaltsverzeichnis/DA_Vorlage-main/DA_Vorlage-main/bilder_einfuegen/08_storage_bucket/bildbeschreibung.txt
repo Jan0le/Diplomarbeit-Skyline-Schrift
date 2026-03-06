@@ -1,0 +1,12 @@
+Supabase Storage-Bucket flight-documents
+
+Dateiname im Ordner: storage_bucket.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+Screenshot aus dem Supabase Dashboard:
+  - Storage → Bucket „flight-documents“
+  - Ordnerstruktur userId/flightId/... mit hochgeladenen Dateien sichtbar
+  - Zeigt, wie Dokumente im Storage abgelegt werden
+
+Format: PNG, ca. 88% Textbreite

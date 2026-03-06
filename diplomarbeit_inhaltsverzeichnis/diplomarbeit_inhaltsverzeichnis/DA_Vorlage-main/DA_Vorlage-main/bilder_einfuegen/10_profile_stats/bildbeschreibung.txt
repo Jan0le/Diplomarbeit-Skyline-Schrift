@@ -1,0 +1,10 @@
+Profil-Screen mit Nutzer-Statistiken
+
+Dateiname im Ordner: profile_stats.png
+Zielpfad in der Arbeit: content/img/profile_stats.png
+
+Beschreibung:
+App-Screenshot: Profil-Screen mit Statistik-Kennzahlen und Streak-Anzeige.
+Zeigt die aggregierten Reisedaten (Distanz, Länder, Flüge etc.) und ggf. Gamification-Elemente.
+
+Format: PNG, iPhone-Screenshot, ca. 75% Textbreite

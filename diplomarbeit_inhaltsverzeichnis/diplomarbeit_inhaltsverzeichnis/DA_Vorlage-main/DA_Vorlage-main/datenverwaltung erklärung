@@ -1,0 +1,404 @@
+====================================================================
+ERKLÄRUNG: KAPITEL 5 – DATENVERWALTUNG IN SKYLINE
+Für die mündliche Prüfung & zum eigenen Verständnis
+====================================================================
+
+Das komplette Kapitel 5 dreht sich um eine einzige zentrale Frage:
+Wie speichert, schützt und verwaltet Skyline die Daten der Nutzer –
+und warum ist das besser als das, was die meisten Reisenden heute machen?
+
+
+====================================================================
+TEIL 1: DAS PROBLEM – WARUM BRAUCHT ES EINE ZENTRALE DATENVERWALTUNG?
+====================================================================
+
+Stell dir vor, du machst eine Geschäftsreise:
+- Die Buchungsbestätigung liegt in deiner E-Mail (Gmail oder Outlook)
+- Den Boardingpass hast du als Foto in der Kamera-App
+- Die Reisenotizen stehen in Apple Notes oder Notion
+- Die Quittungen vom Hotel/Taxi hast du als Foto abgespeichert
+- Den Flugstatus checkst du in einer separaten Airline-App
+
+Das ist die Realität für die meisten Menschen. Das Problem:
+→ Du musst 4-5 verschiedene Apps aufmachen um den Status einer Reise zu verstehen
+→ Wenn du einen Beleg suchst, weißt du nicht mehr wo er ist
+→ Wenn du den Flug stornierst, bleiben Dokumente und Notizen einfach liegen
+→ Kein Kollege kann dir einen Überblick geben weil alles auf deinem Gerät verteilt ist
+
+Das nennt man "dezentrale Datenhaltung" – und Skyline löst genau das.
+
+
+====================================================================
+TEIL 2: DIE LÖSUNG – SINGLE SOURCE OF TRUTH
+====================================================================
+
+Das Konzept dahinter heißt "Single Source of Truth" (SSOT).
+Auf Deutsch: Es gibt EINE einzige Stelle wo alle Daten zu einem Flug liegen.
+
+In Skyline ist das die Datenbank bei Supabase (= PostgreSQL in der Cloud).
+ALLES dreht sich um den Flug:
+
+    Nutzer (profiles)
+         |
+         | 1:n (ein Nutzer hat viele Flüge)
+         |
+    Flug (user_flights)  ←── das ist das Herzstück
+         |
+    ┌────┼────────┬──────────────┐
+    |    |        |              |
+  Notizen  Checklisten     Dokumente
+(user_notes) (user_checklists) (flight_documents)
+               |
+           Einzelpunkte
+        (user_checklist_items)
+
+Was bedeutet das konkret?
+→ Wenn du einen Flug löschst, verschwinden automatisch ALLE dazugehörigen
+  Notizen, Checklisten und Dokumente (ON DELETE CASCADE)
+→ Du öffnest einen Flug und siehst sofort alles was dazu gehört
+→ Es kann keine "verwaisten" Dokumente geben die zu keinem Flug gehören
+
+
+====================================================================
+TEIL 3: DIE DATENBANK – WELCHE TABELLEN GIBT ES UND WOZU?
+====================================================================
+
+--- PROFILES (Nutzerprofil) ---
+Jeder der sich bei Skyline registriert bekommt automatisch einen Eintrag
+in der profiles-Tabelle. Das passiert durch einen sogenannten Datenbank-Trigger:
+Supabase hat ein internes Auth-System (auth.users). Sobald sich jemand neu
+registriert, feuert der Trigger "on_auth_user_created" und legt automatisch
+einen Profilsatz an.
+
+Wichtig: profiles.id ist DIESELBE UUID wie auth.users.id.
+Das bedeutet: Datenbankprofil und Login-Account sind fest verknüpft.
+Löscht jemand seinen Account → Profil weg → alle Daten weg. Sauber.
+
+Neu drin seit unserer Korrektur:
+- account_type: "worker" oder "company" – steuert was der Nutzer in der App sieht
+- invite_code: ein eindeutiger Code um einer Firma beizutreten
+- preferences: ein JSON-Feld für Nutzereinstellungen (flexibel, kein Schema nötig)
+
+--- AIRPORTS (Flughäfen) ---
+Eine globale Stammdaten-Tabelle. Enthält IATA-Code (z.B. VIE), ICAO-Code (LOWW),
+Name, Stadt, Land, Koordinaten und Zeitzone.
+IATA und ICAO sind UNIQUE – kann keine doppelten Flughäfen geben.
+Die Koordinaten (latitude, longitude) werden für die Kartenansicht und
+die automatische Distanzberechnung (distance_km in user_flights) genutzt.
+RLS: Öffentlich lesbar (auch ohne Login), Authenticated User dürfen insertan.
+
+--- USER_FLIGHTS (Flüge) ---
+Das ist die wichtigste Tabelle. Hier steckt deutlich mehr drin als man denkt:
+
+Kerndaten: flight_number, airline, date, status (upcoming/completed/cancelled)
+Buchungsdaten: confirmation_code, booking_reference, seat, gate, terminal
+Zeitfelder: departure_at, arrival_at (für Live-Progress auf der Karte + Reminder)
+Teamkontext: company_id (NULL = privater Flug, gesetzt = Firmenflug)
+Sonstiges: distance_km (Integer!), notes (altes Feld, vor user_notes), images (Array)
+
+Warum distance_km als separates Feld?
+→ Wird einmalig berechnet wenn der Flug angelegt wird (aus den Koordinaten
+  der zwei Flughäfen) und dann gespeichert, damit man nicht jedes Mal neu rechnen muss.
+
+Warum departure_at/arrival_at als eigene Felder und nicht nur "date"?
+→ "date" ist nur das Flugdatum (z.B. 2024-03-15)
+→ departure_at/arrival_at sind genaue Zeitpunkte (z.B. 2024-03-15 06:30:00)
+→ Nur mit genauen Zeitpunkten kann die Karte einen Live-Fortschrittsbalken zeigen
+→ Nur mit genauen Zeitpunkten können zeitbasierte Erinnerungen ("Jetzt einchecken!")
+  ausgelöst werden
+→ Diese Felder wurden NACHTRÄGLICH per Migration hinzugefügt (ALTER TABLE)
+
+--- USER_NOTES (Notizen) ---
+Freie Textnotizen zu einem Flug.
+purpose-Feld: "business" oder "private" – damit kann die App filtern
+reminder_at: optionaler Zeitpunkt für eine Erinnerung
+RLS: Nur eigene Notizen lesbar/schreibbar (profile_id = auth.uid())
+
+--- USER_CHECKLISTS + USER_CHECKLIST_ITEMS (Checklisten) ---
+Zweistufig: Erst der Listenkopf (user_checklists), dann die einzelnen Punkte (user_checklist_items).
+Beispiel:
+  user_checklists: "Packliste Geschäftsreise Berlin" → flight_id, purpose=business
+    user_checklist_items: "Laptop eingepackt" → checked=false, order_idx=1
+    user_checklist_items: "Ladekabel" → checked=false, order_idx=2
+
+Besonderheit bei den RLS-Policies von user_checklist_items:
+Die Items haben keine eigene profile_id. Die Sicherheit wird indirekt geprüft:
+"Darf ich dieses Item sehen? → Nur wenn die übergeordnete Checkliste mir gehört"
+Das nennt man indirekte RLS via Parent-Row.
+
+--- FLIGHT_DOCUMENTS (Dokumente) ---
+Metadaten zu hochgeladenen Dateien. Die Datei selbst liegt im Storage-Bucket,
+hier sind nur die Infos darüber gespeichert:
+- storage_path: wo die Datei im Bucket liegt (userId/flightId/timestamp_dateiname)
+- document_type: boarding_pass / booking_confirmation / receipt / other
+- signed_url: ein temporärer Link zur Datei (läuft nach 3600 Sekunden ab)
+- signed_url_expires_at: wann der Link abläuft (für automatischen Refresh)
+- is_cached: ob die Datei lokal auf dem Gerät zwischengespeichert ist
+- cache_path: wo die lokale Kopie liegt
+
+--- WEITERE TABELLEN ---
+companies / company_members / company_invites: Team-Features
+flight_users: Zuweisung von Nutzern zu einem Firmenflug
+notifications: Geplante Push-Benachrichtigungen
+achievements / user_achievements: Gamification (Auszeichnungen)
+email_accounts / email_imports: E-Mail-Import von Buchungen (Gmail/Outlook)
+calendar_accounts: Kalenderintegration
+
+
+====================================================================
+TEIL 4: SICHERHEIT – ROW-LEVEL SECURITY (RLS)
+====================================================================
+
+RLS ist das Herzstück der Sicherheitsarchitektur.
+Normale Datenbanken: Der Code schreibt "WHERE profile_id = meine_id" in die Abfrage.
+Problem: Wenn der Code einen Bug hat oder jemand die API direkt anspricht, 
+könnte er fremde Daten abrufen.
+
+Mit RLS passiert das auf DATENBANKEBENE:
+→ Die Datenbank selbst prüft bei JEDER Abfrage: "Wem gehören diese Daten?"
+→ Selbst wenn die App keinen Filter setzt, gibt die DB nur eigene Daten zurück
+→ Es ist strukturell unmöglich fremde Daten zu sehen – egal was im Code steht
+
+Das Muster für alle nutzerbezogenen Tabellen:
+  SELECT: USING (profile_id = auth.uid())       ← "Ich darf nur lesen was mir gehört"
+  INSERT: WITH CHECK (profile_id = auth.uid())  ← "Ich darf nicht mit fremder ID eintragen"
+  UPDATE: USING + WITH CHECK                    ← beide Checks beim Ändern
+  DELETE: USING (profile_id = auth.uid())       ← "Ich darf nur eigenes löschen"
+
+Unterschied USING vs. WITH CHECK:
+- USING: wird gegen den BESTEHENDEN Datensatz in der DB geprüft (beim Lesen/Ändern/Löschen)
+- WITH CHECK: wird gegen den NEUEN/GEÄNDERTEN Datensatz geprüft (beim Schreiben)
+Beim UPDATE braucht man beide: Du musst den alten Satz besitzen UND der neue darf
+nicht einer anderen Person zugewiesen werden.
+
+Spezialfall profiles – "same-company" Policy:
+Firmenmitglieder einer Company dürfen die Profile anderer Mitglieder DERSELBEN
+Firma lesen (nicht aller Nutzer, nur derselben Firma). Nötig z.B. für eine
+Mitgliederliste im Teambereich.
+
+Spezialfall airports:
+Öffentlich lesbar (sogar anonym ohne Login), weil Flughafendaten kein
+schutzbedürftiges Gut sind. Authenticated User dürfen auch insertan.
+
+Spezialfall achievements:
+Global lesbar für alle, weil es nur Definitionen sind ("Erste 10 Flüge gespeichert"),
+keine personenbezogenen Daten.
+
+
+====================================================================
+TEIL 5: DER SERVICE-LAYER – WARUM NICHT DIREKT IN DER UI?
+====================================================================
+
+In Skyline kommuniziert KEINE UI-Komponente direkt mit der Datenbank.
+Stattdessen gibt es zwei Service-Dateien die das übernehmen:
+
+services/supabase.ts  → alles mit den relationalen Tabellen (Flüge, Notizen, Checklisten)
+services/documentService.ts → alles mit dem Storage (Upload, Download, Caching)
+
+Aufbau:
+  Screen (z.B. trip-details.tsx)
+    → ruft loadNotesForFlight(id) auf
+      → services/supabase.ts macht die Datenbankabfrage
+        → Supabase prüft RLS
+          → Ergebnis kommt zurück
+
+Warum dieser Umweg? Drei Gründe:
+
+1. SINGLE RESPONSIBILITY
+   Der Screen soll nur anzeigen, nicht rechnen. Die Datenbanklogik sitzt
+   einmal zentral. Wenn sich das Schema ändert (neues Feld, andere Tabelle),
+   muss man NUR den Service anfassen, nicht jeden einzelnen Screen.
+
+2. ZENTRALE FEHLERBEHANDLUNG
+   Alle komplexen Fehlerfälle sind im Service:
+   - Storage-Rollback: Datei hochgeladen aber DB-Schreiben schlägt fehl?
+     → Service löscht die Datei wieder, kein "Datenleiche" im Bucket
+   - URL-Refresh: Signed URL abgelaufen?
+     → Service holt automatisch eine neue und speichert sie in der DB
+   - Cache-Invalidierung: Datei lokal gecacht aber Datei existiert nicht mehr?
+     → Service setzt is_cached=false und holt online
+   Diese Logik wäre in jedem Screen dupliziert wenn kein Service-Layer existiert.
+
+3. TESTBARKEIT
+   Ein Service kann isoliert getestet werden ohne UI.
+
+WICHTIG: Der Service-Layer ist KEIN Sicherheitsmechanismus.
+Die Sicherheit liegt in der Datenbank (RLS). Der Service macht nur den Code
+wartbar und konsistent. Selbst wenn jemand den Service umgeht und direkt
+die Supabase API anspricht – RLS blockiert alles Verbotene.
+
+
+====================================================================
+TEIL 6: DOKUMENTE & STORAGE – WIE FUNKTIONIEREN SIGNED URLS?
+====================================================================
+
+Dokumente (PDFs, Bilder) liegen NICHT in der Postgres-Datenbank.
+Sie liegen im Supabase Storage Bucket "flight-documents".
+Der Bucket ist PRIVAT – kein öffentlicher Zugriff möglich.
+
+Wie kommt die App an die Datei?
+1. App fragt beim Service nach der URL für Dokument X
+2. Service schaut in flight_documents nach:
+   - Gibt es eine signed_url die noch nicht abgelaufen ist? → nimm die
+   - Abgelaufen oder keine vorhanden? → neue Signed URL bei Supabase anfordern
+     → URL in DB aktualisieren → URL zurückgeben
+3. App öffnet die Datei über die URL (gültig für 3600 Sekunden)
+
+Was ist ein Signed URL?
+Ein temporärer Link der eine Datei aus einem privaten Bucket zugänglich macht.
+Ohne diesen Link kommt niemand an die Datei – auch nicht mit der direkten
+Bucket-URL. Nach 3600 Sekunden ist der Link ungültig.
+
+Pfad-Struktur im Bucket:
+  userId / flightId / timestamp_dateiname
+  z.B.: abc123 / flug456 / 1706789012000_boardingpass.pdf
+
+Warum dieser Pfad?
+→ userId: Klare Eigentümerzuordnung
+→ flightId: Alle Dokumente eines Flugs in einem "Ordner"
+→ timestamp: Verhindert Namenskollisionen wenn man zweimal dasselbe File hochlädt
+→ sanitized filename: Sonderzeichen entfernt, damit der Pfad immer valide ist
+
+Rollback bei Fehler:
+Upload erfolgreich aber DB-Schreiben schlägt fehl?
+→ DocumentService löscht die Datei aus dem Bucket wieder
+→ Kein Dokument ohne zugehörigen DB-Eintrag
+→ Keine "Datenleichen" im Storage die Speicherplatz kosten
+
+
+====================================================================
+TEIL 7: PERFORMANCE – WARMUP & PARALLELES LADEN
+====================================================================
+
+Skyline lädt Daten PARALLEL, nicht nacheinander.
+
+Problem ohne Parallelisierung:
+  1. Flüge laden (500ms)
+  2. DANN Notizen laden (300ms)
+  3. DANN Checklisten laden (300ms)
+  4. DANN Dokumente laden (400ms)
+  = 1500ms Wartezeit bis der Screen fertig ist
+
+Lösung mit Promise.allSettled():
+  1. Flüge, Notizen, Checklisten, Dokumente GLEICHZEITIG starten
+  = ca. 500ms (längste Anfrage bestimmt die Gesamtzeit)
+
+Warmup beim App-Start:
+  Wenn die App startet, werden SOFORT die ersten 12 Flüge und ihre Notizen
+  und Checklisten im Hintergrund vorgeladen – noch bevor der Nutzer auf
+  irgendeinen Flug tippt. Wenn er dann tippt ist alles schon da.
+
+Timeout-Schutz:
+  DocumentList.tsx hat einen 10-Sekunden-Timeout. Wenn das Laden nach 10
+  Sekunden noch nicht fertig ist, zeigt die App eine leere Liste statt
+  ewig einen Ladeindikator zu drehen. Kein "hängendes" UI.
+
+
+====================================================================
+TEIL 8: MIGRATIONEN – WIE WÄCHST DAS SCHEMA?
+====================================================================
+
+Das Datenbankschema wurde nicht von Anfang an perfekt geplant.
+Es wurde iterativ mit Migrationsskripten erweitert.
+
+Beispiel: departure_at und arrival_at
+→ Existierten anfangs nicht in user_flights
+→ Wurden per ALTER TABLE nachträglich hinzugefügt:
+    ALTER TABLE public.user_flights
+      ADD COLUMN IF NOT EXISTS departure_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS arrival_at   TIMESTAMP;
+
+Warum "IF NOT EXISTS"?
+→ Das Migrationsskript kann mehrmals ausgeführt werden ohne Fehler
+→ Bestehende Daten werden nicht verändert
+→ Neue Felder sind zunächst NULL für alte Einträge (kein Datenverlust)
+
+Weitere Migrationen:
+- company_id wurde so nachträglich zu user_flights hinzugefügt
+- flight_documents wurde komplett als neue Tabelle hinzugefügt
+- departure_at/arrival_at wurden nachträglich indiziert
+
+
+====================================================================
+TEIL 9: WAS VERBESSERT SICH WIRKLICH? (FÜR DIE PRÜFUNG)
+====================================================================
+
+Die DA behauptet, dass durch die zentrale Datenverwaltung zwei Dinge
+messbar besser werden: Transparenz und Nachvollziehbarkeit.
+
+--- TRANSPARENZ ---
+Definition: Wie schnell kann ein Nutzer den Status einer Reise erfassen?
+
+VORHER (dezentral):
+→ Gmail öffnen, Bestätigung suchen (30-60 Sekunden)
+→ Kamera-App öffnen, Boardingpass suchen (30-60 Sekunden)
+→ Apple Notes, Reisenotizen suchen (15-30 Sekunden)
+→ Gesamtüberblick: 2-3 Minuten, mehrere Apps
+
+NACHHER (Skyline):
+→ Flug antippen → ALLES sofort sichtbar: Status, Dokumente, Notizen, Checklisten
+→ departure_at/arrival_at auf der Karte zeigen Live-Position des Flugs
+→ status-Feld (upcoming/completed/cancelled) sofort erkennbar ohne Öffnen
+→ Gesamtüberblick: unter 5 Sekunden, eine App
+
+--- NACHVOLLZIEHBARKEIT ---
+Definition: Wie schnell findet ein Nutzer ein bestimmtes Dokument oder einen Beleg?
+
+VORHER:
+→ "Wo ist die Quittung vom Taxi in Berlin?" → Foto-App durchsuchen → 2-5 Minuten
+→ Keine Kategorisierung, alles gemischt mit anderen Fotos
+
+NACHHER:
+→ Flug Berlin öffnen → Dokumente → Filter "receipt" → sofort da
+→ document_type (boarding_pass/booking_confirmation/receipt/other) macht
+  gezieltes Filtern möglich
+→ created_at/updated_at auf allen Einträgen: zeitliche Rückverfolgbarkeit
+→ FK-Kette profile → flight → document: jeder Beleg ist eindeutig zuordenbar
+
+--- SICHERHEIT (Bonus-Argument) ---
+VORHER: Dokumente in der Foto-App sind für jeden mit Gerätezugriff sichtbar
+NACHHER: Dokumente im privaten Bucket, nur über zeitlich begrenzte Signed URLs
+         zugänglich. RLS auf DB-Ebene: strukturell kein Fremdzugriff möglich.
+
+
+====================================================================
+MÖGLICHE PRÜFUNGSFRAGEN & ANTWORTEN
+====================================================================
+
+F: Warum Supabase und nicht eine eigene Datenbank?
+A: Supabase bietet PostgreSQL, Auth, Storage und RLS in einem Paket.
+   RLS ist in PostgreSQL direkt eingebaut – das muss nicht extra implementiert werden.
+   Außerdem managed (kein Server-Betrieb nötig), skaliert automatisch.
+
+F: Was ist der Unterschied zwischen USING und WITH CHECK bei RLS?
+A: USING prüft den bestehenden Datensatz (Lesen/Ändern/Löschen).
+   WITH CHECK prüft den neuen/zu schreibenden Datensatz (Einfügen/Ändern).
+   Beim UPDATE braucht man beide: Man muss den alten Satz besitzen UND der
+   neue Satz darf nicht jemand anderem zugewiesen werden.
+
+F: Warum werden Dokumente nicht direkt in der Datenbank gespeichert?
+A: Binärdaten (PDFs, Bilder) in einer relationalen DB sind ineffizient:
+   Langsame Abfragen, hoher Speicherverbrauch, keine CDN-Unterstützung.
+   Storage-Buckets sind dafür optimiert. Die DB speichert nur Metadaten.
+
+F: Was passiert wenn ein Upload gelingt aber das DB-Schreiben schlägt fehl?
+A: Der DocumentService macht einen Rollback: Die hochgeladene Datei wird
+   aus dem Storage-Bucket wieder gelöscht. Kein Eintrag ohne Metadaten.
+
+F: Warum braucht es einen Service-Layer? Könnte die App nicht direkt die DB ansprechen?
+A: Technisch ja – aber drei Probleme: 1) Fehlerbehandlung wäre in jedem Screen
+   dupliziert, 2) Schema-Änderungen würden viele Dateien betreffen,
+   3) Kein zentraler Ort für Rollback/Timeout/Cache-Logik. Der Service-Layer
+   macht den Code wartbar. Die Sicherheit liegt trotzdem in der DB (RLS).
+
+F: Was ist eine Signed URL und warum läuft sie ab?
+A: Ein temporärer, signierter Link auf eine private Datei. Läuft ab (3600s)
+   damit gestohlene Links irgendwann wertlos werden. Die App holt automatisch
+   eine neue URL wenn die alte abgelaufen ist.
+
+F: Wie werden Schemaänderungen umgesetzt ohne Daten zu verlieren?
+A: Migrationen mit ALTER TABLE ... ADD COLUMN IF NOT EXISTS. Neue Felder
+   sind zunächst NULL für bestehende Einträge (kein Datenverlust).
+   Idempotent durch IF NOT EXISTS – kann mehrfach ausgeführt werden.
+
+====================================================================

@@ -1,0 +1,10 @@
+Achievements-Screen
+
+Dateiname im Ordner: achievements.png
+Zielpfad in der Arbeit: content/img/achievements.png
+
+Beschreibung:
+App-Screenshot: Achievements-Übersicht mit Meilensteinen und Fortschrittsbalken.
+Zeigt die Gamification-Elemente (z.B. erste Reise, Strecke erreicht, Länder besucht).
+
+Format: PNG, iPhone-Screenshot, ca. 75% Textbreite

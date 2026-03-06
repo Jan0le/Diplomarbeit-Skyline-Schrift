@@ -1,55 +1,6 @@
 %!TEX root = ../DA_MainDocument.tex
 
-% ============================================================
-% Listings-Stil fuer SQL und TypeScript
-% ============================================================
-\lstdefinelanguage{TypeScript}{
-  keywords={const,let,var,function,return,async,await,if,else,throw,
-            new,class,import,from,export,default,try,catch,true,false,
-            null,undefined,void,string,number,boolean,Promise},
-  sensitive=true,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  morestring=[b]',
-  morestring=[b]"
-}
-
-\lstdefinestyle{skyline-sql}{
-  language=SQL,
-  basicstyle=\footnotesize\ttfamily,
-  keywordstyle=\bfseries,
-  commentstyle=\color{gray}\itshape,
-  stringstyle=\color{mydarkelectricblue},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  numbersep=8pt,
-  frame=tb,
-  rulecolor=\color{mydarkelectricblue},
-  breaklines=true,
-  showstringspaces=false,
-  captionpos=b,
-  morekeywords={UUID,BIGINT,TIMESTAMPTZ,BOOLEAN,REFERENCES,CASCADE,
-                POLICY,USING,CHECK,ENABLE,ROW,LEVEL,SECURITY,
-                gen_random_uuid,auth,uid,CREATE,TABLE,IF,NOT,EXISTS,
-                PRIMARY,KEY,DEFAULT,ON,DELETE,SET,NULL,INDEX,
-                DROP,ALTER}
-}
-
-\lstdefinestyle{skyline-ts}{
-  language=TypeScript,
-  basicstyle=\footnotesize\ttfamily,
-  keywordstyle=\bfseries,
-  commentstyle=\color{gray}\itshape,
-  stringstyle=\color{mydarkelectricblue},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  numbersep=8pt,
-  frame=tb,
-  rulecolor=\color{mydarkelectricblue},
-  breaklines=true,
-  showstringspaces=false,
-  captionpos=b
-}
+% Listings-Stile (TypeScript, skyline-ts, skyline-sql) sind in setup/environments.tex definiert.
 
 % ============================================================
 \chapter{Implementierung: Zentrale \& sichere Datenverwaltung (JanOle)}\label{chapter:datenverwaltung}
@@ -71,8 +22,8 @@ Dadurch entsteht in Skyline kein loses Nebeneinander verschiedener Feature-Daten
 zusammenhängendes Datenmodell, in dem jede Zusatzinformation eindeutig einem Flug zugeordnet ist.
 
 Die Kernoperationen (Create, Read, Update, Delete) werden nicht direkt in den UI-Screens
-implementiert, sondern über einen Service-Layer gekapselt (\texttt{services/supabase.ts},
-\texttt{services/documentService.ts}).
+implementiert, sondern über einen Service-Layer gekapselt. Die zentralen Module sind
+\texttt{supabase.ts} (relationale Daten) und \texttt{documentService.ts} (Storage).
 Sicherheitsseitig wird Row-Level Security (RLS) auf Tabellenebene eingesetzt, sodass
 Zugriffe bereits innerhalb der Datenbank an den authentifizierten Benutzerkontext gebunden sind.
 Für den Teamkontext wurde das Modell migrationsbasiert erweitert: Über \texttt{company\_id}
@@ -80,8 +31,10 @@ können persönliche Flüge und Firmenflüge getrennt modelliert werden.
 Mit \texttt{departure\_at} und \texttt{arrival\_at} wurden zeitbezogene Felder eingeführt,
 die für Live-Progress auf der Karte sowie zeitbasierte Erinnerungslogik genutzt werden.
 
-\begin{figure}[htbp]
+\clearpage
+\begin{figure}[H]
   \centering
+  \scalebox{0.78}{%
   \begin{tikzpicture}[
     x=1cm, y=1cm,
     entity/.style={draw, rounded corners, thick, minimum width=3.2cm,
@@ -90,7 +43,8 @@ die für Live-Progress auf der Karte sowie zeitbasierte Erinnerungslogik genutzt
                  minimum height=0.85cm, align=center, font=\tiny\ttfamily,
                  dashed},
     arr/.style={->, thick},
-    sarr/.style={->, thick, dashed}
+    sarr/.style={->, thick, dashed},
+    card/.style={font=\scriptsize, fill=white, inner sep=2pt, draw=none}
   ]
     \node[entity] (profiles)   at (0,0)    {profiles};
     \node[entity] (flights)    at (0,-2)   {user\_flights};
@@ -98,19 +52,18 @@ die für Live-Progress auf der Karte sowie zeitbasierte Erinnerungslogik genutzt
     \node[entity] (checklists) at (0,-4)   {user\_checklists};
     \node[entity] (items)      at (0,-6)   {user\_checklist\_items};
     \node[entity] (documents)  at (4,-4)   {flight\_documents};
-    \node[side]   (fusers)     at (4,-2)   {flight\_users};
     \node[side]   (notif)      at (-4,-2)  {notifications};
     \node[side]   (ach)        at (-4,0)   {user\_achievements};
 
-    \draw[arr]  (profiles)   -- node[right, font=\scriptsize]{1:n} (flights);
-    \draw[arr]  (flights)    -- node[above left, font=\scriptsize]{1:n} (notes);
-    \draw[arr]  (flights)    -- node[right, font=\scriptsize]{1:n} (checklists);
-    \draw[arr]  (checklists) -- node[right, font=\scriptsize]{1:n} (items);
-    \draw[arr]  (flights)    -- node[above right, font=\scriptsize]{1:n} (documents);
-    \draw[sarr] (flights)    -- node[above, font=\scriptsize]{1:n} (fusers);
-    \draw[sarr] (profiles)   -- node[below, font=\scriptsize]{1:n} (notif);
-    \draw[sarr] (profiles)   -- node[right, font=\scriptsize]{1:n} (ach);
-  \end{tikzpicture}
+    \draw[arr]  (profiles)   -- node[card, right]{1:n} (flights);
+    \draw[arr]  (flights)    -- node[card, above left]{1:n} (notes);
+    \draw[arr]  (flights)    -- node[card, right]{1:n} (checklists);
+    \draw[arr]  (checklists) -- node[card, right]{1:n} (items);
+    \draw[arr]  (flights)    -- node[card, above right]{1:n} (documents);
+    \draw[sarr] (profiles)   -- node[card, below]{1:n} (notif);
+    \draw[sarr] (profiles)   -- node[card, right]{1:n} (ach);
+  \end{tikzpicture}%
+  }
   \caption{Zentrales Datenmodell in Skyline (vereinfachte ER-Darstellung;
            gestrichelt: ergänzende Feature-Tabellen)}
   \label{fig:datenmodell_skyline}
@@ -161,7 +114,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 \end{lstlisting}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Felder der Tabelle \texttt{profiles}}
   \label{tab:profiles_felder}
@@ -201,8 +154,8 @@ CREATE POLICY "Read profiles of same-company members"
       FROM public.company_members me
       JOIN public.company_members other
         ON other.company_id = me.company_id
-      WHERE me.profile_id  = auth.uid()
-        AND other.profile_id = public.profiles.id
+      WHERE me.user_id = auth.uid()
+        AND other.user_id = public.profiles.id
     )
   );
 \end{lstlisting}
@@ -222,7 +175,7 @@ da Flughafendaten kein schutzbedürftiges Gut darstellen.
 Authenticated User dürfen zusätzlich neue Einträge anlegen, was die
 spätere Erweiterung der Datenbank durch Community-Beiträge ermöglicht.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Felder der Tabelle \texttt{airports}}
   \label{tab:airports_felder}
@@ -281,7 +234,7 @@ CREATE TABLE IF NOT EXISTS public.user_flights (
 \end{lstlisting}
 
 % Screenshot Supabase Table Editor
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -294,7 +247,7 @@ CREATE TABLE IF NOT EXISTS public.user_flights (
 
 Tabelle~\ref{tab:user_flights_felder} fasst die wichtigsten Felder zusammen:
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Felder der Tabelle \texttt{user\_flights}}
   \label{tab:user_flights_felder}
@@ -382,7 +335,7 @@ Beide Notiz- und Checklistentabellen besitzen ein \texttt{purpose}-Feld
 kennzeichnet und die Filterfunktion in der App ermöglicht.
 Ein optionales \texttt{reminder\_at}-Feld erlaubt zeitbasierte Erinnerungen.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Felder der Tabelle \texttt{user\_notes}}
   \label{tab:user_notes_felder}
@@ -403,7 +356,7 @@ Ein optionales \texttt{reminder\_at}-Feld erlaubt zeitbasierte Erinnerungen.
   \end{tabularx}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Felder der Tabellen \texttt{user\_checklists} und
            \texttt{user\_checklist\_items}}
@@ -518,7 +471,7 @@ Dieser Ansatz gewährleistet, dass bestehende Daten bei Schemaänderungen
 erhalten bleiben (\texttt{IF NOT EXISTS} / \texttt{IF EXISTS}) und
 neue Felder rückwärtskompatibel eingeführt werden können.
 \texttt{company\_id} wurde analog per eigenem Migrationsskript ergänzt
-(\texttt{migration\_add\_company\_id\_to\_user\_flights.sql}).
+(\texttt{migration\_add\_company\_id\_to\_\allowbreak user\_flights.sql}).
 
 % ----------------------------------------------------------
 \subsubsection*{Weitere Tabellen im Gesamtschema}
@@ -528,7 +481,7 @@ neue Felder rückwärtskompatibel eingeführt werden können.
 die ergänzende Features abbilden.
 Tabelle~\ref{tab:weitere_tabellen} gibt einen Überblick:
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Weitere Tabellen im Skyline-Datenbankschema}
   \label{tab:weitere_tabellen}
@@ -543,8 +496,10 @@ Tabelle~\ref{tab:weitere_tabellen} gibt einen Überblick:
     \texttt{company\_invites} & Einladungstoken mit Status, Ablaufzeit und
                                 Annahme-Tracking (\texttt{pending}/\texttt{accepted}/
                                 \texttt{expired}/\texttt{revoked}) \\
-    \texttt{flight\_users}    & Zuweisung von Nutzern zu einem Firmenflug
-                                (\texttt{can\_edit}, \texttt{status}) \\
+    \texttt{flight\_users}    & (Legacy-Konzept, wird in der finalen Implementierung
+                                nicht verwendet; Firmenflüge werden stattdessen über
+                                \texttt{user\_flights.company\_id} und
+                                \texttt{company\_members} abgebildet) \\
     \texttt{notifications}    & Geplante Push-Benachrichtigungen mit
                                 \texttt{fire\_at}, \texttt{kind} und \texttt{payload} (JSONB) \\
     \texttt{achievements}     & Globale Achievement-Definitionen (öffentlich lesbar,
@@ -582,7 +537,7 @@ während \texttt{services/documentService.ts} die dateibasierten Operationen
 auf dem Storage-Bucket verwaltet (Upload, Signed-URL-Erzeugung, Caching,
 Rollback).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     x=1cm, y=1cm,
@@ -698,7 +653,7 @@ CREATE POLICY "notes_delete_own" ON public.user_notes
 \end{lstlisting}
 
 % Screenshot RLS-Policy-Übersicht
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -748,7 +703,7 @@ void Promise.allSettled([
 ]);
 \end{lstlisting}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     x=1cm, y=1cm,
@@ -851,7 +806,7 @@ await supabase.from('flight_documents').update({
 \end{lstlisting}
 
 % Screenshot Storage-Bucket
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -863,21 +818,22 @@ await supabase.from('flight_documents').update({
   \label{fig:supabase_storage}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     x=1cm, y=1cm,
     box/.style={draw, rounded corners, thick, minimum width=3.2cm,
                 minimum height=0.8cm, align=center, font=\small},
     arr/.style={->, thick},
-    note/.style={font=\scriptsize, align=center}
+    note/.style={font=\scriptsize, align=center},
+    card/.style={font=\scriptsize, fill=white, inner sep=2pt, draw=none}
   ]
     \node[box] (app)     at (0,0)  {App};
     \node[box] (api)     at (5,0)  {Supabase API\\(Auth + RLS)};
     \node[box] (storage) at (10,0) {Storage Bucket\\flight-documents};
 
-    \draw[arr] (app) -- node[above,note]{1. URL anfordern} (api);
-    \draw[arr] (api) -- node[above,note]{2. Signed URL} (storage);
+    \draw[arr] (app) -- node[above,card]{1. URL anfordern} (api);
+    \draw[arr] (api) -- node[above,card]{2. Signed URL} (storage);
     \draw[arr] (storage.south) -- ++(0,-0.8) -|
       node[below,note,pos=0.25]{3. Datei via URL} (app.south);
   \end{tikzpicture}

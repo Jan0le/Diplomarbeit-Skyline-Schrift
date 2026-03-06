@@ -14,8 +14,7 @@ um und kombiniert lokales Scheduling auf dem Endgerät mit einer serverseitigen 
 um Nachvollziehbarkeit und Robustheit zu erhöhen
 \cite{ozdemir2025echoes,visuri2019notifications}.
 
-Skyline wurde primär für \textbf{iOS} entwickelt und ist im \textbf{Apple App Store}
-verfügbar \cite{appleLocalNotif}.
+Skyline wurde primär für \textbf{iOS} entwickelt und ist im \textbf{Apple App Store} verfügbar \cite{appleLocalNotif}.
 Die Zielplattform der gesamten Implementierung -- inklusive des Benachrichtigungsmoduls --
 ist damit iOS mit dem Apple Push Notification Service (APNs) als Plattformgrundlage.
 Eine Android-Kompatibilitätsschicht ist im Code vorhanden, wurde jedoch nicht vollständig
@@ -120,7 +119,7 @@ export const initializeNotifications = async (
 
 Abbildung~\ref{fig:reminder-architecture} gibt einen Überblick über die Gesamtarchitektur.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     box/.style={draw, rounded corners, align=center, inner sep=7pt,
@@ -160,7 +159,7 @@ Abbildung~\ref{fig:reminder-architecture} gibt einen Überblick über die Gesamt
 Kern der Architektur ist die Definition fester Offsets relativ zu Abflug- und Ankunftszeit.
 Tabelle~\ref{tab:reminder-offsets} fasst die Standard-Offsets zusammen.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Reminder-Typen und Default-Offsets in Skyline}
   \label{tab:reminder-offsets}
@@ -179,9 +178,7 @@ Tabelle~\ref{tab:reminder-offsets} fasst die Standard-Offsets zusammen.
   \end{tabularx}
 \end{table}
 
-Abbildung~\ref{fig:reminder-timeline} visualisiert die Offsets auf einer Zeitachse.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=0.82cm, y=1cm, >=latex]
     \draw[->, thick] (-10.5,0) -- (9.5,0) node[right] {Zeit};
@@ -197,12 +194,12 @@ Abbildung~\ref{fig:reminder-timeline} visualisiert die Offsets auf einer Zeitach
     \node[above, align=center, font=\scriptsize] at (-4.5,0.15)
       {T$-$12h\\Missing Docs};
 
-    \draw[thick] (-1.2,0.12) -- (-1.2,-0.12);
-    \node[above, align=center, font=\scriptsize] at (-1.2,0.15)
+    \draw[thick] (-2.5,0.12) -- (-2.5,-0.12);
+    \node[above, align=center, font=\scriptsize] at (-2.5,0.15)
       {T$-$60m\\Boarding};
 
-    \draw[thick] (-0.4,0.12) -- (-0.4,-0.12);
-    \node[above, align=center, font=\scriptsize] at (-0.4,0.15)
+    \draw[thick] (0.4,0.12) -- (0.4,-0.12);
+    \node[above, align=center, font=\scriptsize] at (0.4,0.15)
       {T$-$30m\\Boarding};
 
     \draw[thick] (7.2,0.12) -- (7.2,-0.12);
@@ -413,13 +410,14 @@ try {
 
 Abbildung~\ref{fig:sequence-flight-save} visualisiert den Ablauf als Sequenzdiagramm.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     lifeline/.style={draw, rounded corners, align=center, minimum width=2.4cm,
                      minimum height=0.75cm, font=\small},
     arr/.style={->, thick},
-    note/.style={font=\scriptsize, align=center}
+    note/.style={font=\scriptsize, align=center, fill=white, inner sep=2pt,
+                 draw=none}
   ]
     \node[lifeline] (screen) at (0,0)    {Screen};
     \node[lifeline] (store)  at (3.2,0)  {Store};
@@ -531,6 +529,13 @@ const resolveScheduleTime = async (
 % ============================================================
 
 Da sich Flugdaten ändern können, dürfen Reminder nicht statisch einmalig angelegt werden.
+Ohne einen Cancel-Schritt würden bei jeder Änderung (z.\,B.\ neue Abflugzeit, stornierter Flug)
+die alten Reminder weiterhin zum ursprünglich geplanten Zeitpunkt ausgelöst -- der Nutzer
+erhielte dann z.\,B.\ einen Boarding-Hinweis für einen bereits abgeflogenen oder
+abgesagten Flug.
+Der Ablauf ist daher zweistufig: Zuerst werden alle bestehenden Reminder für den Flug
+gelöscht (\emph{Cancel}), anschließend werden bei Bedarf neue Reminder mit den
+aktualisierten Daten neu geplant (\emph{Reschedule}).
 Listing~\ref{lst:cancel_reminders} zeigt die vollständige Implementierung von
 \texttt{cancelAutoRemindersForFlight}:
 
@@ -573,7 +578,7 @@ export async function cancelAutoRemindersForFlight(
 
 Neben lokalen Benachrichtigungen ist Skyline auf serverseitige Push-Benachrichtigungen
 vorbereitet.
-Da Skyline primär für iOS entwickelt wurde und im App Store verfügbar ist, bildet
+Da Skyline primär für iOS entwickelt wurde und im Apple App Store verfügbar ist, bildet
 \textbf{APNs} (Apple Push Notification Service) die technische Grundlage für Push-Tokens
 \cite{appleLocalNotif,expoPushSetup}.
 Expo abstrahiert dies über \texttt{getExpoPushTokenAsync()}, das auf iOS einen
@@ -660,7 +665,7 @@ server-initiierte Push-Features (z.\,B. Teambenachrichtigungen), ist aber noch n
 aktiv für die Flight-Reminder im Einsatz.
 
 % Screenshot Expo Push-Token
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -810,7 +815,7 @@ Skyline trennt bewusst zwischen lokaler Scheduling-Schicht (Expo/OS) und
 serverseitiger Registry.
 Tabelle~\ref{tab:registry_status} zeigt das Statusmodell.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Statusmodell der Notification-Registry (Tabelle \texttt{notifications})}
   \label{tab:registry_status}
@@ -829,26 +834,27 @@ Tabelle~\ref{tab:registry_status} zeigt das Statusmodell.
 
 Abbildung~\ref{fig:registry-state} zeigt das Zustandsmodell.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
     state/.style={draw, rounded corners, align=center, inner sep=6pt,
                   minimum width=3.0cm, font=\small},
     arr/.style={->, thick},
-    lbl/.style={font=\scriptsize}
+    lbl/.style={font=\scriptsize},
+    card/.style={font=\scriptsize, fill=white, inner sep=2pt, draw=none}
   ]
     \node[state] (pend)  at (0,0)     {pending\\(kein local\_id)};
     \node[state] (sched) at (6,0)     {scheduled\_local\\(local\_id gesetzt)};
     \node[state] (sent)  at (6,-2.5)  {sent};
     \node[state] (canc)  at (0,-2.5)  {cancelled};
-    \node[state] (fail)  at (3,-4.5)  {failed};
+    \node[state] (fail)  at (3,-5.5)  {failed};
 
     \draw[arr] (pend)  -- node[above,lbl]{Rescheduler} (sched);
     \draw[arr] (sched) -- node[right,lbl]{Zeit erreicht} (sent);
     \draw[arr] (pend)  -- node[left,lbl]{Flight update/delete} (canc);
-    \draw[arr] (sched) -- node[above,lbl]{cancelAutoReminders} (canc);
-    \draw[arr] (pend)  -- node[below left,lbl]{Scheduling error} (fail);
-    \draw[arr] (sched) -- node[below right,lbl]{Scheduling error} (fail);
+    \draw[arr] (sched) -- node[above,card]{cancelAutoReminders} (canc);
+    \draw[arr] (pend)  -- node[lbl, pos=0.75, below, xshift=-0.5cm]{Scheduling error} (fail);
+    \draw[arr] (sched) -- node[lbl, pos=0.75, below, xshift=0.5cm]{Scheduling error} (fail);
   \end{tikzpicture}
   \caption{Zustandsmodell der serverseitigen Notification-Registry}
   \label{fig:registry-state}
@@ -959,7 +965,7 @@ Quiet Hours verschieben geplante Notifications aus konfigurierten Ruhezeitfenste
 heraus (Listing~\ref{lst:quiet_hours}).
 
 % Screenshot Settings
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -985,10 +991,12 @@ nicht produktiv getestet \cite{androidNotifChannels}.
 \label{subsec:pending-screen}
 % ============================================================
 
-Zur Transparenz und Fehlersuche enthält Skyline einen Screen \emph{Pending notifications}.
-Er kombiniert lokal geplante Notifications (via \texttt{getAllScheduledNotificationsAsync})
-mit serverseitig offenen Registry-Einträgen (\texttt{fetchPendingNotifications})
+Zur Transparenz und Fehlersuche wurde während der Entwicklung ein Screen \emph{Pending notifications}
+implementiert.
+Er kombiniert lokal geplante Notifications mit serverseitig offenen Registry-Einträgen 
 \cite{expoNotificationsSDK}.
+Dieser Screen diente ausschließlich als Debug-Werkzeug in der Entwicklungsphase und ist in der
+fertigen App nicht über die Navigation erreichbar.
 Listing~\ref{lst:pending_screen} zeigt das parallele Laden beider Datenquellen:
 
 \begin{lstlisting}[style=skyline-ts,
@@ -1017,7 +1025,7 @@ setServerItems(serverNotifs);
 \end{lstlisting}
 
 % Screenshot Pending-Screen
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
     \textbf{TODO: Screenshot einfügen}\\[0.3cm]
@@ -1034,8 +1042,8 @@ setServerItems(serverNotifs);
 \label{sec:notifications-evaluation}
 % ============================================================
 
-Die Wirkung lässt sich entlang drei Dimensionen diskutieren:
-Zuverlässigkeit, Effizienz und Nutzerakzeptanz.
+Die Wirkung des Benachrichtigungsmoduls wird entlang drei inhaltlicher Dimensionen
+diskutiert: Zuverlässigkeit, Effizienz und Nutzerakzeptanz.
 
 \subsection{Zuverlässigkeit als KPI}
 

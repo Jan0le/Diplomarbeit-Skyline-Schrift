@@ -1,0 +1,12 @@
+Supabase RLS-Policies
+
+Dateiname im Ordner: supabase_rls.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+Screenshot aus dem Supabase Dashboard:
+  - Authentication → Policies (oder Table Editor → RLS)
+  - RLS-Policy-Liste für Tabelle „user_notes“ oder „user_flights“ sichtbar
+  - Zeigt die konfigurierten Row-Level-Security-Policies
+
+Format: PNG, ca. 88% Textbreite

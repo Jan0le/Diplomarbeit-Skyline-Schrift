@@ -1,0 +1,10 @@
+Home-Screen von Skyline
+
+Dateiname im Ordner: home_screen.png
+Zielpfad in der Arbeit: content/img/home_screen.png
+
+Beschreibung:
+App-Screenshot: Home-Screen von Skyline mit Flugübersicht und floating Tab-Bar.
+Zeigt die Hauptansicht mit der Liste der Flüge und der unteren Navigation.
+
+Format: PNG, iPhone-Screenshot (z.B. 6,5"), ca. 75% Textbreite

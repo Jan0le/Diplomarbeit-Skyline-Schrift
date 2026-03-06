@@ -30,7 +30,7 @@ Flüge, Dokumente, Notizen, Checklisten und Erinnerungen teilen dieselbe
 Datenbasis und sind über einen einzigen Zugangspunkt erreichbar.
 
 % ---- Ökosystem-Abbildung ----
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     % Stil-Definitionen
@@ -130,7 +130,7 @@ die Zugangskontrolle (RLS) sichert Vertraulichkeit auf Datenbankebene.
 Die folgende Tabelle gibt einen Überblick über typische Reisedatenklassen,
 ihre Quellen und die sich daraus ergebenden Problemfelder:
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Typische Reisedaten-Klassen, Quellen und Probleme (relevant für Reminder-Design in Skyline)}
 \label{tab:travel_data_classes}
@@ -223,7 +223,7 @@ Die folgende Abbildung zeigt den Datenfluss von fragmentierten Eingaben
 zu einem konsolidierten Trip-Datensatz, wie er in Skyline umgesetzt wird:
 
 % ---- Fragmentierungs-Datenfluss ----
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \tikzstyle{src}=[draw, rounded corners, align=center,
@@ -295,7 +295,7 @@ Die folgende Abbildung fasst den gesamten Nutzer-Workflow -- von der Buchung
 bis zur Nachbereitung -- zusammen, wie er in Skyline unterstützt wird:
 
 % ---- Nutzer-Workflow ----
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \tikzstyle{wfbox}=[draw, rounded corners, align=center,
@@ -332,40 +332,198 @@ bis zur Nachbereitung -- zusammen, wie er in Skyline unterstützt wird:
 \end{figure}
 
 \section{Grundlagen des automatischen Imports}
-\subsection{Zielsetzung und Nutzen}
-Automatisierter Import reduziert manuellen Aufwand und senkt die Fehlerquote. Ziel ist es, Flugdaten möglichst schnell und korrekt zu erfassen, um den Nutzer von repetitiven Eingaben zu entlasten und die Datenqualität zu erhöhen.
 
-\subsection{Abgrenzung zu manueller Erfassung}
-Manueller Import bleibt als Fallback bestehen, ist aber zeitaufwändiger und fehleranfälliger. Automatisierung steigert Komfort und Konsistenz.
+\subsection{Zielsetzung und Nutzen}
+
+Der automatisierte Import von Flugdaten verfolgt das übergeordnete Ziel, repetitive manuelle Dateneingaben zu eliminieren und die Qualität der erfassten Informationen signifikant zu verbessern.
+Anstatt jeden Flug manuell einzupflegen, erkennt das System relevante Daten automatisch aus verschiedenen Quellen -- sei es ein QR-Code auf dem Boarding Pass, ein Foto eines Papierdokuments oder eine E-Mail-Buchungsbestätigung.
+Dies entlastet den Nutzer erheblich, da insbesondere vielreisende Personen andernfalls dutzende Felder pro Flug manuell befüllen müssten.
+Gleichzeitig sinkt die Fehlerquote, da Tipp- und Übertragungsfehler, die bei manueller Eingabe unvermeidlich auftreten, durch den automatisierten Prozess weitgehend vermieden werden.
+
+\subsection{Abgrenzung zur manuellen Erfassung}
+
+Die manuelle Erfassung bleibt als Fallback-Option unverzichtbar und muss parallel zum automatisierten Import unterstützt werden -- etwa für Flüge, bei denen kein maschinenlesbares Dokument vorliegt, oder wenn der Nutzer Korrekturen vornehmen möchte.
+Allerdings ist sie zeitaufwändiger und mit einem höheren Fehlerrisiko verbunden.
+Der automatisierte Weg steigert Komfort, Konsistenz und Wiederholbarkeit: Ein einmal konfiguriertes Importschema funktioniert für hunderte Flüge gleichermaßen zuverlässig.
 
 \subsection{Typische Fehlerquellen bei Importen}
-Typische Probleme sind unvollständige Daten, fehlerhafte OCR-Erkennung oder unklare Codierung in QR/BCBP. Daher sind Validierung und Nachbearbeitung wichtig.
+
+Beim automatisierten Import treten verschiedene Fehlerklassen auf.
+Unvollständige Daten entstehen, wenn Quelldokumente nicht alle erforderlichen Felder enthalten -- beispielsweise fehlen bei manchen mobilen Boarding Passes Gate-Nummern oder Sitzplatzdaten.
+Fehlerhafte OCR-Erkennung ist eine weitere häufige Ursache: Bildqualität, Kontrast, Schriftgröße und Schiefstellung beeinflussen, ob Zeichen korrekt erkannt werden.
+Und schließlich können QR-Codes oder BCBP-Datenfelder nicht standardkonform kodiert sein, was beim Parsing zu Fehlzuordnungen führt.
+Daher sind robuste Validierungsschritte nach dem Einlesen sowie die Möglichkeit zur manuellen Nachkorrektur unbedingt vorzusehen.
 
 \subsection{Datenquellen für Flugdaten}
+
 \subsubsection{QR-Code / Boarding Pass (BCBP)}
-Boardingpässe enthalten standardisierte BCBP-Daten, die sich strukturiert auslesen lassen \cite{iataBCBP}. BCBP basiert auf festen Positionsfeldern. Die Struktur ermöglicht die Extraktion von Airline, Flugnummer, Datum und Airports \cite{iataBCBP}. Kernfelder sind Abflug-/Zielairport, Flugnummer und Datum. Diese reichen für einen validen Flight-Import aus. Nicht alle Boardingpässe sind standardkonform; zudem fehlen häufig Zusatzdaten wie Gate oder Sitzplatz.
+
+Der Bar Coded Boarding Pass (BCBP) ist ein von der IATA (International Air Transport Association) definierter Standard zur strukturierten Codierung von Passagier- und Flugdaten in einem zweidimensionalen Barcode.
+Die zugrunde liegende Spezifikation ist in der IATA Resolution~792 festgelegt und wurde seit ihrer Einführung im Jahr~2005 mehrfach aktualisiert -- zuletzt in Version~8, die seit dem 1.~Juni 2020 gültig ist \cite{iataCommonUse}.
+
+Das Format basiert auf fixen Positionsfeldern innerhalb eines Datenstrings.
+Der Standard definiert PDF417 als Barcode-Symbologie für gedruckte Boarding Passes sowie Aztec, Datamatrix und QR~Code für mobile Boarding Passes \cite{iata2021_bcbp_implementation_guide}.
+Ein einzelner Barcode kann dabei bis zu vier Flugsegmente gleichzeitig kodieren, was besonders bei Umsteigeverbindungen vorteilhaft ist.
+
+Die Pflichtfelder umfassen den Abflug- und Zielflughafen (3-stellige IATA-Codes), die Flugnummer, das Flugdatum und den Passagiernamen.
+Diese Kernfelder reichen aus, um einen validen Flug-Datensatz anzulegen.
+Optionale Felder -- wie Sitzplatz, Gate, Buchungsreferenz, Frequent-Flyer-Nummer oder Sicherheitsinformationen -- sind zwar im Standard vorgesehen, werden aber nicht von allen Airlines befüllt \cite{ewingBoardingPassBarcode}.
+
+% BCBP-Struktur: Aus IATA Implementation Guide S.\,49 ff.\ oder
+% \url{https://slideplayer.com/slide/12543027/} herunterladen und als bcbp_structure.png in content/img/ ablegen.
+\IfFileExists{content/img/bcbp_structure.png}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{bcbp_structure}
+  \caption{BCBP Feldstruktur (Übersicht). Quelle: SlidePlayer -- JCAA Aviation Seminar, BCBP Data Field Structure.}
+  \label{fig:bcbp_structure}
+\end{figure}%
+}{}
 
 \subsubsection{OCR aus Bildern/Dokumenten}
-OCR ermöglicht Import aus Fotos und PDFs, wenn kein QR-Code vorhanden ist. Schriftgröße, Kontrast und Bildrauschen beeinflussen die Genauigkeit der OCR. Nach OCR müssen Texte geparst und relevanten Feldern zugeordnet werden. Fehlerhafte OCR wird durch Plausibilitätschecks abgefangen, z.\,B. IATA-Codes oder Datumsformate.
+
+Optical Character Recognition (OCR) ermöglicht die Textextraktion aus Fotos oder eingescannten PDFs, wenn kein maschinenlesbarer QR-Code vorhanden ist.
+OCR analysiert die Pixel eines Bildes, segmentiert einzelne Zeichen und gleicht diese mit bekannten Zeichenmustern ab -- moderne Systeme nutzen dafür neuronale Netze, die auf Millionen Zeichenbeispielen trainiert wurden \cite{parseaIoOcr}.
+
+Die erreichbare Genauigkeit hängt stark von der Qualität der Vorlage ab: Saubere, hochauflösende digitale Dokumente erzielen Erkennungsraten von 98--99\,\%, während schlechte Scans oder beschädigte Dokumente nur auf 75--85\,\% kommen \cite{parseaIoOcr}.
+Konkret beeinflussen folgende Faktoren die OCR-Qualität \cite{docsumoOcrAccuracy}:
+\begin{itemize}
+  \item \textbf{Auflösung:} Mindestens 300~DPI werden für zuverlässige Erkennung empfohlen; bei kleinen Schriftgrößen sind 400--600~DPI vorzuziehen \cite{pittOcrBestPractices}.
+  \item \textbf{Kontrast:} Schwarze Schrift auf weißem Hintergrund liefert die besten Ergebnisse; farbige oder blasse Tinten senken die Treffsicherheit erheblich.
+  \item \textbf{Schiefstellung (Skew):} Gedrehte oder verzerrte Dokumente führen zu Segmentierungsfehlern; Vorab-Begradigung (Deskewing) verbessert die Ergebnisse.
+  \item \textbf{Bildrauschen und Artefakte:} Flecken, Falten oder Kompressionsartefakte können Zeichen verfälschen.
+\end{itemize}
+
+Nach der OCR müssen die extrahierten Texte geparst und relevanten Feldern zugeordnet werden.
+Plausibilitätsprüfungen -- etwa die Überprüfung ob ein erkannter Code einem validen IATA-Flughafencode entspricht oder ob ein Datum im korrekten Format vorliegt -- sind dabei essenziell, um fehlerhafte OCR-Ausgaben frühzeitig abzufangen.
+
+% OCR-Pipeline: \url{https://theailearner.com} (OCR-pipeline.png) herunterladen und als ocr_pipeline.png in content/img/ ablegen.
+\IfFileExists{content/img/ocr_pipeline.png}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{ocr_pipeline}
+  \caption{OCR-Prozess (Pipeline). Quelle: TheAILearner -- Optical Character Recognition Pipeline.}
+  \label{fig:ocr_pipeline}
+\end{figure}%
+}{}
 
 \subsubsection{E-Mail-Import (Buchungsdaten)}
-Buchungsbestätigungen enthalten strukturierte Informationen, die per Parser ausgelesen werden können. Typische Mails enthalten Buchungsreferenz, Routing, Zeiten und Passagierdaten. Format und Layout unterscheiden sich je Airline. Unterschiedliche Templates erfordern flexible Parser oder heuristische Regeln.
+
+Buchungsbestätigungs-E-Mails von Airlines und Reisebuchungsportalen enthalten strukturierte Informationen wie Buchungsreferenz (PNR), Routing (Abflug- und Zielflughafen), geplante Abflug- und Ankunftszeiten sowie Passagierdaten.
+Diese Informationen lassen sich mittels Parser automatisiert extrahieren.
+
+Die wesentliche Herausforderung besteht in der Heterogenität der Vorlagen: Jede Airline und jedes Buchungsportal verwendet ein eigenes E-Mail-Template mit unterschiedlichem Layout, Sprachstil und Zeichencodierung.
+Dies erfordert entweder eine umfangreiche Sammlung airline-spezifischer Parsing-Regeln oder den Einsatz heuristischer Verfahren, die häufige Muster (z.\,B.\ \glqq Flight: LH~441\grqq{}, \glqq Departure: FRA\grqq{}) erkennen können.
+Alternativ bieten neuere Ansätze den Einsatz von KI-Modellen, die natürlichsprachige Buchungsbestätigungen kontextbasiert verstehen können.
 
 \subsection{Technische Anforderungen}
-Der Import muss technisch stabil, verifizierbar und nutzerfreundlich sein. Validierung prüft Plausibilität (Datum, Airport-Codes). Feld-Mapping normalisiert externe Daten. Deduplizierung erkennt Mehrfachimporte. Fallback-Strategien und manuelle Ergänzung bei unvollständigen Daten sind erforderlich. Asynchrone Verarbeitung hält die UI responsiv. Fehler müssen nutzerfreundlich kommuniziert werden.
+
+Damit das Import-System im Produktivbetrieb zuverlässig funktioniert, müssen mehrere technische Anforderungen erfüllt sein:
+
+\textbf{Validierung:} Alle importierten Daten müssen auf Plausibilität geprüft werden.
+Dies umfasst mindestens die Überprüfung von IATA-Flughafencodes auf Existenz in einer bekannten Airport-Datenbank, die Prüfung von Datumsformaten und die Sicherstellung, dass Abflugdatum chronologisch vor dem Ankunftsdatum liegt.
+
+\textbf{Feld-Mapping und Normalisierung:} Externe Datenquellen liefern Felder in unterschiedlichen Formaten (z.\,B.\ verschiedene Datumsschreibweisen, mehrteilige Passagiernamen).
+Ein einheitliches Mapping normalisiert diese auf das interne Datenmodell.
+
+\textbf{Deduplizierung:} Das System muss erkennen, wenn ein Flug bereits in der Datenbank existiert, um Mehrfachimporte zu verhindern.
+Kriterien hierfür können Kombination aus Flugnummer, Datum und Route sein.
+
+\textbf{Fallback-Strategien:} Können nicht alle Pflichtfelder automatisch befüllt werden, muss der Nutzer die Möglichkeit erhalten, fehlende Informationen manuell zu ergänzen, bevor der Import abgeschlossen wird.
+
+\textbf{Asynchrone Verarbeitung:} Insbesondere bei OCR-lastigen Operationen kann die Verarbeitungszeit mehrere Sekunden betragen.
+Die UI darf während dieser Zeit nicht einfrieren; die Verarbeitung ist daher asynchron zu gestalten, mit entsprechendem Ladefeedback für den Nutzer.
+
+\textbf{Nutzerfreundliche Fehlerbehandlung:} Auftretende Fehler -- etwa ein nicht erkannter QR-Code oder ein unvollständiges OCR-Ergebnis -- müssen dem Nutzer verständlich kommuniziert werden, mit klaren Hinweisen, welche Felder manuell korrigiert werden müssen.
 
 \subsection{Vergleich: Manuell vs.\ Automatisch}
-Automatisierung reduziert Zeitaufwand und Fehlerquote, steigert Nutzerakzeptanz, Wiederholbarkeit und Skalierbarkeit.
+
+\begin{table}[H]
+  \centering
+  \caption{Vergleich manueller und automatisierter Flugdaten-Import}
+  \label{tab:import_vergleich}
+  \begin{tabular}{p{4.5cm}p{4.2cm}p{4.2cm}}
+    \toprule
+    \textbf{Kriterium} & \textbf{Manuell} & \textbf{Automatisch} \\
+    \midrule
+    Zeitaufwand & Hoch (mehrere Minuten je Flug) & Gering (Sekunden) \\
+    Fehlerquote & Höher (Tippfehler) & Niedriger (mit Validierung) \\
+    Nutzerakzeptanz & Mittel & Hoch \\
+    Wiederholbarkeit & Niedrig & Hoch \\
+    Skalierbarkeit & Schlecht & Gut \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Automatisierter Import ist insbesondere für vielreisende Nutzer mit hohem Datenvolumen deutlich überlegen.
+Manueller Import bleibt jedoch als unverzichtbarer Fallback und für Korrekturen bestehen.
 
 \section{Grundlagen visueller Flugrouten-Darstellung}
+
 \subsection{Charakteristika und Nutzen}
-Die visuelle Darstellung von Flugrouten dient der Orientierung und der schnellen Übersicht über Reisehistorie und geplante Flüge. Routen sollen geografisch korrekt auf einer Karte dargestellt und mit Interaktion verbunden sein.
+
+Die visuelle Darstellung von Flugrouten auf einer interaktiven Karte dient der räumlichen Orientierung und bietet dem Nutzer eine intuitive Übersicht über seine Reisehistorie und geplante Flüge.
+Anstatt Flüge als abstrakte Liste zu betrachten, können Nutzer ihre zurückgelegten Wege auf einem Globus nachvollziehen, Entfernungen einschätzen und regionale Schwerpunkte ihrer Reisetätigkeit erkennen.
+Die Karte ergänzt damit die tabellarische Datensicht um eine wertvolle visuelle Dimension.
 
 \subsection{Anforderungen an eine mobile Flugrouten-Karte}
-Die Karte muss auf mobilen Geräten performant laufen, interaktiv bedienbar sein und darf die Nutzerführung nicht überladen. Performance \& Ladezeiten, Skalierbarkeit bei vielen Flügen, mobile Optimierung (Touch, Displaygrößen), Genauigkeit der Darstellung (geodätisch korrekt, nicht als gerade Linie) und Usability (Fokus, Zoom, Auswahl) \cite{reactNativeMaps,movableTypeLatLong}.
+
+Der Einsatz auf mobilen Endgeräten stellt besondere Anforderungen an das Kartensystem:
+
+\textbf{Performance und Ladezeiten:} Die Karte muss auch bei vielen gespeicherten Flügen flüssig interagierbar sein.
+Bibliotheken wie React Native Maps (auf iOS MapKit, auf Android Google Maps) nutzen GPU-beschleunigtes Rendering, das selbst bei hunderten Routen performant bleibt \cite{reactNativeMaps,mapboxMaps}.
+
+\textbf{Mobile Optimierung:} Touch-Gesten (Pinch-to-Zoom, Drag) müssen natürlich reagieren.
+Interaktive Elemente wie Airport-Marker müssen ausreichend groß für Fingerbedienung sein.
+
+\textbf{Geodätische Korrektheit:} Flugrouten dürfen nicht als gerade Linien auf einer 2D-Karte eingezeichnet werden, da dies die tatsächliche Route verfälscht.
+Stattdessen sind Großkreisbögen (Great Circle Arcs) zu verwenden, die die kürzeste Verbindung auf der Erdoberfläche geometrisch korrekt darstellen \cite{leafletArc}.
+
+\textbf{Usability:} Zoom-to-Fit auf eine ausgewählte Route, Markierungen für Start- und Zielflughafen sowie Tooltip-Informationen beim Antippen einer Route steigern die Bedienbarkeit erheblich.
+
+% Great Circle: \url{https://gisgeography.com} (Great-Circle-Shortest-Flight-Path.png) herunterladen und als great_circle_route.png in content/img/ ablegen.
+\IfFileExists{content/img/great_circle_route.png}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{great_circle_route}
+  \caption{Great Circle Route vs.\ gerade Linie: die kürzeste Flugstrecke. Quelle: GIS Geography.}
+  \label{fig:great_circle_route}
+\end{figure}%
+}{}
 
 \subsection{Technische Grundlagen der Routenberechnung}
-Die Routen werden anhand geographischer Koordinaten der Airports berechnet. Für die Distanz zwischen zwei Airports wird die Haversine-Formel verwendet \cite{movableTypeLatLong}. Die Flugroute wird als Great-Circle-Bogen modelliert. Flugfortschritt in Echtzeit wird über departureAt/arrivalAt interpoliert.
+
+\textbf{Koordinatenbasis:} Jedem Flughafen ist ein Koordinatenpaar (Längengrad $\lambda$, Breitengrad $\varphi$) zugeordnet.
+Die Flugroute wird anhand dieser geografischen Koordinaten von Abflug- und Zielflughafen berechnet.
+
+\textbf{Haversine-Formel:} Zur Bestimmung der Entfernung zwischen zwei Punkten auf der Erdoberfläche wird die Haversine-Formel verwendet \cite{wikipediaHaversine,movableTypeLatLong}:
+\begin{equation}
+  d = 2R \cdot \arcsin\left(\sqrt{\sin^2\!\left(\frac{\varphi_2-\varphi_1}{2}\right) + \cos\varphi_1 \cdot \cos\varphi_2 \cdot \sin^2\!\left(\frac{\lambda_2-\lambda_1}{2}\right)}\right)
+\end{equation}
+Dabei ist $R$ der mittlere Erdradius ($\approx 6{,}371$~km).
+Die Haversine-Formel gilt als numerisch stabil auch bei sehr kleinen Distanzen und liefert für die kugelförmig angenäherte Erde eine Genauigkeit von besser als 0{,}5\,\% \cite{wikipediaGreatCircle}.
+Für Anwendungsfälle, bei denen höhere Genauigkeit gefordert ist, kann stattdessen die Vincenty-Formel auf Basis eines Erdellipsoids verwendet werden.
+
+\textbf{Great-Circle-Bogen:} Die Flugroute wird nicht als direkte Verbindungslinie auf der 2D-Karte dargestellt, sondern als Großkreisbogen (Great Circle Arc) modelliert.
+Ein Großkreis ist der größte mögliche Kreis auf einer Kugeloberfläche und beschreibt die kürzeste Verbindung zwischen zwei Punkten -- analog einer gespannten Schnur auf einem Globus \cite{gisGeographyGreatCircle}.
+In der Praxis weichen reale Flugrouten durch Luftraumrestriktionen, Wetterbedingungen und ETOPS-Anforderungen vom theoretischen Großkreis ab, dieser dient aber als gute Approximation für die visuelle Darstellung.
+
+\textbf{Flugfortschritt in Echtzeit:} Für laufende Flüge kann der aktuelle Fortschritt über lineare Interpolation zwischen \texttt{departureAt} und \texttt{arrivalAt} ermittelt werden.
+Der Fortschritt $p$ zum Zeitpunkt $t$ ergibt sich als:
+\begin{equation}
+  p = \frac{t - t_{\mathrm{dep}}}{t_{\mathrm{arr}} - t_{\mathrm{dep}}} \quad \in [0, 1]
+\end{equation}
+Dieser Wert kann dazu genutzt werden, einen animierten Punkt entlang des Großkreisbogens zu positionieren \cite{mapboxAnimatePoint}.
+
+% Haversine-Skizze: \url{https://sketchplanations.com/the-haversine-formula} herunterladen und als haversine_sketch.png in content/img/ ablegen.
+\IfFileExists{content/img/haversine_sketch.png}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{haversine_sketch}
+  \caption{Haversine-Formel visuell. Quelle: Sketchplanations.}
+  \label{fig:haversine_sketch}
+\end{figure}%
+}{}
 
 \section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement}
 
@@ -379,7 +537,7 @@ Gleichzeitig ist Reiseorganisation kognitiv anspruchsvoll, weil sie mehrere para
 
 In der HCI- und Informatikforschung wird \glqq proaktiv\grqq{} nicht nur als \glqq früh\grqq{} verstanden, sondern als Eigenschaft eines Systems, \textbf{auf eigene Initiative} und \textbf{im Sinne des Nutzers} zu handeln \cite{tennenhouse2000proactive,coronado2010continuous}. Reaktive Systeme liefern Informationen primär dann, wenn eine Nutzerinteraktion dies auslöst (Suche, Klick, Öffnen einer App). Proaktive Systeme verschieben die Verantwortung für Timing und Erinnern teilweise zurück zum System: Sie erkennen günstige Zeitpunkte, liefern Hinweise und reduzieren damit typische Fehlerklassen wie \glqq zu spät bemerkt\grqq{} oder \glqq vergessen\grqq{} \cite{mehrotra2018intelligent}. Diese Entlastungslogik ist eng verwandt mit dem Konzept des kognitiven Offloadings.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.15\textwidth]{notification_icon}
   \caption{Symbol für Benachrichtigungen (Push-Trigger). Quelle: \cite{wikimediaNotificationIcon}}
@@ -388,14 +546,14 @@ In der HCI- und Informatikforschung wird \glqq proaktiv\grqq{} nicht nur als \gl
 
 Die Push/Pull-Unterscheidung ist eine Frage der Nutzerintention und Disruption: Push-Systeme können hohe Nützlichkeit erzielen, erzeugen aber das Risiko, Aufmerksamkeit in unpassenden Situationen zu beanspruchen; Pull-Systeme minimieren Disruption, bergen aber das Risiko, dass kritische Informationen nicht rechtzeitig abgerufen werden \cite{mehrotra2018intelligent}. Für Skyline folgt daraus eine zentrale Designhypothese: Proaktivität ist dann gerechtfertigt, wenn das System (a) einen stabilen Anlass hat (z.\,B. Abflugzeit), (b) eine konkrete Handlung ermöglicht (z.\,B. Check-in öffnen) und (c) das Risiko von Störung durch Quiet Hours und Nutzerkontrolle begrenzt \cite{applePushPrimer2020,androidNotifications}. Da Skyline primär für iOS entwickelt wurde und im Apple App Store verfügbar ist, bildet APNs (Apple Push Notification Service) die primäre Zustellinfrastruktur.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{push_subscribe}
   \caption{Publish/Subscribe-Schema (Push-Prinzip): Der Server liefert Informationen proaktiv an den Client. Quelle: \cite{wikimediaPushSubscribe}}
   \label{fig:push_subscribe}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.6\textwidth]{polling_pull}
   \caption{Polling-System (Pull-Prinzip): Der Client fragt periodisch beim Server ab. Quelle: \cite{wikimediaPolling}}
@@ -414,7 +572,7 @@ Unter \textbf{Notification Fatigue} wird verstanden, dass zu häufige oder als i
 
 Aus Governance-Sicht lassen sich drei Gestaltungsprinzipien ableiten: (1) \textbf{Relevanz vor Vollständigkeit}---Systeme sollten das melden, was eine konkrete Handlung ermöglicht \cite{applePushPrimer2020}. (2) \textbf{Nutzerkontrolle und Transparenz}---Benachrichtigungen benötigen bewusste Zustimmung; iOS fordert eine explizite Genehmigung (\texttt{requestPermissionsAsync}); Best Practices empfehlen, diese \textbf{im Kontext der Funktionalität} einzuholen \cite{applePushPrimer2020}. (3) \textbf{Schutzzeiten}---Quiet Hours bzw. iOS Focus-Modi begrenzen Störungen \cite{applePushPrimer2020,androidNotifications}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{android_notifications}
   \caption{Beispielhafte Notification-Interaktion in einer mobilen App (Nutzerkontrolle, Prioritäten) – exemplarische Darstellung; Skyline läuft primär unter iOS. Quelle: \cite{wikimediaAndroidNotifications}}
@@ -425,7 +583,7 @@ Aus Governance-Sicht lassen sich drei Gestaltungsprinzipien ableiten: (1) \textb
 
 Im Reise-Kontext variieren operative Fenster je Airline und Flughafen. Check-in-Fenster reichen von \glqq ca. 30 Stunden vor Abflug\grqq{} bis \glqq bis zu 30 Tage\grqq{}; Boarding beginnt typischerweise 60 bis 25 Minuten vor Abflug \cite{klmBoarding,britishAirwaysCheckin,lufthansaCheckin}. Flughäfen empfehlen Ankunftszeiten (z.\,B. 2--3 Stunden vor Abflug für internationale Flüge). Für Skyline werden daher \textbf{zeitbasierte Heuristiken} als Default-Regeln verwendet:
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Zeitbasierte Heuristiken für Reise-Reminder (Skyline-relevant)}
   \label{tab:reminder_heuristiken}
@@ -442,7 +600,7 @@ Im Reise-Kontext variieren operative Fenster je Airline und Flughafen. Check-in-
 
 Für dynamische Ereignisse (Verspätungen, Gate-Wechsel) reichen statische Heuristiken nicht aus. Abbildung~\ref{fig:departure_board} illustriert, wie Flughäfen Echtzeit-Informationen anzeigen; solche Daten werden typischerweise über kommerzielle APIs bereitgestellt \cite{flightawareAeroAPI,ciriumFlexAPIs,aviationstack}. Skyline nutzt die in der App gespeicherten \texttt{departureAt}/\texttt{arrivalAt}-Zeiten als Basis; Echtzeit-Updates würden zusätzliche API-Anbindungen erfordern.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{departure_board}
   \caption{Abflugtafel als Beispiel für Echtzeit-Fluginformationen (Verspätungen, Gate). Quelle: \cite{wikimediaDepartureBoard}}
@@ -473,7 +631,7 @@ Grundentscheidung für eine zentrale, strukturierte Datenbasis (\textit{Single
 Source of Truth}), kombiniert mit Datenintegrität, klarer Rechteverwaltung und
 nachvollziehbarer Historie.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,0) rectangle (2.8,1.1);
@@ -511,7 +669,7 @@ Konsistenz muss dabei in zwei Schichten betrachtet werden:
 
 Die Normalisierung des Datenmodells ist dafür eine zentrale Grundlage, weil sie
 Redundanz senkt und Änderungen an einer kanonischen Stelle bündelt.
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,0) rectangle (4.5,1.2);
@@ -535,7 +693,7 @@ verteilten Systemen ein Trade-off, der als CAP-Perspektive modelliert wird
 \textit{eventual consistency} für weniger kritische Felder wie
 Zwischenstände oder lokal gecachte Ansichten.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[thick] (0,0) -- (6,0) -- (3,4.5) -- cycle;
@@ -574,7 +732,7 @@ Last-Writer-Regeln oder explizite Konfliktauflösung) \cite{firestoreOffline,
 amplifyConflict}. Konflikte lassen sich bereits im Datenmodell reduzieren, wenn
 Änderungen kleinteilig und möglichst additiv modelliert werden.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,0) rectangle (2.8,1.1);
@@ -611,7 +769,7 @@ Trip-Verknüpfung), müssen Updates atomar erfolgen. ACID-Eigenschaften und
 geeignete Isolationsebenen verhindern halbfertige Zustände unter Last
 \cite{postgresqlTxIsolation}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,1.5) rectangle (2.6,3);
@@ -642,7 +800,7 @@ Rahmen für delegierte Zugriffe über externe Identitätsprovider
 Session-Claims und Datenbankberechtigungen zusammengeführt werden
 \cite{supabaseAuth,supabaseRLS}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,0) rectangle (2.8,1.1);
@@ -703,7 +861,7 @@ Der fachliche Kern ist ein stabiler End-to-End-Fluss:
 \textbf{Abfrage/Anzeige}. Dieser Fluss muss auch unter Fehlerbedingungen
 (Offline, unvollständige Scans, API-Timeouts) robust degradieren können.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[x=1cm,y=1cm]
     \draw[rounded corners, thick] (0,0) rectangle (2.1,1.1);
@@ -756,8 +914,7 @@ System-Dialog explizit die Erlaubnis.
 \section{Technische Grundlagen der mobilen App-Entwicklung}
 \subsection{Cross-Platform-Frontend mit React Native und Expo}
 React Native ermöglicht plattformübergreifende UI- und Logikentwicklung für
-iOS und Android \cite{reactNative}. Skyline wurde dabei primär für \textbf{iOS} entwickelt
-und ist im \textbf{Apple App Store} verfügbar; Android wird als sekundäre Zielplattform
+iOS und Android \cite{reactNative}. Skyline wurde dabei primär für \textbf{iOS} entwickelt und im \textbf{Apple App Store} verfügbar; Android wird als sekundäre Zielplattform
 unterstützt, wurde jedoch im Projektzeitraum weniger ausführlich getestet.
 Expo vereinfacht Build-, Deployment- und Update-Prozesse durch ein integriertes
 Tooling-Ökosystem und ermöglicht via EAS den App-Store-Rollout für iOS
@@ -774,7 +931,7 @@ Für eine Reiseorganisations-App sind insbesondere vier Vergleichskriterien
 tragfähig: Datenintegrität, Rechteverwaltung, Offline-Verhalten und
 Compliance-Fähigkeit.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption{Vergleich möglicher Architekturpfade für mobile Reiseorganisation}
   \label{tab:architekturvergleich}

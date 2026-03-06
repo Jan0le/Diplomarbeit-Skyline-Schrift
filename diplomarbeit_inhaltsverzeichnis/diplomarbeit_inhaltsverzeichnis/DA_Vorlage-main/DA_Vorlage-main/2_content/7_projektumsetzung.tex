@@ -1,78 +1,97 @@
 %!TEX root = ../DA_MainDocument.tex
 \section{Projektbezogene Umsetzung}\label{sec:projektumsetzung}
-Skyline wurde als \textbf{native iOS-App} entwickelt und ist im \textbf{Apple App Store}
-verfügbar. Alle Module wurden primär auf iOS implementiert und getestet; eine
+Skyline wurde mit \textbf{React Native} und \textbf{Expo} als mobile App entwickelt, primär für \textbf{iOS} getestet und ist im \textbf{Apple App Store} verfügbar. Alle Module wurden primär auf iOS implementiert und getestet; eine
 Android-Variante existiert, wurde jedoch im Projektzeitraum nur eingeschränkt validiert.
+Die folgenden Abschnitte fassen die Umsetzung pro Modul zusammen. Vertiefende
+Implementierungsdetails zu den vier Forschungsmodulen finden sich in Kapitel~5--8;
+die übrigen Features (Flugverwaltung, Dokumente/Notizen/Checklisten, Statistiken,
+Company-Features, Gamification) werden ausschließlich hier beschrieben.
+
+\subsection{Umsetzung der Flugverwaltung}
+Die Flugverwaltung bildet die zentrale Grundlage der App. Flüge werden über den
+Store (\texttt{store/index.ts}) und \texttt{supabaseService} erstellt, aktualisiert
+und gelöscht. Die Tabelle \texttt{user\_flights} speichert Airline, Flugnummer,
+Airports, \texttt{departure\_at}, \texttt{arrival\_at} und Status. Bei Speichern
+oder Update werden Reminder automatisch neu geplant (vgl.\ Kapitel~\ref{chapter:notifications}).
+Distanzen werden aus Airport-Koordinaten mittels Haversine-Formel berechnet.
 
 \subsection{Umsetzung der Karten-Visualisierung}
 Die Kartenvisualisierung wurde mit React Native Maps umgesetzt \cite{reactNativeMaps};
-auf iOS kommt dabei das native \texttt{MapKit}-Framework zum Einsatz.
-Routen werden als Great-Circle-Polylines gezeichnet und optional animiert.
-\subsubsection{Anforderungen aus Pflichtenheft}
-Gefordert sind Marker, Routen und Performancevorgaben für viele Flüge.
-\subsubsection{Auswahl der Karten-Technologie}
-React Native Maps bietet native Performance und einfache Integration in Expo.
-\subsubsection{Implementierung der Flugrouten}
-Die Route wird aus Airport-Koordinaten berechnet und als Polyline angezeigt.
-\subsubsection{Live-Animation \& Performance-Optimierung}
-Die Live-Position des Flugzeugs wird über Zeitstempel berechnet und in
-regelmäßigen Intervallen aktualisiert.
+auf iOS kommt das native \texttt{MapKit}-Framework zum Einsatz. Routen werden als
+Great-Circle-Polylines gezeichnet, die Live-Position über Zeitstempel interpoliert.
+Details zu Polyline-Sampling, Live-Marker und Flugauswahl siehe
+Kapitel~\ref{chapter:weltkarte}.
+
 \subsection{Umsetzung der Import-Funktionen}
-Die Import-Module decken QR-Scan, OCR und E-Mail-Parsing ab.
-\subsubsection{QR-Scan}
-Boardingpässe werden per nativer iOS-Kamera gescannt, BCBP-Daten werden
-geparst \cite{iataBCBP}.
-\subsubsection{OCR-Dokumente/Bilder}
-Texterkennung wird genutzt, wenn kein QR-Code vorhanden ist.
-\subsubsection{E-Mail-Import}
-Buchungsdaten werden aus E-Mails extrahiert und als Flight-Vorschläge angezeigt.
+Die Import-Module decken QR-Scan (BCBP) sowie OCR-gestützten Import aus Bildern
+und PDF-Dokumenten ab. Boardingpässe werden per Kamera gescannt, BCBP-Daten
+geparst \cite{iataBCBP}; Buchungsbestätigungen werden typischerweise als vom
+Nutzer exportierte PDFs oder Screenshots hochgeladen und per OCR ausgewertet.
+Ein direkter, automatischer E-Mail-Import (z.\,B.\ via IMAP/OAuth) ist im
+aktuellen Projektstand nicht umgesetzt, sondern lediglich durch vorbereitete
+Tabellen im Datenbankschema konzeptionell angelegt. Details zu Validierung,
+Feld-Mapping, Deduplizierung und Anbindung an die Flugverwaltung siehe
+Kapitel~\ref{chapter:import}.
+
 \subsection{Umsetzung der Benachrichtigungen}
 Benachrichtigungen sind lokal geplant und mit Settings gekoppelt
-\cite{expoNotifications}. Da Skyline primär für \textbf{iOS} entwickelt wurde,
-bildet \textbf{APNs} (Apple Push Notification Service) die Zustellinfrastruktur;
-das iOS-Betriebssystem steuert Anzeige, Zeitpunkt und Nutzerpermissions.
-FCM (Android) ist als sekundäre, noch nicht vollständig getestete Erweiterung
-vorgesehen.
-\subsubsection{Reminder-Offsets}
-Standard-Offsets wie T-24h und T-60m werden automatisch gesetzt.
-\subsubsection{Quiet Hours}
-Quiet Hours verschieben Notifications in erlaubte Zeitfenster; auf iOS
-wird dabei die Focus-Mode-Infrastruktur des Betriebssystems berücksichtigt.
-\subsubsection{Persistenz \& Reschedule}
-Persistenz erlaubt Rescheduling bei App-Neustart; der iOS-Background-Scheduler
-stellt sicher, dass geplante Notifications erhalten bleiben.
+\cite{expoNotifications}. Da Skyline primär für iOS entwickelt und getestet wurde, bildet
+\textbf{APNs} die Zustellinfrastruktur; FCM (Android) ist als sekundäre Erweiterung
+vorgesehen. Standard-Offsets (T-24h Check-in, T-60m/T-30m Boarding), Quiet Hours
+und Rescheduling nach App-Neustart. Details siehe Kapitel~\ref{chapter:notifications}.
+
 \subsection{Umsetzung der Datenverwaltung}
 Supabase liefert Auth, Datenbank und Storage als zentrale Datenplattform
-\cite{supabasePlatform,supabaseAuth,supabaseStorage}.
-\subsubsection{Datenmodell \& Synchronisierung}
-Flights sind die Kernentität; alle Module referenzieren diese Struktur.
-\subsubsection{Dokumentenablage}
-Dokumente werden in Storage-Buckets abgelegt und über Metadaten zugeordnet.
-\subsubsection{Rechte \& Sicherheit}
-RLS-Policies garantieren Zugriffskontrolle auf Daten- und Storage-Ebene
-\cite{supabaseRLS}.
+\cite{supabasePlatform,supabaseAuth,supabaseStorage}. Flights sind die Kernentität;
+Dokumente liegen im Bucket \texttt{flight-documents}, Metadaten in
+\texttt{flight\_documents}. RLS-Policies garantieren Zugriffskontrolle
+\cite{supabaseRLS}. Details zum Datenmodell, Signed URLs, Caching und Fehlerbehandlung
+siehe Kapitel~\ref{chapter:datenverwaltung}.
+
+\subsection{Umsetzung von Dokumenten, Notizen und Checklisten}
+Dokumente werden über \texttt{documentService} hochgeladen und in
+\texttt{flight\_documents} referenziert. Notizen (\texttt{user\_notes}) und
+Checklisten (\texttt{user\_checklists}, \texttt{user\_checklist\_items}) sind
+pro Flug angebunden und über RLS geschützt. Checklisten können ein
+\texttt{reminder\_at} haben; der \texttt{noteChecklistReminderService} plant
+dann eine lokale Notification. Die Detailansicht lädt Notizen und Checklisten
+parallel zum Flug.
+
+\subsection{Umsetzung der Statistiken}
+Statistiken aggregieren Distanz, Länder und Flugzeiten aus \texttt{user\_flights}.
+Distanzen werden mit der Haversine-Formel berechnet; die Aggregation erfolgt
+clientseitig aus den geladenen Flugdaten. Ein CSV-Export für Abrechnungen ist als Erweiterung vorgesehen.
+
+\subsection{Umsetzung der Company-Features}
+Firmen (\texttt{companies}) können Nutzer per Einladungscode einladen; der Code
+liegt in \texttt{companies.invite\_code}, der Beitritt wird in
+\texttt{company\_members} mit Rolle (\texttt{owner}/\texttt{worker}) gespeichert.
+RLS-Policies erlauben Lesezugriff auf Profile derselben Firma. Firmenflüge werden
+über \texttt{user\_flights.company\_id} und die Mitglieder in
+\texttt{company\_members} abgebildet. Das Company-Dashboard fasst darauf aufbauend
+zentrale Kennzahlen wie bereiste Länder, Gesamtstrecke und Anzahl der Flüge pro Firma
+zusammen und macht so Reisevolumen und Reisestruktur auf Unternehmensebene sichtbar.
+
 \subsection{Umsetzung der Gamification-Elemente}
-Gamification dient der Motivation und Visualisierung von Fortschritt.
-\subsubsection{Achievements}
-Achievements werden bei Meilensteinen freigeschaltet.
-\subsubsection{Fortschrittsdarstellung}
-Progress-Elemente zeigen Nutzern ihre Reisehistorie und Statistiken.
-\subsubsection{Feedback-Mechanismen}
-Toast-Nachrichten und haptisches Feedback verbessern die Nutzerinteraktion.
+Achievements (\texttt{achievements}, \texttt{user\_achievements}) werden bei
+Meilensteinen freigeschaltet (z.\,B.\ erste Reise, bestimmte Strecke). Die
+Achievement-Definitionen sind global lesbar; freigeschaltete Achievements werden
+pro Nutzer in \texttt{user\_achievements} mit \texttt{unlocked\_at} gespeichert.
+Progress-Elemente zeigen Reisehistorie und Statistiken; Achievements werden als
+leichtgewichtige, individuelle Auszeichnungen genutzt, nicht als komplexes Punktesystem.
+Toast-Nachrichten und haptisches Feedback geben beim Freischalten unmittelbare Rückmeldung,
+ohne permanente Ranglisten oder öffentlichen Wettbewerb zu erzeugen.
+
 \subsection{Teststrategie \& Validierung}
-Tests prüfen Funktionalität, Stabilität und Genauigkeit der Kernmodule.
-\begin{figure}[h]
+Manuelle UI-Tests sichern die Hauptabläufe (Add Flight, Import, Trip Details,
+Dokumente, Notizen, Checklisten); alle primären Tests wurden auf iOS-Geräten
+durchgeführt. Reminder-Tests prüfen Offsets, Quiet Hours und Reschedule;
+Import-Tests decken QR-Scan und OCR-basierte Dokumentimporte ab. Ein voll
+integrierter, automatischer E-Mail-Import wurde im Rahmen der Diplomarbeit
+nicht produktiv getestet und bleibt eine Option für zukünftige Erweiterungen.
+\begin{figure}[H]
   \centering
   \fbox{\parbox{0.8\textwidth}{TODO: Beispielhafte UI-Flows oder Testfall-Screenshot einfügen.}}
-  \caption{TODO: Testfälle und UI-Flows}
+  \caption{Testfälle und UI-Flows (Platzhalter)}
   \label{fig:todo_tests}
 \end{figure}
-\subsubsection{Funktionstests (UI-Flows)}
-Manuelle UI-Tests sichern die Hauptabläufe (Add Flight, Import, Trip Details);
-alle primären Tests wurden auf iOS-Geräten durchgeführt.
-\subsubsection{Reminder-Tests}
-Reminder werden in Testfällen auf Offsets, Quiet Hours und Reschedule geprueft.
-\subsubsection{Import-Tests}
-Testfälle für QR, OCR und E-Mail-Import sichern robuste Datenaufnahme.
-\subsubsection{Statistiken-Validierung}
-Berechnungen für Distanz und Dauer werden mit Unit-Tests abgesichert.

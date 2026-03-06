@@ -1,0 +1,12 @@
+Settings – Notifications-Sektion
+
+Dateiname im Ordner: settings_notifications.png
+Zielpfad in der Arbeit: content/img/ oder deployment/
+
+Beschreibung:
+App-Screenshot: Settings-Tab → Notifications-Sektion.
+  - Toggles für Reminder-Typen (Check-in, Boarding, Missing Docs, Receipt)
+  - Quiet-Hours-Konfiguration (Start/Ende)
+  - Weitere Notification-Einstellungen
+
+Format: PNG, iPhone-Screenshot, ca. 88% Textbreite

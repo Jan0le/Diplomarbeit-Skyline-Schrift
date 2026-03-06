@@ -78,7 +78,7 @@ Die MapView selbst wird mit einem dunklen Kartenstil, Anzeige der Nutzerposition
 Auf Android wird explizit \texttt{PROVIDER\_GOOGLE} gesetzt, während iOS auf die Standard‑Integration (MapKit) zurückfällt \cite{reactNativeMaps}.
 Der dunkle Stil (\texttt{darkMapStyle}) sorgt dafür, dass Routen und Marker sich deutlich vom Hintergrund abheben; auf iOS wird \texttt{mapType="mutedStandard"} genutzt, um eine zurückhaltende Kartendarstellung mit gut lesbaren Overlays zu kombinieren.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.6\textwidth]{content/img/map.png}
   \caption{Interaktive Skyline-Weltkarte mit hervorgehobener Flugroute, Start- und Zielmarker sowie Live-Flugzeug-Icon.}
@@ -350,7 +350,7 @@ Ein separater Button \glqq Show Flight Path\grqq{} bzw.\ \glqq Show Live Flight\
 Taps auf Live‑Marker rufen wiederum \texttt{focusOnFlightPlane} auf, das Karte und Detailansicht auf den entsprechenden Flug fokussiert.
 
 % ------------------------------------------------------------
-\subsection{History vs.\ Upcoming-Fl\"uge und Filter}
+\subsection{History vs.\ Upcoming-Fl\"uge und Sortierung}
 \label{subsec:history_upcoming}
 % ------------------------------------------------------------
 
@@ -358,14 +358,19 @@ Um die Karte nicht zu überladen, unterscheidet Skyline zwischen aktiven, bevors
 Die Hilfsfunktion \texttt{isFlightInProgress} erkennt Verbindungen, deren aktueller Zeitpunkt zwischen Abflug‑ und Ankunftszeit liegt, während \texttt{getEffectiveFlightStatus} (in \texttt{flightMetrics.ts}) vergangene Flüge als \glqq completed\grqq{} klassifiziert.
 
 Im Karten‑Tab werden die Flüge entsprechend sortiert: aktive Flüge zuerst, dann Upcoming‑Flüge, anschließend Historie.
-Gemeinsam mit einem einfachen Filter (z.\,B.\ nach Status oder Airline) entsteht so eine Übersicht, die sich auch bei vielen gespeicherten Reisen noch sinnvoll nutzen lässt.
+Durch diese Status-Sortierung und die Fokussierungsfunktionen (Marker-Tap, \glqq Show Flight Path\grqq{},
+\glqq Show Live Flight\grqq{}) bleibt die Übersicht auch bei vielen gespeicherten Reisen gut nutzbar,
+ohne dass zusätzliche Filter in der Flug-Historie implementiert werden mussten.
 Routen für historische Flüge können bei Bedarf ausgeblendet oder auf aggregierte Statistiken (z.\,B.\ Gesamtstrecke) reduziert werden, ohne die Kernfunktionen des Live‑Trackings zu beeinträchtigen.
 
 % ============================================================
 \section{Bewertung der Kartenl\"osung}
 % ============================================================
 
-Die Kartenlösung in Skyline wird entlang von drei Dimensionen bewertet: Bedienbarkeit, Genauigkeit der dargestellten Routen und Performance auf mobilen Endgeräten.
+Die Kartenlösung in Skyline wird entlang von vier Bewertungsdimensionen betrachtet:
+Übersichtlichkeit, räumliche Korrektheit, Interaktivität und Fehlerrobustheit;
+es handelt sich dabei um inhaltliche Aspekte der Analyse und nicht um eine räumliche
+3D-Darstellung.
 
 % ------------------------------------------------------------
 \subsection{Kriterienkatalog}

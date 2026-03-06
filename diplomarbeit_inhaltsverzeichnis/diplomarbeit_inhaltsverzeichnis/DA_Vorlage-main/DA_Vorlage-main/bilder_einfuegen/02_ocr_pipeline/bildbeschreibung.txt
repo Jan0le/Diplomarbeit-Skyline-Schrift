@@ -1,0 +1,13 @@
+OCR-Prozess (Pipeline)
+
+Dateiname im Ordner: ocr_pipeline.png
+Zielpfad in der Arbeit: content/img/ocr_pipeline.png
+
+Beschreibung:
+Darstellung des OCR-Prozesses als Pipeline – von der Bildeingabe bis zur Textextraktion.
+Zeigt typische Schritte: Vorverarbeitung, Segmentierung, Zeichenerkennung, Post-Processing.
+
+Quellenvorschlag: TheAILearner -- Optical Character Recognition Pipeline
+URL: https://theailearner.com
+
+Format: PNG, ca. 75% Textbreite

@@ -1,0 +1,173 @@
+Abgleich Skyline-Diplomarbeit vs. Implementierung (AI-Review)
+=============================================================
+
+Hinweis:
+- Grundlage sind die LaTeX-Quellen in `2_content/` und der Skyline-Code in `2_content/ordner/SkylineApp` (inkl. `complete_working_schema.sql`).
+- Viele Abweichungen aus `2_content/notizen.txt` wurden bereits korrigiert. Die folgenden Punkte listen primär noch verbleibende oder potenziell missverständliche Stellen sowie ein paar Stellen, die man bewusst doppelt prüfen sollte.
+
+1) E-Mail-Import und E-Mail-Integration
+---------------------------------------
+
+1.1 Theorieteil – E-Mail-Import als Kanal
+- Datei: `2_content/theoretische_grundlagen.tex`
+- Stellen:
+  - Abschnitt „E-Mail-Import (Buchungsdaten)“ (um Zeile 410ff)
+  - Abschnitt „Importanforderungen: QR, OCR, E-Mail“ (um Zeile 883ff)
+- Inhalt:
+  - Hier wird E-Mail-Import als gleichberechtigter Importkanal (neben QR/OCR) diskutiert.
+  - Aus Implementierungssicht ist das korrekt, solange klar bleibt: Theoriekapitel beschreibt Anforderungen + mögliche Wege, nicht zwingend den realisierten Umfang.
+- Implementierung:
+  - Code und Schema enthalten vorbereitete Tabellen `email_accounts` / `email_imports` und zugehörige Supabase-Methoden, aber **kein produktiv nutzbarer End-to-End-E-Mail-Sync** in der App.
+- Bewertung:
+  - Text ist als theoretische Grundlage okay, könnte aber punktuell einen Halbsatz bekommen, dass E-Mail-Import in Skyline nur konzeptionell vorgesehen ist und der praktische Weg über exportierte PDFs/Screenshots läuft (wie in `2_import.tex` bereits sauber formuliert).
+
+1.2 Architektur / Technik – E-Mail-Import-Konzept
+- Dateien:
+  - `2_content/4_architektur.tex`
+  - `2_content/6_technik.tex`
+  - `2_content/7_projektumsetzung.tex`
+  - `2_content/2_import.tex`
+  - `2_content/8_evaluation.tex`
+- Inhalt:
+  - In allen genannten Kapiteln ist bereits sehr klar unterschieden:
+    - **Ist umgesetzt**: OCR-/Dokumenten-Import aus PDFs/Bildern (inkl. exportierte E-Mail-Bestätigungen).
+    - **Nur konzeptionell / Erweiterung**: direkter, automatischer E-Mail-Import via IMAP/OAuth.
+- Implementierung:
+  - Bestätigt durch Code: es gibt Schema + Service-Methoden (`email_accounts`, `email_imports`), aber keinen fertigen UI-Flow für automatischen Postfach-Sync.
+- Bewertung:
+  - An diesen Stellen wirkt das Dokument bereits konsistent mit der Implementierung.
+  - Kein zwingender Änderungsbedarf, lediglich im Theoriekapitel (1.1) ggf. ein kurzer Verweis auf den MVP-Scope hilfreich.
+
+2) Firmenflüge und flight_users
+-------------------------------
+
+- Dateien:
+  - `2_content/4_datenverwaltung.tex`
+  - `2_content/6_technik.tex`
+  - `2_content/7_projektumsetzung.tex`
+  - `2_content/4_architektur.tex`
+- Inhalt:
+  - In `4_datenverwaltung.tex` ist `flight_users` bereits als Legacy-Konzept markiert, das in der finalen Implementierung nicht mehr verwendet wird; Firmenflüge laufen über `user_flights.company_id` + `company_members`.
+  - In `6_technik.tex` und `7_projektumsetzung.tex` wird die Firmenzuordnung korrekt über `company_id` beschrieben.
+  - In `4_architektur.tex` wird im Company-Abschnitt ebenfalls konsistent auf `company_id` verwiesen.
+- Implementierung:
+  - `complete_working_schema.sql` bestätigt, dass `user_flights.company_id` + `company_members` das aktuelle Modell sind.
+  - Eine Tabelle `flight_users` taucht nur noch in älteren Entwürfen / Hilfsdateien auf.
+- Bewertung:
+  - Die Dokumentation ist hier inzwischen konsistent; keine offene Abweichung mehr.
+
+3) Filter und Flug-Historie
+---------------------------
+
+- Dateien:
+  - `2_content/1_weltkarte.tex`
+  - `2_content/4_datenverwaltung.tex`
+  - `2_content/5_recht.tex`
+- Inhalt:
+  - In `1_weltkarte.tex` ist der Abschnitt zu „History vs. Upcoming-Flügen“ bereits so angepasst, dass keine nicht existierenden Filter in der Flug-Historie behauptet werden; es wird auf Sortierung + Fokussierungsfunktionen verwiesen.
+  - `4_datenverwaltung.tex` und `5_recht.tex` verwenden das Wort „Filter“ primär im Sinne von Datenbank-/RLS-Filtern bzw. UI-Filtern bei Dokumenten/Notizen (die im Code vorhanden sind).
+- Implementierung:
+  - Code zeigt Filter u. a. für Notizen, Checklisten und Dokumente (z. B. `NoteList.tsx`, `ChecklistList.tsx`, `DocumentList.tsx`).
+  - Für die reine Flug-Historie gibt es keine umfangreichen Filter-UI-Elemente, nur Sortierung/Status-Logik.
+- Bewertung:
+  - Die frühere Abweichung (Filter in der Flug-Historie werden beschrieben, aber nicht implementiert) ist im Weltkarten-Kapitel bereits entschärft.
+  - In späteren Evaluation-/Schlusskapiteln sollten Formulierungen, die „Nachvollziehbarkeit durch Filter“ explizit auf die Flug-Historie beziehen, vermieden werden (laut aktuellem Text weitgehend erfüllt).
+
+4) CSV-/Daten-Export
+--------------------
+
+- Dateien:
+  - `2_content/6_technik.tex` – Unterabschnitt „Statistiken & Export“
+  - `2_content/7_projektumsetzung.tex` – Statistiken-Unterabschnitt
+  - `2_content/4_architektur.tex` – Statistiken-/Company-Abschnitt
+  - `2_content/5_recht.tex` – Hinweis auf maschinenlesbaren Export
+- Inhalt:
+  - In Technik/Architektur/Projektumsetzung wird CSV-Export explizit als „Erweiterung vorgesehen“ beschrieben.
+  - In `5_recht.tex` wird Export im maschinenlesbaren Format erwähnt – dort eher auf Schema-Ebene (grundsätzliche Möglichkeit), nicht als bereits umgesetztes UI-Feature.
+- Implementierung:
+  - Im Code existiert kein vollständiger End-User-Export-Flow (kein Bildschirm, der CSV direkt exportiert).
+  - Auf Schema-Ebene und im Service-Layer sind die Voraussetzungen (strukturierte Daten, klare Schlüssel) aber gegeben.
+- Bewertung:
+  - Formulierungen, die CSV-Export als bereits verfügbare Endnutzerfunktion darstellen würden, wären kritisch – derzeit ist die Wortwahl („als Erweiterung vorgesehen“ / „technische Grundlage für Export“) kompatibel mit der Implementierung.
+
+5) Android-Unterstützung
+------------------------
+
+- Dateien:
+  - `2_content/4_architektur.tex`
+  - `2_content/6_technik.tex`
+  - `2_content/3_notifications.tex`
+  - `2_content/theoretische_grundlagen.tex`
+- Inhalt:
+  - Überall wird Skyline korrekt als „primär für iOS entwickelt, Android als sekundäre Plattform mit eingeschränkter Validierung“ beschrieben.
+  - Bei Notifications und Push wird APNs als Basis und FCM/Android als perspektivische Erweiterung dargestellt.
+- Implementierung:
+  - Code verwendet Expo/React Native, MapKit auf iOS, Google Maps auf Android, Notification-Channels für Android, aber ohne umfassende produktive Tests auf Android.
+- Bewertung:
+  - Darstellung entspricht dem Projektstand; keine offene Abweichung.
+
+6) Kalenderintegration
+----------------------
+
+- Dateien:
+  - `2_content/4_datenverwaltung.tex` – Übersichtstabelle mit `calendar_accounts`
+  - `2_content/theoretische_grundlagen.tex` – Grundlagen (E-Mail/Kalender etc.)
+- Inhalt:
+  - Kalenderaccounts werden als vorbereitete Tabellen für eine Kalenderintegration beschrieben.
+  - Es wird nicht detailliert behauptet, dass eine vollständige Endnutzer-Kalenderintegration implementiert und produktiv im UI verfügbar ist.
+- Implementierung:
+  - Schema + Services enthalten `calendar_accounts` und Logik für Kalender-Sync (z. B. `calendarSyncService.ts`), aber der reale UI-Umfang ist begrenzt.
+- Bewertung:
+  - Formulierungen sind eher architektur-/schemaorientiert; kein offensichtlicher Widerspruch, solange nicht von voll ausgebauter Kalender-UX gesprochen wird (aktuell nicht der Fall).
+
+7) Debug-/Test-Screens und Testfunktionen
+-----------------------------------------
+
+- Dateien:
+  - `2_content/3_notifications.tex` – Pending-Notifications-Screen als Debug-Werkzeug
+  - Implementierungsnotizen in `2_content/notizen.txt` zu Test-Screens (z. B. 8.1.9, 8.2.3)
+- Inhalt:
+  - Pending-Notifications-Screen ist explizit als Debug-Werkzeug beschrieben.
+  - Andere Test-Screens/-Funktionen (v. a. in Kapitel 8 laut Notizen) sollten klar als Entwicklungs-/Testartefakte gekennzeichnet sein.
+- Implementierung:
+  - Es gibt dedizierte Debug-/Test-Screens im Code (z. B. Pending-Notifications, Test-Funktionen in Settings).
+- Bewertung:
+  - Notifications-Kapitel ist konsistent; für die detaillierten Kapitel 8.1.9 / 8.2.3 lohnt ggf. nochmal ein manueller Abgleich der finalen PDF-Seiten mit den Notizen, ob überall deutlich „Test/Debug“ statt „reguläre Produktfunktion“ geschrieben ist.
+
+8) Bewertungskriterien, Dimensionen, KPIs
+----------------------------------------
+
+- Dateien:
+  - `2_content/1_weltkarte.tex` – Bewertung der Kartenlösung
+  - `2_content/3_notifications.tex` – Bewertung der Wirkung (Zuverlässigkeit/Effizienz/Nutzerakzeptanz)
+  - `2_content/8_evaluation.tex` – Modulbewertung und Beantwortung der Forschungsfragen
+  - Schlusskapitel (Teile von 9/11)
+- Inhalt:
+  - „Drei Dimensionen“ wird inzwischen als „Bewertungsdimensionen“ (inhaltlich, nicht 3D) erläutert.
+  - Evaluation und Schlusskapitel trennen inzwischen recht sauber zwischen implementierten Features und Erweiterungen (z. B. E-Mail-Import, erweiterte Filter, Exporte).
+- Implementierung:
+  - Die genannten KPIs (Zuverlässigkeit, Effizienz, Transparenz/Nachvollziehbarkeit) lassen sich aus dem realen Feature-Set begründen.
+- Bewertung:
+  - Nach aktuellem Stand keine starke inhaltliche Abweichung mehr erkennbar, eher Details der Gewichtung (subjektiv, nicht technisch falsch).
+
+9) Allgemeine Layout-Aspekte
+----------------------------
+
+- Dateien:
+  - Mehrere Kapitel (`4_architektur.tex`, `4_datenverwaltung.tex`, etc.) – Anpassungen von Float-Platzierung (`[p]`, Seitenumbrüche).
+- Inhalt/Implementierung:
+  - Layout ist ein reines Dokumentationsthema ohne Bezug zur Implementierung; hier kann es nur um Lesbarkeit und Satzspiegel gehen, keine fachliche Inkonsistenz.
+- Bewertung:
+  - Nach den letzten Anpassungen (Abbildungen auf eigenen Seiten, keine offensichtlichen Überlappungen mehr) sind die groben Layout-Probleme entschärft; feine Typografie (Zeilenumbrüche an Satzspiegel) müsste im PDF visuell kontrolliert werden.
+
+Fazit
+-----
+
+- Die wesentlichen, in `notizen.txt` aufgeführten fachlichen Abweichungen (Tech-Stack, E-Mail-Import, Firmenflüge, Airports, Filter, Gamification/Company-Nutzen, Bewertungskriterien, Debug-Screens) sind in den LaTeX-Quellen weitgehend korrigiert und konsistent mit der tatsächlichen Skyline-Implementierung.
+- Verbleibende Punkte sind hauptsächlich:
+  - theoretische Passagen, die E-Mail-Import als Möglichkeit diskutieren, ohne explizit auf den MVP-Scope hinzuweisen,
+  - feine Nuancen in der Bewertung (was genau als „erreicht“ vs. „Erweiterung“ gilt),
+  - Layout-/Satzspiegeloptimierung, die nicht die Implementierung, sondern nur die Lesbarkeit betrifft.
+
+Für eine finale Qualitätssicherung empfiehlt sich ein gezielter PDF-Check der in `notizen.txt` genannten Seiten (15, 27, 32, 36, 38, 39, 61, 63, 75, 78, 85, 90, 91, 92, 103, 111, 112, 113, 114–117), um sicherzustellen, dass dort sowohl inhaltlich als auch optisch alles stimmig ist.
+
