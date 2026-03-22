@@ -1,2 +1,26 @@
 \section{Starten des Programms}
-Um das Programm in Betrieb zu nehmen, \ldots
+\subsection{Abhängigkeiten installieren}
+Im Ordner \texttt{SkylineApp} ein Terminal bzw.\ eine Eingabeaufforderung öffnen und ausführen:
+\begin{lstlisting}[language=sh,basicstyle=\ttfamily\small]
+npm install
+\end{lstlisting}
+Dies installiert alle benötigten Pakete (kann einige Minuten dauern).
+
+\subsection{Entwicklungsserver starten}
+Anschließend den Expo-Entwicklungsserver starten:
+\begin{lstlisting}[language=sh,basicstyle=\ttfamily\small]
+npm start
+\end{lstlisting}
+Es erscheint ein QR-Code und die Metro-Bundler-Oberfläche.
+
+\subsection{App auf dem Gerät öffnen}
+\begin{itemize}
+  \item \textbf{Smartphone:} Mit der Kamera oder der \emph{Expo Go}-App den angezeigten QR-Code scannen. Rechner und Smartphone müssen im gleichen WLAN sein.
+  \item \textbf{Android-Emulator:} \texttt{a} im Terminal drücken.
+  \item \textbf{iOS-Simulator (nur macOS):} \texttt{i} im Terminal drücken.
+\end{itemize}
+
+Bei Netzwerkproblemen (z.\,B.\ wenn sich Rechner und Smartphone nicht im selben Netz befinden) kann der Tunnel-Modus verwendet werden: \texttt{npx expo start --tunnel}
+
+\subsection{Alternative: App aus dem iOS App Store}
+Skyline ist im Apple App Store veröffentlicht. Die App kann dort kostenlos heruntergeladen und getestet werden, ohne die obigen Schritte auf einem Rechner durchzuführen.

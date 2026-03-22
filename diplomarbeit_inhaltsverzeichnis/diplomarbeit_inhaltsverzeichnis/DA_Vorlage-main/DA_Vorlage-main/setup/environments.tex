@@ -6,7 +6,7 @@
 \makeindex
 
 % setzt den Pfad für Graphiken
-\graphicspath{{figures/}}
+\graphicspath{{figures/}{content/img/}{deployment/}{deployment/screens/}{img/}}
 % zeigt Nummerierungen bei subsubsections an
 \setcounter{secnumdepth}{4}
 % Zähler der die maximale Nummer von "Floatobjekten" am Beginn einer Seite angibt
@@ -38,11 +38,21 @@
 \floatname{example}{Example}
 
 \newfloat{example}{hbtp}{loe}[chapter]
-\floatplacement{figure}{hbtp}
-\floatplacement{table}{htbp}
+\floatplacement{figure}{H}
+\floatplacement{table}{H}
+% Weniger Abstand um schwebende Objekte (reduziert grosse Luecken)
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 
 % transformiert "\dollar" zum Dollarzeichen
-\newcommand{\dollar}{\char36}	
+\newcommand{\dollar}{\char36}
+
+% Bild mit abgerundeten Ecken (fuer App-Screenshots etc.)
+\newcommand{\roundedimg}[2][]{%
+  \begin{tikzpicture}[baseline=(img.base)]
+    \node[rounded corners=4pt, inner sep=0, clip] (img) {\includegraphics[#1]{#2}};
+  \end{tikzpicture}%
+}	
 
 % Skript fur die Abkürzungen
 % neue Umgebung mit einem Argument
@@ -64,3 +74,60 @@
   \renewcommand{\makelabel}[1]{\bf ##1\hfill}}}
  {\end{list}
 }
+
+% ============================================================
+% Listings: TypeScript und Skyline-Stile (global fuer alle Kapitel)
+% ============================================================
+\lstdefinelanguage{TypeScript}{
+  keywords={const,let,var,function,return,async,await,if,else,throw,
+            new,class,import,from,export,default,try,catch,true,false,
+            null,undefined,void,string,number,boolean,Promise},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstdefinestyle{skyline-sql}{
+  language=SQL,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{mydarkelectricblue},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  frame=tb,
+  rulecolor=\color{mydarkelectricblue},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  morekeywords={UUID,BIGINT,TIMESTAMPTZ,BOOLEAN,REFERENCES,CASCADE,
+                POLICY,USING,CHECK,ENABLE,ROW,LEVEL,SECURITY,
+                gen_random_uuid,auth,uid,CREATE,TABLE,IF,NOT,EXISTS,
+                PRIMARY,KEY,DEFAULT,ON,DELETE,SET,NULL,INDEX,
+                DROP,ALTER}
+}
+
+\lstdefinestyle{skyline-ts}{
+  language=TypeScript,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{mydarkelectricblue},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  frame=tb,
+  rulecolor=\color{mydarkelectricblue},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b
+}
+
+% ============================================================
+% Listings auf einer Seite halten (kein Umbruch mitten im Code)
+% Bei weniger als 18cm freiem Platz -> Seitenumbruch vor dem Listing
+% ============================================================
+\BeforeBeginEnvironment{lstlisting}{\Needspace{18cm}}
