@@ -1,0 +1,25 @@
+================================================================================
+  BILDER FÜR DIE DIPLOMARBEIT – img/fehlende_bilder
+================================================================================
+
+WICHTIG (OneDrive/Mac): Wenn nur ._ Dateien sichtbar sind – die echten 
+Bilder (z.B. Onboarding_01.png) haben evtl. nicht synchronisiert. 
+Re-kopiere die Bilder direkt in die Ordner und benenne sie um:
+
+Ordnerstruktur – Datei EXAKT so benennen:
+---------------------------------------------------
+additionflow/              → image.png (bereits vorhanden)
+map/                       → image.png ✓ (bereits vorhanden)
+bcbp_structure/            → image.png ✓ (bereits vorhanden)
+ocr_pipeline/              → IMG_5191.PNG ✓ (bereits vorhanden)
+Onboarding_01/             → image.png ✓ (bereits vorhanden)
+Onboarding_02/             → image copy.png ✓ (bereits vorhanden)
+verlauf-rueckfragen/       → image.png ✓ (bereits vorhanden)
+
+--- Supabase Screenshots (Kapitel 6 Datenverwaltung) ---
+supabase_database_overview/ → image.png (Table Editor Tabellenliste)
+supabase_table_editor/     → image.png (user_flights Spaltenübersicht)
+supabase_rls/              → user_flights-policies.png oder image.png (RLS-Policies)
+storage_bucket/            → buckets.png oder image.png (flight-documents Bucket)
+
+================================================================================

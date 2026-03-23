@@ -1,0 +1,12 @@
+BILDBESCHREIBUNG: map
+=====================
+
+Dateiname:      map.png
+Zielordner:     content/img/
+(Vollständig:   content/img/map.png)
+
+Was darstellen:
+---------------
+Kartenansicht der Skyline-App mit Flugroute bzw. Kartenvisualisierung. 
+Screenshot des MapScreen mit einer oder mehreren eingezeichneten Routen 
+(Great-Circle-Polylinien). Wird in Kapitel 7 (Weltkarte) verwendet.

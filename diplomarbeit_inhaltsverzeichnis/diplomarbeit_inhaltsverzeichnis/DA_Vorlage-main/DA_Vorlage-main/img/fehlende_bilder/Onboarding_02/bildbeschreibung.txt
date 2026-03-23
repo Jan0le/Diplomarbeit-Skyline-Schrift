@@ -1,0 +1,15 @@
+BILDBESCHREIBUNG: Onboarding_02
+===============================
+
+Dateiname:      Onboarding_02.png
+Zielordner:     deployment/screens/
+(Vollständig:   deployment/screens/Onboarding_02.png)
+
+Was darstellen:
+---------------
+Zweiter App-Store-Screenshot für Skyline (iPhone 6,5"). Zweites Store-Bild – 
+z.B. weitere Onboarding-Seite oder Hauptansicht der App. Wird in Kapitel 4 
+(Systemarchitektur) neben Onboarding_01 gezeigt.
+
+Tipp: SkylineApp/assets/images/onboarding2.png kann als Vorlage dienen – 
+kopieren und umbenennen.

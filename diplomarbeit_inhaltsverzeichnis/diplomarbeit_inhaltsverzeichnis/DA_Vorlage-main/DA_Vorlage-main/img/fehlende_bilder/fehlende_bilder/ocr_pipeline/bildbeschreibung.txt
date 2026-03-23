@@ -1,0 +1,17 @@
+BILDBESCHREIBUNG: ocr_pipeline (OPTIONAL)
+==========================================
+
+Dateiname:      ocr_pipeline.png
+Zielordner:     content/img/
+(Vollständig:   content/img/ocr_pipeline.png)
+
+OPTIONAL: Wird nur eingebunden, wenn die Datei existiert.
+
+Was darstellen:
+---------------
+OCR-Prozess (Pipeline) – schematische Darstellung des Ablaufs von 
+Bildeingabe über Vorverarbeitung und Zeichenerkennung bis zur 
+Textextraktion. Wird in Kapitel 3 (Theoretische Grundlagen, Abschnitt OCR) 
+gezeigt.
+
+Quelle: z.B. https://theailearner.com (OCR-pipeline.png)

@@ -1,0 +1,14 @@
+BILDBESCHREIBUNG: bcbp_structure (OPTIONAL)
+===========================================
+
+Dateiname:      bcbp_structure.png
+Zielordner:     content/img/
+(Vollständig:   content/img/bcbp_structure.png)
+
+OPTIONAL: Wird nur eingebunden, wenn die Datei existiert.
+
+Was darstellen:
+---------------
+BCBP Feldstruktur (Bar Coded Boarding Pass) – Beispiel bild eines bcbp code (boarding pass)
+
+Quelle: https://forum.bubble.io/t/aviation-boarding-pass-parser-new-plugin/357748

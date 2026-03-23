@@ -1,0 +1,13 @@
+BILDBESCHREIBUNG: additionflow
+==============================
+
+Dateiname:      additionflow.png
+Zielordner:     content/img/
+(Vollständig:   content/img/additionflow.png)
+
+Was darstellen:
+---------------
+Skyline Flight Addition Flow – der Auswahlbildschirm, auf dem der Nutzer 
+zwischen „Manual Input“ (manuelle Eingabe) und „Import Document“ (Dokumenten-
+import) wählen kann. Screenshot der App mit den zwei Optionen zum Hinzufügen 
+eines Flugs. Wird in Kapitel 5 (Import) links neben uploads.png gezeigt.

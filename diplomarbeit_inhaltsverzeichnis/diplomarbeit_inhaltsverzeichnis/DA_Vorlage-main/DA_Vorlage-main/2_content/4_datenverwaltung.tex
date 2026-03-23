@@ -69,6 +69,22 @@ die für Live-Progress auf der Karte sowie zeitbasierte Erinnerungslogik genutzt
   \label{fig:datenmodell_skyline}
 \end{figure}
 
+% --- Datenbankaufbau: projektspezifische Erklärung ---
+\paragraph{Aufbau des Skyline-Datenbankschemas.}
+Das Skyline-Schema gliedert sich in mehrere Bereiche:
+\textbf{(1) Nutzer und Flüge:} \texttt{profiles} ist an \texttt{auth.users} gekoppelt und bildet den Einstieg für jeden Nutzer.
+\texttt{user\_flights} ist die zentrale Flugentität mit FKs auf \texttt{profiles}, \texttt{airports} und optional \texttt{companies}.
+\textbf{(2) Flugbezogene Inhalte:} \texttt{user\_notes}, \texttt{user\_checklists}, \texttt{user\_checklist\_items} sowie
+\texttt{flight\_documents} hängen jeweils an \texttt{user\_flights} und \texttt{profiles}.
+\textbf{(3) Firma und Team:} \texttt{companies} (mit \texttt{owner\_profile\_id}), \texttt{company\_members} und
+\texttt{company\_invites} ermöglichen Firmenflüge und Einladungen.
+\textbf{(4) E-Mail- und Kalenderintegration:} \texttt{email\_accounts}, \texttt{email\_imports} sowie
+\texttt{calendar\_accounts} dienen dem automatischen Import von Buchungsdaten.
+\textbf{(5) Weitere Features:} \texttt{notifications} (Push-Reminder), \texttt{achievements} und
+\texttt{user\_achievements} (Gamification), \texttt{note\_templates} und \texttt{checklist\_templates} für Vorlagen.
+\textbf{(6) Stammdaten:} \texttt{airports} enthält IATA/ICAO-Codes und Koordinaten für Routenberechnung.
+Alle Tabellen sind über RLS an \texttt{auth.uid()} bzw.\ \texttt{profile\_id} gebunden.
+
 % ============================================================
 \subsection{Datenmodell \& Tabellenstruktur}
 % ============================================================
@@ -233,17 +249,26 @@ CREATE TABLE IF NOT EXISTS public.user_flights (
 );
 \end{lstlisting}
 
-% Screenshot Supabase Table Editor
+% Screenshot Supabase Table Editor (user_flights)
+\IfFileExists{img/fehlende_bilder/supabase_table_editor/image.png}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{fehlende_bilder/supabase_table_editor/image}
+  \caption{Tabellenstruktur von \texttt{user\_flights} im Supabase Table Editor}
+  \label{fig:supabase_table_editor}
+\end{figure}%
+}{%
 \begin{figure}[H]
   \centering
   \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
-    \textbf{TODO: Screenshot einfügen}\\[0.3cm]
+    \textbf{Platzhalter: Screenshot einfügen}\\[0.3cm]
     Supabase Dashboard $\rightarrow$ Table Editor $\rightarrow$ Tabelle \texttt{user\_flights}\\
     (Spaltenübersicht mit Typen, FKs und Constraints sichtbar)
     \vspace{1.2cm}}}
   \caption{Tabellenstruktur von \texttt{user\_flights} im Supabase Table Editor}
   \label{fig:supabase_table_editor}
-\end{figure}
+\end{figure}%
+}
 
 Tabelle~\ref{tab:user_flights_felder} fasst die wichtigsten Felder zusammen:
 
@@ -652,12 +677,33 @@ CREATE POLICY "notes_delete_own" ON public.user_notes
   FOR DELETE USING (profile_id = auth.uid());
 \end{lstlisting}
 
+\IfFileExists{img/fehlende_bilder/supabase_rls/user_flights-policies.png}{%
 \begin{figure}[H]
   \centering
-  \roundedimg[width=0.82\textwidth]{07_supabase_rls/user_flights-policies}
+  \roundedimg[width=0.82\textwidth]{fehlende_bilder/supabase_rls/user_flights-policies}
   \caption{Row-Level-Security-Policies im Supabase Dashboard}
   \label{fig:supabase_rls}
-\end{figure}
+\end{figure}%
+}{%
+\IfFileExists{img/fehlende_bilder/supabase_rls/image.png}{%
+\begin{figure}[H]
+  \centering
+  \roundedimg[width=0.82\textwidth]{fehlende_bilder/supabase_rls/image}
+  \caption{Row-Level-Security-Policies im Supabase Dashboard}
+  \label{fig:supabase_rls}
+\end{figure}%
+}{%
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
+    \textbf{Platzhalter: RLS-Policies Screenshot}\\[0.3cm]
+    Supabase Dashboard $\rightarrow$ Table Editor $\rightarrow$ user\_flights $\rightarrow$ RLS Policies\\
+    (Policies für SELECT, INSERT, UPDATE, DELETE sichtbar)
+    \vspace{1.2cm}}}
+  \caption{Row-Level-Security-Policies im Supabase Dashboard}
+  \label{fig:supabase_rls}
+\end{figure}%
+}}
 
 In der App-Logik wird die Beziehung ebenfalls explizit genutzt.
 Listing~\ref{lst:get_notes} zeigt die Abfrage von Notizen pro Flug in
@@ -800,12 +846,61 @@ await supabase.from('flight_documents').update({
 }).eq('id', documentId);
 \end{lstlisting}
 
+% Storage-Bucket: Dokumentenübersicht
+\IfFileExists{img/fehlende_bilder/storage_bucket/storage-bucket.png}{%
 \begin{figure}[H]
   \centering
-  \roundedimg[width=0.82\textwidth]{08_storage_bucket/buckets}
+  \roundedimg[width=0.88\textwidth]{fehlende_bilder/storage_bucket/storage-bucket}
+  \caption{Storage-Bucket \texttt{flight-documents}: Dokumentenübersicht im Supabase Dashboard}
+  \label{fig:supabase_storage}
+\end{figure}%
+}{%
+\IfFileExists{img/fehlende_bilder/storage_bucket/buckets.png}{%
+\begin{figure}[H]
+  \centering
+  \roundedimg[width=0.88\textwidth]{fehlende_bilder/storage_bucket/buckets}
   \caption{Storage-Bucket \texttt{flight-documents} im Supabase Dashboard}
   \label{fig:supabase_storage}
-\end{figure}
+\end{figure}%
+}{%
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}
+    \textbf{Platzhalter: Storage-Bucket (Dokumente)}\\[0.3cm]
+    Supabase $\rightarrow$ Storage $\rightarrow$ Bucket \texttt{flight-documents}\\
+    \vspace{1.2cm}}}
+  \caption{Storage-Bucket \texttt{flight-documents}: Dokumentenübersicht}
+  \label{fig:supabase_storage}
+\end{figure}%
+}
+}
+% Storage-Bucket: Policies
+\IfFileExists{img/fehlende_bilder/storage_bucket/storage-bucket-policies.png}{%
+\begin{figure}[H]
+  \centering
+  \roundedimg[width=0.88\textwidth]{fehlende_bilder/storage_bucket/storage-bucket-policies}
+  \caption{Storage-Bucket \texttt{flight-documents}: Zugriffs-Policies}
+  \label{fig:supabase_storage_policies}
+\end{figure}%
+}{%
+\IfFileExists{img/fehlende_bilder/storage_bucket/image copy.png}{%
+\begin{figure}[H]
+  \centering
+  \roundedimg[width=0.88\textwidth]{fehlende_bilder/storage_bucket/image copy}
+  \caption{Storage-Bucket \texttt{flight-documents}: Zugriffs-Policies}
+  \label{fig:supabase_storage_policies}
+\end{figure}%
+}{%
+\IfFileExists{img/fehlende_bilder/storage_bucket/policies.png}{%
+\begin{figure}[H]
+  \centering
+  \roundedimg[width=0.88\textwidth]{fehlende_bilder/storage_bucket/policies}
+  \caption{Storage-Bucket \texttt{flight-documents}: Zugriffs-Policies}
+  \label{fig:supabase_storage_policies}
+\end{figure}%
+}{}
+}
+}
 
 \begin{figure}[H]
   \centering

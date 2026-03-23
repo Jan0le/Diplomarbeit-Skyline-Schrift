@@ -1,0 +1,20 @@
+BILDBESCHREIBUNG: supabase_table_editor (user_flights)
+======================================================
+
+Dateiname:      image.png (oder supabase_table_editor.png)
+Zielordner:     img/fehlende_bilder/supabase_table_editor/
+
+Was darstellen:
+---------------
+Tabellenstruktur von user_flights im Supabase Table Editor.
+Screenshot mit Spaltenübersicht, Datentypen, Foreign Keys und Constraints.
+Zeigt die tatsächliche Implementierung der Kern-Tabelle für Flüge.
+
+Wird in Kapitel 6 (Datenverwaltung) als Abb. 6.2 eingebunden –
+neben der Feldtabelle (Tab. user_flights_felder).
+
+So erstellen:
+-------------
+1. Supabase Dashboard → Table Editor → Tabelle „user_flights“ auswählen
+2. Screenshot der Spalten- und Typenübersicht (ggf. leicht zoomen für Lesbarkeit)
+3. Wichtig: id, profile_id, from_airport_id, to_airport_id, date, status etc. sichtbar

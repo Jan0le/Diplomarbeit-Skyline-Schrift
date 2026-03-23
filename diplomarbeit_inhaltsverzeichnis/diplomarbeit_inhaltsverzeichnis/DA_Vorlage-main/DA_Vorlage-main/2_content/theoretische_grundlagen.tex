@@ -1,7 +1,7 @@
 %!TEX root = ../DA_MainDocument.tex
-\chapter{Theoretische Grundlagen}
+\chapter{Theoretische Grundlagen}\label{chapter:theorie}
 
-\section{Mobile Reiseorganisation und digitale Workflows}
+\section{Mobile Reiseorganisation und digitale Workflows (Jan-Ole Baumgartner)}
 
 Mobile Reiseorganisation ist ein Anwendungsfall des \textbf{Personal Information
 Management (PIM)}: Nutzerinnen und Nutzer müssen Informationen erfassen,
@@ -327,7 +327,7 @@ bis zur Nachbereitung -- zusammen, wie er in Skyline unterstützt wird:
   \label{fig:user_workflow_upload_remind}
 \end{figure}
 
-\section{Grundlagen des automatischen Imports}
+\section{Grundlagen des automatischen Imports (Boris Plesnicar)}
 
 \subsection{Zielsetzung und Nutzen}
 
@@ -365,13 +365,12 @@ Die Pflichtfelder umfassen den Abflug- und Zielflughafen (3-stellige IATA-Codes)
 Diese Kernfelder reichen aus, um einen validen Flug-Datensatz anzulegen.
 Optionale Felder -- wie Sitzplatz, Gate, Buchungsreferenz, Frequent-Flyer-Nummer oder Sicherheitsinformationen -- sind zwar im Standard vorgesehen, werden aber nicht von allen Airlines befüllt \cite{ewingBoardingPassBarcode}.
 
-% BCBP-Struktur: Aus IATA Implementation Guide S.\,49 ff.\ oder
-% \url{https://slideplayer.com/slide/12543027/} herunterladen und als bcbp_structure.png in content/img/ ablegen.
-\IfFileExists{content/img/bcbp_structure.png}{%
+% BCBP-Struktur: Beispielbild BCBP-Code (Boarding Pass). Quelle: Bubble Forum.
+\IfFileExists{img/fehlende_bilder/bcbp_structure/image.png}{%
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{bcbp_structure}
-  \caption{BCBP Feldstruktur (Übersicht). \cite{slideplayerBCBP}}
+  \includegraphics[width=0.85\textwidth]{fehlende_bilder/bcbp_structure/image}
+  \caption{BCBP Feldstruktur – Beispielbild eines BCBP-Codes (Boarding Pass). \cite{bubbleForumBCBP}}
   \label{fig:bcbp_structure}
 \end{figure}%
 }{}
@@ -394,10 +393,10 @@ Nach der OCR müssen die extrahierten Texte geparst und relevanten Feldern zugeo
 Plausibilitätsprüfungen -- etwa die Überprüfung ob ein erkannter Code einem validen IATA-Flughafencode entspricht oder ob ein Datum im korrekten Format vorliegt -- sind dabei essenziell, um fehlerhafte OCR-Ausgaben frühzeitig abzufangen.
 
 % OCR-Pipeline: \url{https://theailearner.com} (OCR-pipeline.png) herunterladen und als ocr_pipeline.png in content/img/ ablegen.
-\IfFileExists{content/img/ocr_pipeline.png}{%
+\IfFileExists{img/fehlende_bilder/ocr_pipeline/IMG_5191.PNG}{%
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.75\textwidth]{ocr_pipeline}
+  \includegraphics[width=0.75\textwidth]{IMG_5191}
   \caption{OCR-Prozess (Pipeline). \cite{theailearnerOCR}}
   \label{fig:ocr_pipeline}
 \end{figure}%
@@ -454,7 +453,7 @@ Die UI darf während dieser Zeit nicht einfrieren; die Verarbeitung ist daher as
 Automatisierter Import ist insbesondere für vielreisende Nutzer mit hohem Datenvolumen deutlich überlegen.
 Manueller Import bleibt jedoch als unverzichtbarer Fallback und für Korrekturen bestehen.
 
-\section{Grundlagen visueller Flugrouten-Darstellung}
+\section{Grundlagen visueller Flugrouten-Darstellung (Boris Plesnicar)}
 
 \subsection{Charakteristika und Nutzen}
 
@@ -508,7 +507,7 @@ Dieser Wert kann dazu genutzt werden, einen animierten Punkt entlang des Großkr
   \label{fig:haversine_sketch}
 \end{figure}
 
-\section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement}
+\section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement (Jan-Ole Baumgartner)}
 
 Proaktive Benachrichtigungssysteme verfolgen das Ziel, relevante Informationen nicht erst auf explizite Nutzeranfrage bereitzustellen, sondern situations- und zeitgerecht automatisch auszuliefern. In der Literatur wird diese Logik häufig als Gegenüberstellung von \glqq Push\grqq{} (System initiiert die Informationsbereitstellung) und \glqq Pull\grqq{} (Nutzer initiiert die Informationsabfrage) diskutiert \cite{mehrotra2018intelligent}. Push-Ansätze sind insbesondere dann sinnvoll, wenn Handlungen an Zeitfenster gebunden sind oder wenn das Versäumen einer Handlung hohe Kosten verursacht (z.\,B. verpasster Check-in oder Gate-Schluss).
 
@@ -596,7 +595,7 @@ Konzeptionell lässt sich ein proaktives Reise-Benachrichtigungssystem als Pipel
 
 Triggerzeiten werden als Offsets relativ zu departureAt/arrivalAt berechnet. Technisch kritisch ist die Zeitzonen- und Sommerzeitkorrektheit. Für Persistenz sind hybride Strategien robust: lokale Persistenz ermöglicht Offline-Fähigkeit; serverseitige Persistenz ermöglicht Rescheduling bei Datenänderungen. Deep Links transformieren Benachrichtigungen von \glqq Info\grqq{} zu \glqq Handlung\grqq{}: Der Tap führt direkt in die Flugdetails \cite{applePushPrimer2020}. Das Berechtigungs-Prompt sollte nicht sofort, sondern \textbf{im Kontext der Funktion} (z.\,B. nach Anlegen eines Flugs) erscheinen \cite{applePushPrimer2020}. Fehlende oder ungültige Zeitpunkte werden abgefangen; bei widersprüchlichen Daten ist eine degradierte Strategie sinnvoll (nur statische Reminder oder Umstellung auf Pull).
 
-\section{Zentrale Datenverwaltung und Sicherheit für eine mobile Reiseorganisations-App}
+\section{Zentrale Datenverwaltung und Sicherheit für eine mobile Reiseorganisations-App (Jan-Ole Baumgartner)}
 
 \subsection{Einordnung und Zielsetzung}
 Eine mobile Reiseorganisations-App ist nur dann nachhaltig nützlich, wenn sie
@@ -836,7 +835,7 @@ Die DSGVO wirkt unmittelbar auf technische Entscheidungen:
 Diese Anforderungen sind für eine Reiseorganisations-App nicht optional, sondern
 Teil der Kernfunktionalität \cite{gdpr}.
 
-\section{Anforderungen an eine mobile Reiseorganisations-App}
+\section{Anforderungen an eine mobile Reiseorganisations-App (Jan-Ole Baumgartner)}
 \subsection{Durchgängiger Datenfluss}
 Der fachliche Kern ist ein stabiler End-to-End-Fluss:
 \textbf{Import} $\rightarrow$ \textbf{Validierung} $\rightarrow$
@@ -894,7 +893,7 @@ benötigen konsistente Zeitdaten und Privacy Controls am Sperrbildschirm
 Betriebssystem Anzeige und Zustellung über APNs; Nutzer erteilen per
 System-Dialog explizit die Erlaubnis.
 
-\section{Technische Grundlagen der mobilen App-Entwicklung}
+\section{Technische Grundlagen der mobilen App-Entwicklung (Boris Plesnicar)}
 \subsection{Cross-Platform-Frontend mit React Native und Expo}
 React Native ermöglicht plattformübergreifende UI- und Logikentwicklung für
 iOS und Android \cite{reactNative}. Skyline wurde dabei primär für \textbf{iOS} entwickelt und im \textbf{Apple App Store} verfügbar; Android wird als sekundäre Zielplattform

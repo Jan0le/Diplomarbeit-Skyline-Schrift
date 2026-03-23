@@ -1,0 +1,23 @@
+================================================================================
+  FEHLENDE BILDER FÜR DIE DIPLOMARBEIT – ÜBERSICHT
+================================================================================
+
+Jedes Bild hat einen eigenen Ordner mit bildbeschreibung.txt.
+In jeder bildbeschreibung.txt steht: Dateiname, Zielordner und Inhalt.
+
+Ordnerstruktur:
+---------------
+img/fehlende_bilder/
+  additionflow/        bildbeschreibung.txt
+  uploads/             bildbeschreibung.txt
+  map/                 bildbeschreibung.txt
+  bcbp_structure/      bildbeschreibung.txt  (optional)
+  ocr_pipeline/        bildbeschreibung.txt   (optional)
+  Onboarding_01/       bildbeschreibung.txt
+  Onboarding_02/       bildbeschreibung.txt
+  verlauf-rueckfragen/ bildbeschreibung.txt
+
+Lege jedes Bild gemäß der Angaben in der jeweiligen bildbeschreibung.txt 
+im richtigen Zielordner ab und benenne es exakt wie angegeben.
+
+================================================================================

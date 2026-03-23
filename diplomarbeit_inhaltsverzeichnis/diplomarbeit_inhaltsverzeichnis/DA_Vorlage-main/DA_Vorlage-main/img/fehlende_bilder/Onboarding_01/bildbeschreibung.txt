@@ -1,0 +1,15 @@
+BILDBESCHREIBUNG: Onboarding_01
+===============================
+
+Dateiname:      Onboarding_01.png
+Zielordner:     deployment/screens/
+(Vollständig:   deployment/screens/Onboarding_01.png)
+
+Was darstellen:
+---------------
+Erster App-Store-Screenshot für Skyline (iPhone 6,5"). Eines der bei Apple 
+eingereichten Store-Bilder – z.B. erste Onboarding-Seite oder Startbildschirm. 
+Wird in Kapitel 4 (Systemarchitektur) als „Store-Screenshots“ gezeigt.
+
+Tipp: SkylineApp/assets/images/onboarding1.png kann als Vorlage dienen – 
+kopieren und umbenennen.

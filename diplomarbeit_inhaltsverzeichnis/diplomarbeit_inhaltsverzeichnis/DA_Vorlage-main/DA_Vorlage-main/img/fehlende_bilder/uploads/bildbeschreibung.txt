@@ -1,0 +1,13 @@
+BILDBESCHREIBUNG: uploads
+=========================
+
+Dateiname:      uploads.png
+Zielordner:     content/img/
+(Vollständig:   content/img/uploads.png)
+
+Was darstellen:
+---------------
+Detailansicht der Import-Optionen in Skyline – QR-/Kamera-Scan, Galerie-
+Import und Dateiupload. Screenshot des Import-Screens mit den drei 
+Eingabemöglichkeiten. Wird in Kapitel 5 (Import) rechts neben additionflow.png 
+gezeigt.

@@ -1,0 +1,21 @@
+BILDBESCHREIBUNG: supabase_rls (Row-Level-Security-Policies)
+============================================================
+
+Dateiname:      user_flights-policies.png (oder image.png)
+Zielordner:     img/fehlende_bilder/supabase_rls/
+
+Was darstellen:
+---------------
+Row-Level-Security-Policies im Supabase Dashboard für die Tabelle user_flights.
+Screenshot der Policies-Übersicht (SELECT, INSERT, UPDATE, DELETE) mit
+USING/WITH CHECK auf profile_id = auth.uid().
+
+Wird in Kapitel 6 (Datenverwaltung) als Abb. 6.4 eingebunden –
+zeigt die Sicherheitsregeln im Live-Dashboard.
+
+So erstellen:
+-------------
+1. Supabase Dashboard → Table Editor → user_flights
+2. Oder: Authentication → Policies (falls dort sichtbar)
+3. Oder: Database → Tables → user_flights → RLS Policies
+4. Screenshot der Policies-Liste (z.B. „Users can view own user_flights“ etc.)

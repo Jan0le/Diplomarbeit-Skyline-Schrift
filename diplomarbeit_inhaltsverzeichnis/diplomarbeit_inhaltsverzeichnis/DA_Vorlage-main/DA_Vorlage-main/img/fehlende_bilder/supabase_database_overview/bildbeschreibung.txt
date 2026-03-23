@@ -1,0 +1,21 @@
+BILDBESCHREIBUNG: supabase_database_overview
+============================================
+
+Dateiname:      image.png (oder supabase_database_overview.png)
+Zielordner:     img/fehlende_bilder/supabase_database_overview/
+
+Was darstellen:
+---------------
+Übersicht der gesamten Skyline-Datenbank im Supabase Dashboard.
+Screenshot des Table Editors mit der linken Sidebar, auf der alle Tabellen
+sichtbar sind (profiles, user_flights, user_notes, user_checklists, etc.).
+Alternativ: Screenshot der Supabase „Database“-Ansicht mit Schema-Übersicht.
+
+Wird in Kapitel 6 (Datenverwaltung) direkt nach der ER-Diagramm-Abbildung
+(Fig. 6.1) eingebunden – zeigt die tatsächliche Implementierung im Dashboard.
+
+So erstellen:
+-------------
+1. Supabase Dashboard öffnen → Table Editor
+2. Screenshot der linken Seitenleiste mit der Tabellenliste machen
+3. Oder: Database → Schema Visualizer (falls verfügbar)

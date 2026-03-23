@@ -1,0 +1,14 @@
+BILDBESCHREIBUNG: verlauf-rueckfragen
+=====================================
+
+Dateiname:      verlauf-rueckfragen.png
+Zielordner:     deployment/
+(Vollständig:   deployment/verlauf-rueckfragen.png)
+
+Was darstellen:
+---------------
+Verlauf der App-Store-Einreichung bis zur Annahme – Diagramm oder 
+Ablaufdarstellung des Review-Prozesses mit Rückfragen von Apple und 
+finaler Freigabe. Illustriert, wie lange der Prozess gedauert hat und 
+welche Schritte durchlaufen wurden. Wird in Kapitel 4 (Systemarchitektur) 
+gezeigt.

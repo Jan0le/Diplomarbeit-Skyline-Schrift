@@ -1,0 +1,20 @@
+BILDBESCHREIBUNG: storage_bucket (flight-documents)
+===================================================
+
+Dateiname:      buckets.png (oder image.png)
+Zielordner:     img/fehlende_bilder/storage_bucket/
+
+Was darstellen:
+---------------
+Storage-Bucket „flight-documents“ im Supabase Dashboard.
+Screenshot des Storage-Bereichs mit sichtbarem Bucket und ggf. 
+Dateistruktur oder Einstellungen (Public/Private).
+
+Wird in Kapitel 6 (Datenverwaltung) als Abb. 6.6 eingebunden –
+zeigt die Dokumentenablage für Flugdokumente (Boarding Pässe, Buchungsbestätigungen).
+
+So erstellen:
+-------------
+1. Supabase Dashboard → Storage
+2. Bucket „flight-documents“ (oder vergleichbar) auswählen
+3. Screenshot der Bucket-Übersicht mit Name und Policies sichtbar
