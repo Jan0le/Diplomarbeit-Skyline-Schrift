@@ -1,7 +1,7 @@
 %!TEX root = ../DA_MainDocument.tex
 \chapter{Theoretische Grundlagen}\label{chapter:theorie}
 
-\section{Mobile Reiseorganisation und digitale Workflows (Jan-Ole Baumgartner)}
+\section{Mobile Reiseorganisation und digitale Workflows}
 
 Mobile Reiseorganisation ist ein Anwendungsfall des \textbf{Personal Information
 Management (PIM)}: Nutzerinnen und Nutzer müssen Informationen erfassen,
@@ -327,7 +327,9 @@ bis zur Nachbereitung -- zusammen, wie er in Skyline unterstützt wird:
   \label{fig:user_workflow_upload_remind}
 \end{figure}
 
-\section{Grundlagen des automatischen Imports (Boris Plesnicar)}
+\section{Grundlagen des automatischen Imports}
+
+Im Folgenden werden Ziele, typische Datenquellen und technische Anforderungen des automatisierten Flugdatenimports erläutert.
 
 \subsection{Zielsetzung und Nutzen}
 
@@ -453,7 +455,9 @@ Die UI darf während dieser Zeit nicht einfrieren; die Verarbeitung ist daher as
 Automatisierter Import ist insbesondere für vielreisende Nutzer mit hohem Datenvolumen deutlich überlegen.
 Manueller Import bleibt jedoch als unverzichtbarer Fallback und für Korrekturen bestehen.
 
-\section{Grundlagen visueller Flugrouten-Darstellung (Boris Plesnicar)}
+\section{Grundlagen visueller Flugrouten-Darstellung}
+
+Die visuelle Darstellung von Flugrouten auf einer Karte ergänzt tabellarische Fluglisten um eine räumliche Perspektive; die folgenden Abschnitte fassen Nutzen, Anforderungen und Berechnungsgrundlagen zusammen.
 
 \subsection{Charakteristika und Nutzen}
 
@@ -507,7 +511,7 @@ Dieser Wert kann dazu genutzt werden, einen animierten Punkt entlang des Großkr
   \label{fig:haversine_sketch}
 \end{figure}
 
-\section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement (Jan-Ole Baumgartner)}
+\section{Proaktive Benachrichtigungssysteme und Erinnerungsmanagement}
 
 Proaktive Benachrichtigungssysteme verfolgen das Ziel, relevante Informationen nicht erst auf explizite Nutzeranfrage bereitzustellen, sondern situations- und zeitgerecht automatisch auszuliefern. In der Literatur wird diese Logik häufig als Gegenüberstellung von \glqq Push\grqq{} (System initiiert die Informationsbereitstellung) und \glqq Pull\grqq{} (Nutzer initiiert die Informationsabfrage) diskutiert \cite{mehrotra2018intelligent}. Push-Ansätze sind insbesondere dann sinnvoll, wenn Handlungen an Zeitfenster gebunden sind oder wenn das Versäumen einer Handlung hohe Kosten verursacht (z.\,B. verpasster Check-in oder Gate-Schluss).
 
@@ -595,7 +599,9 @@ Konzeptionell lässt sich ein proaktives Reise-Benachrichtigungssystem als Pipel
 
 Triggerzeiten werden als Offsets relativ zu departureAt/arrivalAt berechnet. Technisch kritisch ist die Zeitzonen- und Sommerzeitkorrektheit. Für Persistenz sind hybride Strategien robust: lokale Persistenz ermöglicht Offline-Fähigkeit; serverseitige Persistenz ermöglicht Rescheduling bei Datenänderungen. Deep Links transformieren Benachrichtigungen von \glqq Info\grqq{} zu \glqq Handlung\grqq{}: Der Tap führt direkt in die Flugdetails \cite{applePushPrimer2020}. Das Berechtigungs-Prompt sollte nicht sofort, sondern \textbf{im Kontext der Funktion} (z.\,B. nach Anlegen eines Flugs) erscheinen \cite{applePushPrimer2020}. Fehlende oder ungültige Zeitpunkte werden abgefangen; bei widersprüchlichen Daten ist eine degradierte Strategie sinnvoll (nur statische Reminder oder Umstellung auf Pull).
 
-\section{Zentrale Datenverwaltung und Sicherheit für eine mobile Reiseorganisations-App (Jan-Ole Baumgartner)}
+\section{Zentrale Datenverwaltung und Sicherheit für eine mobile Reiseorganisations-App}
+
+Dieser Abschnitt ordnet zentrale Datenhaltung, Konsistenz und Sicherheit im Kontext einer mobilen Reise-App ein und leitet konkrete Anforderungen ab.
 
 \subsection{Einordnung und Zielsetzung}
 Eine mobile Reiseorganisations-App ist nur dann nachhaltig nützlich, wenn sie
@@ -835,7 +841,10 @@ Die DSGVO wirkt unmittelbar auf technische Entscheidungen:
 Diese Anforderungen sind für eine Reiseorganisations-App nicht optional, sondern
 Teil der Kernfunktionalität \cite{gdpr}.
 
-\section{Anforderungen an eine mobile Reiseorganisations-App (Jan-Ole Baumgartner)}
+\section{Anforderungen an eine mobile Reiseorganisations-App}
+
+Aus den bisherigen Grundlagen lassen sich übergreifende Anforderungen an Datenfluss, Import, Validierung und Integration formulieren.
+
 \subsection{Durchgängiger Datenfluss}
 Der fachliche Kern ist ein stabiler End-to-End-Fluss:
 \textbf{Import} $\rightarrow$ \textbf{Validierung} $\rightarrow$
@@ -893,7 +902,10 @@ benötigen konsistente Zeitdaten und Privacy Controls am Sperrbildschirm
 Betriebssystem Anzeige und Zustellung über APNs; Nutzer erteilen per
 System-Dialog explizit die Erlaubnis.
 
-\section{Technische Grundlagen der mobilen App-Entwicklung (Boris Plesnicar)}
+\section{Technische Grundlagen der mobilen App-Entwicklung}
+
+Abschließend werden die gewählten Technologien für Frontend, Backend und Architekturentscheidungen skizziert.
+
 \subsection{Cross-Platform-Frontend mit React Native und Expo}
 React Native ermöglicht plattformübergreifende UI- und Logikentwicklung für
 iOS und Android \cite{reactNative}. Skyline wurde dabei primär für \textbf{iOS} entwickelt und im \textbf{Apple App Store} verfügbar; Android wird als sekundäre Zielplattform
